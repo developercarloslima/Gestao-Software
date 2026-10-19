@@ -51,6 +51,8 @@ jobs:
           DATABASE_USERNAME: gestao
           DATABASE_PASSWORD: ci_password
           AUTH_TOKEN_SECRET: ci-control-plane-secret-string-2026-change-me
+          GESTAO_BOOTSTRAP_CARLOS_PASSWORD: ci-carlos-unique-secret-boot-2026
+          GESTAO_BOOTSTRAP_PEDRO_PASSWORD: ci-pedro-unique-secret-boot-2026
           TENANT_TEMPLATE_CERTIFIED: 'false'
           AUTO_PROVISION_ENABLED: 'false'
           CLOUD_ORCHESTRATOR_ENABLED: 'false'
@@ -69,6 +71,11 @@ jobs:
           done
           tail -n 120 ci-gestao.log
           test "$ok" -eq 1
+      - name: Validar seguranca do bootstrap dos donos
+        run: |
+          grep -q "RENDER_BOOTSTRAP_REQUIRED_V9" backend/src/main/resources/db/migration/V9__disable_legacy_bootstrap_credentials.sql
+          grep -q "GESTAO_BOOTSTRAP_CARLOS_PASSWORD" backend/src/main/java/br/com/gestaosoftware/control/service/PlatformUserService.java
+          grep -q "GESTAO_BOOTSTRAP_PEDRO_PASSWORD" backend/src/main/java/br/com/gestaosoftware/control/service/PlatformUserService.java
       - name: Docker build do backend e site
         run: |
           docker build -f backend/Dockerfile backend

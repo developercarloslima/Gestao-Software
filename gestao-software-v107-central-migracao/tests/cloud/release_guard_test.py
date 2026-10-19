@@ -22,7 +22,7 @@ def main():
     mgmt=(C/'service/PlatformManagementService.java').read_text()
     deletion=mgmt[mgmt.index('public void deleteCompany'):mgmt.index('public Map<String, Object> saveCompanyFile')]
     check('exclusão de empresa proíbe apagar histórico financeiro, contratos e deploys', all(s in deletion for s in ('platform_company_invoices','platform_company_contracts','gs_deployments','gs_cloud_domains')) and 'DELETE FROM platform_company_invoices' not in deletion)
-    check('migrações de banco v1-v8 permanecem sem novas substituições', len(list((ROOT/'backend/src/main/resources/db/migration').glob('V*.sql')))==8)
+    check('migrações de banco v1-v8 preservadas e apenas V9 aditiva', sorted(int(f.name.split('__')[0][1:]) for f in (ROOT/'backend/src/main/resources/db/migration').glob('V*.sql'))==list(range(1,10)) and (ROOT/'backend/src/main/resources/db/migration/V9__disable_legacy_bootstrap_credentials.sql').exists())
     print('RESULT: 7 checks of static release safety (not transactional integration tests).')
 
 if __name__=='__main__':main()

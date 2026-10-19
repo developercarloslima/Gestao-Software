@@ -55,17 +55,31 @@ public class PlatformUserService {
         return session(current.username());
     }
 
+    /** Nunca publicar contas iniciais com senhas conhecidas no Render. */
     @Transactional
     public void ensureOwners() {
-        ensureOwner("carlos.lima", "Carlos Lima");
-        ensureOwner("pedro.henrique", "Pedro Henrique");
+        ensureOwner("carlos.lima", "Carlos Lima", "GESTAO_BOOTSTRAP_CARLOS_PASSWORD");
+        ensureOwner("pedro.henrique", "Pedro Henrique", "GESTAO_BOOTSTRAP_PEDRO_PASSWORD");
     }
 
-    private void ensureOwner(String username, String displayName) {
-        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM gs_users WHERE username=?", Integer.class, username);
-        if (count != null && count > 0) return;
-        jdbc.update("INSERT INTO gs_users(username, display_name, password_hash, must_change_password, active, created_at, updated_at) VALUES (?,?,?,TRUE,TRUE,NOW(),NOW())",
-                username, displayName, encoder.encode("nh2027"));
+    private void ensureOwner(String username, String displayName, String envName) {
+        var rows = jdbc.query("SELECT password_hash FROM gs_users WHERE username=?",
+                (rs, row) -> rs.getString("password_hash"), username);
+        if (!rows.isEmpty() && !"RENDER_BOOTSTRAP_REQUIRED_V9".equals(rows.getFirst())
+                && !encoder.matches("nh2027", rows.getFirst())) return;
+
+        String secret = System.getenv(envName);
+        if (secret == null || secret.length() < 16 || "nh2027".equals(secret)) {
+            throw new IllegalStateException("A conta inicial " + username
+                    + " exige um segredo exclusivo de 16+ caracteres: " + envName);
+        }
+        if (rows.isEmpty()) {
+            jdbc.update("INSERT INTO gs_users(username, display_name, password_hash, must_change_password, active, created_at, updated_at) VALUES (?,?,?,TRUE,TRUE,NOW(),NOW())",
+                    username, displayName, encoder.encode(secret));
+        } else {
+            jdbc.update("UPDATE gs_users SET password_hash=?, must_change_password=TRUE, active=TRUE, updated_at=NOW() WHERE username=?",
+                    encoder.encode(secret), username);
+        }
     }
 
     private String normalize(String value) { return value == null ? "" : value.trim().toLowerCase(Locale.ROOT); }

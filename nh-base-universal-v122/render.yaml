@@ -1,0 +1,100 @@
+databases:
+  - name: nh122-hml-db
+    plan: free
+    region: virginia
+    databaseName: nh122_hml
+    user: nh122_hml
+    postgresMajorVersion: "16"
+services:
+  - type: web
+    name: nh122-hml-api
+    runtime: docker
+    plan: free
+    region: virginia
+    rootDir: backend
+    dockerfilePath: ./Dockerfile.tenant
+    dockerContext: .
+    autoDeployTrigger: "off"
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_HOST
+        fromDatabase: {name: nh122-hml-db, property: host}
+      - key: DATABASE_PORT
+        fromDatabase: {name: nh122-hml-db, property: port}
+      - key: DATABASE_NAME
+        fromDatabase: {name: nh122-hml-db, property: database}
+      - key: DATABASE_USERNAME
+        fromDatabase: {name: nh122-hml-db, property: user}
+      - key: DATABASE_PASSWORD
+        fromDatabase: {name: nh122-hml-db, property: password}
+      - key: SPRING_PROFILES_ACTIVE
+        value: tenant
+      - key: GS_TENANT_MODE
+        value: "true"
+      - key: TENANT_DISPLAY_NAME
+        value: Protecao Brasil - Homologacao
+      - key: TENANT_LEGAL_NAME
+        value: Laboratorio de Software - Homologacao
+      - key: TENANT_DOCUMENT
+        value: "11222333000181"
+      - key: GESTAO_COMPANY_ID
+        sync: false
+      - key: GESTAO_TENANT_HOST
+        value: nh122-hml-web.onrender.com
+      - key: GESTAO_CONTROL_URL
+        value: https://gs107-hml-api.onrender.com
+      - key: PUBLIC_WEB_URL
+        value: https://nh122-hml-web.onrender.com
+      - key: PUBLIC_API_URL
+        value: https://nh122-hml-web.onrender.com
+      - key: ALLOWED_ORIGINS
+        value: https://nh122-hml-web.onrender.com
+      - key: ADMIN_USERNAME
+        value: admin@homologacao.invalid
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: INITIAL_PORTAL_PASSWORD
+        generateValue: true
+      - key: AUTH_TOKEN_SECRET
+        generateValue: true
+      - key: IMPORT_AES_KEY_BASE64
+        sync: false
+      - key: TENANT_REQUIRES_COMMERCIAL_CATALOG
+        value: "true"
+      - key: TENANT_REQUIRES_PAYMENT_INTEGRATION
+        value: "false"
+      - key: TENANT_REQUIRES_PONTO_SETUP
+        value: "false"
+      - key: FIPE_DATASET_SYNC_ENABLED
+        value: "false"
+      - key: DEMO_ASSOCIATE_ENABLED
+        value: "false"
+      - key: ASAAS_ENABLED
+        value: "false"
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Dfile.encoding=UTF-8 -XX:MaxRAMPercentage=65.0"
+  - type: web
+    name: nh122-hml-web
+    runtime: docker
+    plan: free
+    region: virginia
+    rootDir: web
+    dockerfilePath: ./Dockerfile.render
+    dockerContext: .
+    autoDeployTrigger: "off"
+    healthCheckPath: /health
+    envVars:
+      - key: BACKEND_HOST
+        fromService: {type: web, name: nh122-hml-api, property: host}
+      - key: BACKEND_PORT
+        fromService: {type: web, name: nh122-hml-api, property: port}
+      - key: PONTO_HOST
+        value: 127.0.0.1
+      - key: PONTO_PORT
+        value: "3333"
+      - key: HINOVA_HOST
+        value: 127.0.0.1
+      - key: HINOVA_PORT
+        value: "3001"
+      - key: BACKEND_API_URL
+        value: ""
