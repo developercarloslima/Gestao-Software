@@ -15,18 +15,28 @@ public class TenantPortalBootstrapConfig implements ApplicationRunner {
     private final String login;
     private final String secret;
     private final String displayName;
+    private final String host;
+    private final String publicWeb;
+    private final boolean demoSharedPassword;
 
     public TenantPortalBootstrapConfig(PortalUserService users,
             @Value("${app.auth.admin-username}") String login,
             @Value("${app.auth.admin-password}") String secret,
-            @Value("${app.tenant.display-name:}") String displayName) {
+            @Value("${app.tenant.display-name:}") String displayName,
+            @Value("${app.gestao-control.tenant-host:}") String host,
+            @Value("${app.public-web-url:}") String publicWeb,
+            @Value("${app.tenant.demo-shared-password-enabled:false}") boolean demoSharedPassword) {
         this.users=users;
         this.login=login;
         this.secret=secret;
         this.displayName=displayName;
+        this.host=host;
+        this.publicWeb=publicWeb;
+        this.demoSharedPassword=demoSharedPassword;
     }
 
     @Override public void run(ApplicationArguments args) {
-        users.bootstrapTenantAdmin(login,secret,displayName);
+        users.bootstrapTenantAdmin(login,secret,displayName,
+            TenantDemoLoginPolicy.permits(login,secret,host,publicWeb,demoSharedPassword));
     }
 }

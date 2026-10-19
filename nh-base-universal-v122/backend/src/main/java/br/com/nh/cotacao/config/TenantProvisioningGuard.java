@@ -15,6 +15,7 @@ import java.util.Locale;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class TenantProvisioningGuard implements ApplicationRunner {
     @Value("${app.tenant.mode:false}") private boolean tenantMode;
+    @Value("${app.tenant.demo-shared-password-enabled:false}") private boolean demoSharedPassword;
     @Value("${app.tenant.display-name:}") private String name;
     @Value("${app.tenant.company-id:}") private String companyId;
     @Value("${app.gestao-control.tenant-host:}") private String host;
@@ -31,7 +32,8 @@ public class TenantProvisioningGuard implements ApplicationRunner {
         if (demo) fail("dados de demonstração não podem ser habilitados no tenant");
         if (blank(name) || blank(companyId) || blank(host) || blank(admin) || blank(publicWeb))
             fail("empresa, ID, domínio, URL e administrador precisam ser configurados");
-        if (password == null || password.length() < 16) fail("senha inicial precisa ter 16+ caracteres");
+        if (password == null || (password.length() < 16 && !TenantDemoLoginPolicy.permits(admin, password, host, publicWeb, demoSharedPassword)))
+            fail("senha inicial exige 16+ caracteres, exceto demonstração Render explicitamente habilitada");
         if (jwtSecret == null || jwtSecret.length() < 32 || jwtSecret.contains("troque-esta-chave"))
             fail("chave JWT precisa ser exclusiva da empresa e ter no mínimo 32 caracteres");
         try { java.util.UUID.fromString(companyId); } catch (IllegalArgumentException e) { fail("ID da empresa precisa ser UUID válido"); }

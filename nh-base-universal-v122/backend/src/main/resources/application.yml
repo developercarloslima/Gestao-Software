@@ -121,6 +121,7 @@ app:
 
   tenant:
     mode: ${GS_TENANT_MODE:false}
+    demo-shared-password-enabled: ${TENANT_DEMO_SHARED_PASSWORD_ENABLED:false}
     catalog-certified: ${TENANT_CATALOG_CERTIFIED:false}
     display-name: ${TENANT_DISPLAY_NAME:}
     company-id: ${GESTAO_COMPANY_ID:}

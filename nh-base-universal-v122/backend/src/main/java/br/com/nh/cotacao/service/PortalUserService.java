@@ -574,11 +574,11 @@ public class PortalUserService {
 
     /** Idempotente: instala apenas o administrador da nova empresa e obriga troca de senha. */
     @Transactional
-    public void bootstrapTenantAdmin(String username, String password, String tenantName) {
+    public void bootstrapTenantAdmin(String username, String password, String tenantName, boolean approvedDemoPassword) {
         String normalized = PortalUser.normalizeUsername(username);
-        if (normalized.isBlank() || password == null || password.length() < 16
+        if (normalized.isBlank() || password == null || (password.length() < 16 && !approvedDemoPassword)
                 || tenantName == null || tenantName.isBlank()) {
-            throw new IllegalStateException("Dados do administrador inicial do tenant são obrigatórios e exigem senha de 16+ caracteres.");
+            throw new IllegalStateException("Dados do administrador inicial são obrigatórios; senhas de demonstração exigem aprovação explícita.");
         }
         Optional<PortalUser> current = repository.findByNormalizedUsername(normalized);
         if (current.isPresent()) {
