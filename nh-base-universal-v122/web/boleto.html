@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="2ª via de boleto Empresa Cliente Proteção Veicular. Informe seu CPF ou CNPJ para consultar boletos disponíveis vinculados ao associado." name="description"/>
+<title>2ª Via de Boleto | Empresa Cliente Proteção Veicular</title>
+  <link rel="icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="shortcut icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="apple-touch-icon" href="/assets/identidade-pendente.svg" />
+  <meta property="og:image" content="" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:image" content="" />
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=League+Spartan:wght@600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet"/>
+<link href="style.css?v=20260815-responsive-cotacao" rel="stylesheet"/>
+  <link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24">
+  <link rel="stylesheet" href="/shared/brand-system.css?v=20260807-modals-v5">
+
+  <style id="nh-dev-credit-style">
+    .nh-dev-credit {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px 10px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: .01em;
+      opacity: .56;
+      color: inherit;
+    }
+    .nh-dev-credit a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .nh-dev-credit a:hover,
+    .nh-dev-credit a:focus-visible {
+      text-decoration: underline;
+      opacity: .95;
+    }
+    @media (max-width: 640px) {
+      .nh-dev-credit {
+        padding: 7px 10px 9px;
+        font-size: 10px;
+        opacity: .52;
+      }
+    }
+  </style>
+<link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24" />
+  <script src="/shared/gestao-branding.js" defer></script>
+</head>
+<body>
+<header class="site-header" id="inicio">
+<div class="container nav-wrapper">
+<a aria-label="Empresa Cliente Proteção Veicular" class="brand" href="index.html#inicio">
+<img alt="Símbolo oficial Empresa Cliente" class="brand-symbol" src="assets/identidade-pendente.svg"/>
+<span class="brand-name">
+<strong>Empresa Cliente</strong>
+<small>Proteção Veicular</small>
+</span>
+</a>
+<a class="header-phone" href="tel:08005900656" aria-label="Ligar para 0800 590 0656">
+<span>Acionar Assistência 24H</span>
+</a>
+<button aria-expanded="false" aria-label="Abrir menu" class="menu-toggle" type="button">
+<span></span>
+<span></span>
+<span></span>
+</button>
+<nav aria-label="Menu principal" class="main-menu">
+          <a class="assistance-menu-link" href="tel:08005900656">Acionar Assistência 24H</a>
+<a href="index.html#inicio">Início</a>
+<a href="index.html#vantagens">Vantagens</a>
+<a href="index.html#aplicativo">Aplicativo</a>
+<a class="active" href="boleto.html">2ª Via Boleto</a>
+<a href="escritorios.html">Escritórios</a>
+<a href="#contato">Contato</a>
+<a class="collaborator-menu-link" href="/colaborador/">Área do Colaborador</a>
+</nav>
+<a aria-haspopup="dialog" class="header-cta cotacao-trigger" href="#">
+<i aria-hidden="true" class="fa-brands fa-whatsapp wa-icon" style="color: #070c40"></i>
+          Faça sua cotação
+        </a>
+</div>
+</header>
+<main class="boleto-page-main">
+<section class="boleto-page-section section-padding" id="boleto">
+<div class="container">
+<nav aria-label="Caminho da página" class="breadcrumb-path">
+<a href="index.html#inicio">Início</a>
+<span>›</span>
+<strong>2ª Via de Boleto</strong>
+</nav>
+<div class="section-heading compact">
+<span>2ª via boleto</span>
+<h1>Acesse sua segunda via de forma rápida.</h1>
+<p class="section-description">Informe seu CPF ou CNPJ para consultar todos os boletos disponíveis vinculados ao seu cadastro.</p>
+</div>
+<div class="boleto-page-card boleto-flow-card">
+<div class="boleto-page-icon">
+<i class="fa-regular fa-file-lines" style="color: #f0f000"></i>
+</div>
+<div class="boleto-flow-content">
+<span>Atendimento financeiro</span>
+<h2>Consulte seus boletos</h2>
+<form class="boleto-form" id="boletoBuscaForm">
+<label>
+    CPF ou CNPJ do associado
+    <input autocomplete="off" id="boletoDocumento" inputmode="numeric" name="documento" placeholder="Digite seu CPF ou CNPJ" required="" type="text"/>
+</label>
+<div class="boleto-page-actions">
+<button class="primary-button" type="submit">
+      Consultar boletos
+    </button>
+<a class="secondary-button" href="index.html#inicio">Voltar para o início</a>
+</div>
+</form>
+<p aria-live="polite" class="boleto-form-message" id="boletoFormMessage"></p>
+<section class="boleto-result-area" hidden="" id="boletoAssociadoArea">
+<div class="boleto-result-header boleto-result-header--inline">
+<div>
+<small>Consulta realizada</small>
+<strong id="boletoAssociadoNome">Associado</strong>
+</div>
+<button class="boleto-link-button" id="boletoNovaBusca" type="button">
+      Fazer nova busca
+    </button>
+</div>
+</section>
+<section class="boleto-result-area" hidden="" id="boletoBoletosArea">
+<div class="boleto-result-title">
+<h3>Boletos disponíveis</h3>
+<p id="boletoResumo">Selecione o boleto desejado para abrir/imprimir.</p>
+</div>
+<div class="boleto-list" id="boletoList"></div>
+</section>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="site-footer site-footer--compact" id="contato">
+<div class="container footer-compact">
+<div class="footer-compact-top">
+<article class="footer-compact-item footer-compact-contact">
+<div aria-hidden="true" class="footer-compact-icons">
+<i class="fa-solid fa-phone"></i>
+<i class="fa-regular fa-envelope"></i>
+</div>
+<div class="footer-compact-text">
+<h3>Contato</h3>
+<a href="tel:08005900656">0800 590 0656</a>
+<a href="mailto:contato@empresa.invalid">contato@empresa.invalid</a>
+</div>
+</article>
+<article class="footer-compact-item footer-compact-hours">
+<div aria-hidden="true" class="footer-compact-main-icon">
+<i class="fa-regular fa-clock"></i>
+</div>
+<div class="footer-compact-text">
+<h3>Horário de atendimento</h3>
+<p>Segunda a sexta-feira<br/>das 08h às 18h.</p>
+</div>
+</article>
+<article class="footer-compact-item footer-compact-assist">
+<div aria-hidden="true" class="footer-compact-main-icon">
+<i class="fa-solid fa-phone-volume"></i>
+</div>
+<div class="footer-compact-text">
+<h3>Assistência 24h</h3>
+<p>Em casos de emergência<br/>ou solicitação de assistência<br/>24 horas, ligue para:</p>
+<a class="footer-compact-phone" href="tel:08005900656">0800 590 0656</a>
+</div>
+</article>
+</div>
+<div class="footer-compact-address">
+<i aria-hidden="true" class="fa-solid fa-location-dot"></i>
+<div>
+<h3>Endereço</h3>
+<p>Rua Pedro Rosa, 136, Centro, Taquarana - AL <span>|</span> CEP: 57640-000</p>
+</div>
+</div>
+<div class="footer-compact-bottom">
+<p>Associação de Proteção Veicular Empresa Cliente<br/>CNPJ: 38.078.339/0001-83</p>
+<p>© 2021 - <span class="js-current-year">2026</span> Empresa Cliente — Todos os direitos reservados.</p>
+</div>
+</div>
+</footer>
+<aside aria-label="Redes sociais Empresa Cliente" class="floating-social">
+<a aria-label="Instagram Empresa Cliente" href="#" rel="noopener" target="_blank" title="Instagram">
+<i aria-hidden="true" class="fa-brands fa-instagram"></i>
+</a>
+</aside>
+<div aria-hidden="true" class="cotacao-modal" id="cotacaoModal">
+<div class="cotacao-modal__overlay" data-close-cotacao=""></div>
+<section aria-labelledby="cotacaoModalTitle" aria-modal="true" class="cotacao-modal__box cotacao-modal__box--form" role="dialog">
+<div class="cotacao-modal__header">
+<div>
+<span>Faça sua cotação</span>
+<h2 id="cotacaoModalTitle">Seja um associado Empresa Cliente!</h2>
+</div>
+<button aria-label="Fechar formulário" class="cotacao-modal__close" data-close-cotacao="" type="button">
+            ×
+          </button>
+</div>
+<div class="cotacao-modal__form-wrap">
+<div class="cotacao-modal__brand">
+<img alt="Símbolo oficial Empresa Cliente" src="assets/identidade-pendente.svg"/>
+<div>
+<strong>Empresa Cliente</strong>
+<span>Proteção Veicular</span>
+</div>
+</div>
+<form action="https://formsubmit.co/ajax/contato@empresa.invalid" class="cotacao-form" id="cotacaoForm" method="POST">
+<input name="_subject" type="hidden" value="Nova cotação pelo site Empresa Cliente"/>
+<input name="_template" type="hidden" value="table"/>
+<input name="_captcha" type="hidden" value="false"/>
+<input name="Origem" type="hidden" value="Popup de cotação do site Empresa Cliente"/>
+<label>
+              Nome
+              <input autocomplete="name" name="Nome" placeholder="Digite seu nome" required="" type="text"/>
+</label>
+<label>
+              Telefone
+              <input autocomplete="tel" id="cotacaoPhone" inputmode="numeric" maxlength="15" name="Telefone" placeholder="(__) _____-____" required="" type="tel"/>
+</label>
+<label>
+              Placa
+              <input autocomplete="off" id="cotacaoPlate" maxlength="8" name="Placa" placeholder="XXX0000" required="" type="text"/>
+</label>
+<button class="cotacao-form__button" type="submit">Enviar</button>
+<p class="cotacao-form__terms">
+              Ao preencher o formulário, concordo em receber comunicações e
+              estou de acordo com os termos de uso.
+            </p>
+<p aria-live="polite" class="cotacao-form__message" id="cotacaoFormMessage"></p>
+</form>
+</div>
+</section>
+</div>
+<script src="script.js"></script>
+<script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
+
+  <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">
+    Gestao Software LTDA. Projetado e Desenvolvido por
+    <a href="https://www.linkedin.com/in/devcarloslima/" target="_blank" rel="noopener noreferrer">Carlos Lima</a>
+    e
+    Equipe de desenvolvimento.
+  </div>
+  <script defer src="/shared/developer-footer.js?v=20260929-v83-37"></script>
+</body>
+</html>

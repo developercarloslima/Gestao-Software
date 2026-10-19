@@ -1,0 +1,19 @@
+spring:
+  flyway:
+    enabled: true
+    locations: classpath:db/tenant
+    validate-on-migrate: true
+    out-of-order: false
+    ignore-migration-patterns: []
+  jpa:
+    hibernate:
+      ddl-auto: validate
+app:
+  tenant:
+    mode: true
+
+  fipe:
+    dataset:
+      enabled: ${FIPE_DATASET_SYNC_ENABLED:false}
+      initial-delay-ms: 120000
+      check-interval-ms: 21600000

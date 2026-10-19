@@ -1,0 +1,2012 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#070c40" />
+    <title>Painel Administrativo NH</title>
+  <link rel="icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="shortcut icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="apple-touch-icon" href="/assets/identidade-pendente.svg" />
+  <meta property="og:image" content="" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:image" content="" />
+<link
+      rel="stylesheet"
+      href="/shared/portal.css?v=20261006-v83-95"
+    />
+    <link
+      rel="stylesheet"
+      href="/shared/responsive.css?v=20260929-v83-26"
+    />
+    <link
+      rel="stylesheet"
+      href="/shared/brand-system.css?v=20260923-v73"
+    />
+  
+  <style id="nh-dev-credit-style">
+    .nh-dev-credit {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px 10px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: .01em;
+      opacity: .56;
+      color: inherit;
+    }
+    .nh-dev-credit a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .nh-dev-credit a:hover,
+    .nh-dev-credit a:focus-visible {
+      text-decoration: underline;
+      opacity: .95;
+    }
+    @media (max-width: 640px) {
+      .nh-dev-credit {
+        padding: 7px 10px 9px;
+        font-size: 10px;
+        opacity: .52;
+      }
+    }
+    .nh-admin-address-editor { border:1px solid #dce3ed; border-radius:12px; padding:12px; min-width:0; margin:7px 0; }
+  .nh-admin-address-editor legend { font-weight:750; color:#101945; }
+  .nh-admin-address-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .nh-admin-address-grid label,.nh-admin-plan-change label { display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .nh-admin-address-grid input,.nh-admin-address-grid select,.nh-admin-plan-change select { width:100%; min-width:0; box-sizing:border-box; }
+  .nh-admin-cep-control { display:flex; align-items:center; gap:8px; }
+  .nh-admin-cep-control input { flex:1; min-width:0; }
+  .nh-admin-cep-control button { white-space:nowrap; }
+  .nh-admin-plan-change { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:10px; margin:12px 0; }
+  .nh-admin-plan-change p { grid-column:1/-1; margin:0; }
+  #admin-fipe-version { width:100%; min-width:0; }
+  @media(max-width:640px) {.nh-admin-address-grid,.nh-admin-plan-change{grid-template-columns:1fr}.nh-admin-cep-control button{white-space:normal}}
+</style>
+<link rel="stylesheet" href="/shared/responsive.css?v=20260929-v83-26" />
+  <script defer src="/shared/portal-nav.js?v=20260923-v77"></script>
+<link rel="stylesheet" href="/shared/inspection-documents.css?v=20261016-v83-129">
+<style id="nh-v83-137-fipe-catalog">
+  .form-grid label input[list]{background-color:#fff;min-width:0}
+  .form-grid label:has(input[list]){min-width:0}
+  #edit-fipe-brand,#inspection-edit-model,#edit-vehicle-model,#admin-fipe-brand {max-width:100%}
+</style>
+</head>
+  <body class="admin-page">
+    <header class="portal-header">
+      <a class="portal-brand" href="/">
+        <img src="/assets/identidade-pendente.svg" alt="Empresa Cliente" />
+        <span
+          ><strong>Painel Administrativo</strong
+          ><small>Empresa Cliente</small></span
+        >
+      </a>
+      <button class="nh-portal-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="nh-portal-menu"><span></span><span></span><span></span></button><div id="nh-portal-menu" class="header-actions nh-standard-header-actions">
+        <a href="/">Site principal</a>
+        <a href="/colaborador/">Área do Colaborador</a>
+        <a href="/ponto/">Apontamento Digital</a>
+        <a href="/analise/">Analista</a>
+        <a href="/guincho/">Reboque / Guincho</a>
+        <a href="/oficina/">Área da Oficina</a>
+        <a href="/financeiro/">Área do Financeiro</a>
+        <a href="/supervisao/">Supervisor</a>
+        <a href="/admin/">Administrador</a>
+        <a href="/admin/implantacao.html" title="Verificar se o ambiente desta empresa está pronto para liberação">Implantação da empresa</a>
+        <a href="/admin/importacao.html" title="Trazer a lista de clientes da empresa sem apagar os existentes">Importar clientes</a>
+        <button id="logout" type="button" hidden>Sair</button>
+      </div>
+    </header>
+
+    <section id="admin-login" class="login-wrap">
+      <div class="card login-card">
+        <span class="eyebrow" style="color: #070c40"
+          >ACESSO ADMINISTRATIVO</span
+        >
+        <h1>Entrar no painel</h1>
+        <p>
+          Entre com o usuário e a senha administrativos configurados para a
+          plataforma.
+        </p>
+        <form id="admin-login-form" class="form-grid">
+          <label class="span-2"
+            >Usuário administrativo
+            <input id="admin-username" autocomplete="username" required />
+          </label>
+          <label class="span-2"
+            >Senha
+            <input
+              id="admin-password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+          <button class="primary span-2" type="submit">
+            Entrar como administrador
+          </button>
+        </form>
+        <div id="admin-login-message" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <main id="admin-view" class="shell" hidden>
+      <section class="hero-panel">
+        <h1>Gestão da operação Empresa Cliente</h1>
+        <p>
+          Controle usuários, colaboradores, cotações, Retrato NH, planos, valores,
+          benefícios, coberturas dos planos, destinos de envio, arquivos e auditoria.
+        </p>
+      </section>
+      <div id="message" aria-live="polite"></div>
+      <div id="admin-passkey-required-banner" class="passkey-required-banner" hidden>
+        <div>
+          <strong>Cadastre sua biometria/passkey</strong>
+          <p>Esta conta exige uma passkey. Você já pode usar o painel, mas precisa cadastrar a nova biometria/passkey para os recursos protegidos e para os próximos logins.</p>
+        </div>
+        <button id="admin-passkey-banner-register" class="primary" type="button">Cadastrar biometria/passkey</button>
+      </div>
+
+      <div class="admin-tabs" aria-label="Seções do painel">
+        <button type="button" data-tab="overview" class="active">
+          Visão geral
+        </button>
+        <button type="button" data-tab="activities">Atividades</button>
+        <button type="button" data-tab="events">Eventos</button>
+        <button type="button" data-tab="workshop">Oficina</button>
+        <button type="button" data-tab="purchases">Compras de Eventos</button>
+        <button type="button" data-tab="tow">Guincho / Reboque</button>
+        <button type="button" data-tab="nh-ponto">Apontamento Digital</button>
+        <button type="button" data-tab="consultants">Colaboradores</button>
+        <button type="button" data-tab="users">Usuários</button>
+        <button type="button" data-tab="quotes">Cotações</button>
+        <button type="button" data-tab="inspections">Retrato NH</button>
+        <button type="button" data-tab="plans">Planos</button>
+        <button type="button" data-tab="discounts">Descontos</button>
+        <button type="button" data-tab="vehicle-categories">
+          Categorias de veículos
+        </button>
+        <button type="button" data-tab="prices">Valores</button>
+        <button type="button" data-tab="coverages">
+          Benefícios
+        </button>
+        <button type="button" data-tab="settings">Envios</button>
+        <button type="button" data-tab="audit">Auditoria</button>
+      </div>
+
+      <section id="tab-overview">
+        <div class="kpi-grid">
+          <div class="kpi">
+            <span>Colaboradores ativos</span
+            ><strong id="kpi-consultants">—</strong>
+          </div>
+          <div class="kpi">
+            <span>Cotações</span><strong id="kpi-quotes">—</strong>
+          </div>
+          <div class="kpi">
+            <span>Retratos NH</span><strong id="kpi-inspections">—</strong>
+          </div>
+          <div class="kpi">
+            <span>Propostas aceitas</span><strong id="kpi-accepted">—</strong>
+          </div>
+        </div>
+        <div class="overview-grid">
+          <div class="card">
+            <h2>Resumo das cotações</h2>
+            <div id="quote-status-summary" class="status-summary"></div>
+          </div>
+          <div class="card">
+            <h2>Resumo do Retrato NH</h2>
+            <div id="inspection-status-summary" class="status-summary"></div>
+          </div>
+          <div class="card">
+            <h2>Destinos de envio</h2>
+            <p>
+              <strong>E-mail:</strong>
+              <span id="overview-team-email">Não configurado</span>
+            </p>
+            <p>
+              <strong>WhatsApp:</strong>
+              <span id="overview-team-whatsapp">Não configurado</span>
+            </p>
+            <button class="outline" type="button" data-open-settings>
+              Alterar destinos
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-activities" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Atividades dos consultores</h2>
+            <p>
+              Histórico unificado de cotações e solicitações do Retrato NH,
+              inclusive de consultores já excluídos.
+            </p>
+          </div>
+          <input
+            id="activity-filter"
+            placeholder="Filtrar por consultor, cliente ou placa"
+            style="max-width: 360px"
+          />
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Consultor</th>
+                <th>Atividade</th>
+                <th>Cliente/associado</th>
+                <th>Placa</th>
+                <th>Status</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="activities-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-events" hidden>
+        <div class="section-head">
+          <div><h2>Eventos</h2><p>Visão administrativa de todos os eventos cadastrados, seus veículos, associados, documentos, histórico e andamento.</p></div>
+          <div class="actions">
+            <button id="admin-create-event" class="primary" type="button">+ Criar evento</button>
+            <input id="admin-event-filter" placeholder="Protocolo, associado, placa, modelo ou plano" style="max-width:380px" />
+          </div>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Protocolo</th><th>Associado</th><th>Veículo</th><th>Evento</th><th>Status</th><th>Responsável</th><th>Ação</th></tr></thead><tbody id="admin-events-body"></tbody></table></div>
+      </section>
+
+      <section id="tab-workshop" hidden>
+        <div class="section-head">
+          <div><h2>Oficina</h2><p>Acompanhe todos os checklists técnicos, itens avaliados, trocas, compras, dossiê e aceite do associado.</p></div>
+          <input id="admin-workshop-filter" placeholder="Protocolo, associado, placa ou modelo" style="max-width:380px" />
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Protocolo</th><th>Associado</th><th>Veículo</th><th>Situação</th><th>Avaliação</th><th>Compras</th><th>Aceite</th><th>Ação</th></tr></thead><tbody id="admin-workshop-body"></tbody></table></div>
+      </section>
+
+      <section id="tab-purchases" hidden>
+        <div class="section-head">
+          <div><h2>Compras de Eventos</h2><p>Acompanhe os itens marcados pela oficina como <strong>Trocar</strong>. O preenchimento é feito pelo Financeiro e permanece sincronizado ao evento e ao dossiê interno.</p></div>
+          <input id="admin-purchases-filter" placeholder="Protocolo, associado, placa ou modelo" style="max-width:380px" />
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Protocolo</th><th>Associado</th><th>Veículo</th><th>Itens</th><th>Não preenchidos</th><th>Solicitados</th><th>Finalizados</th><th>Situação</th><th>Ação</th></tr></thead><tbody id="admin-purchases-body"></tbody></table></div>
+      </section>
+
+      <section id="tab-tow" hidden>
+        <div class="section-head">
+          <div><h2>Guincho / Reboque</h2><p>Consulta administrativa de todos os atendimentos de reboque registrados na plataforma.</p></div>
+          <input id="admin-tow-filter" placeholder="Código, placa, modelo, prestador ou motorista" style="max-width:380px" />
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Código</th><th>Placa / veículo</th><th>Prestador</th><th>Motorista</th><th>Status</th><th>Checklist</th><th>Fotos</th><th>Ação</th></tr></thead><tbody id="admin-tow-body"></tbody></table></div>
+      </section>
+
+      <section id="tab-nh-ponto" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Apontamento Digital</h2>
+            <p>Visão administrativa dos colaboradores, primeiro acesso, selfies da jornada e últimas marcações. O administrador principal pode entrar na gestão completa com as mesmas permissões do RH, incluindo cadastros, salários, escalas, banco de horas, folha, justificativas, segurança e auditoria.</p>
+          </div>
+          <div class="actions">
+            <input id="nh-ponto-filter" placeholder="Nome, matrícula, usuário, e-mail, cargo ou setor" style="min-width:300px" />
+            <button id="nh-ponto-refresh" class="outline" type="button">Atualizar</button>
+            <button id="nh-ponto-open-admin" class="secondary" type="button">Abrir Apontamento Digital</button>
+            <small class="muted">A integração desta aba usa API interna por token. Para a gestão completa, entre no Apontamento Digital com seu usuário próprio.</small>
+          </div>
+        </div>
+        <div id="nh-ponto-message" aria-live="polite"></div>
+        <div class="kpi-grid">
+          <div class="kpi"><span>Colaboradores ativos</span><strong id="nh-ponto-kpi-active">—</strong></div>
+          <div class="kpi"><span>Facial ativa</span><strong id="nh-ponto-kpi-face">—</strong></div>
+          <div class="kpi"><span>Passkey ADM/RH</span><strong id="nh-ponto-kpi-passkey">—</strong></div>
+          <div class="kpi"><span>Marcaram ponto hoje</span><strong id="nh-ponto-kpi-today">—</strong></div>
+        </div>
+        <div class="card">
+          <div class="section-head">
+            <div><h3>Colaboradores do Apontamento Digital</h3><p id="nh-ponto-generated" class="muted"></p></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Colaborador</th><th>Cargo / setor</th><th>Conta</th><th>Salário</th><th>Facial / Totem</th><th>Passkey ADM/RH</th><th>Hoje</th><th>Última marcação</th><th>Status</th><th>Detalhes</th></tr></thead>
+              <tbody id="nh-ponto-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card" id="nh-ponto-employee-details" hidden>
+          <div class="section-head">
+            <div><h3 id="nh-ponto-employee-details-title">Detalhes do colaborador</h3><p class="muted">Informações funcionais e de acesso vinculadas ao Apontamento Digital.</p></div>
+            <button id="nh-ponto-employee-details-close" class="outline" type="button">Fechar detalhes</button>
+          </div>
+          <div id="nh-ponto-employee-details-grid" class="detail-grid"></div>
+        </div>
+        <div class="card">
+          <div class="section-head">
+            <div><h3>Jornadas aguardando aprovação</h3><p class="muted">A aprovação é feita no NH Ponto somente depois da finalização da jornada. Lá o Administrador confere horários, GPS e todas as selfies do dia antes de aprovar ou reprovar.</p></div>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Colaborador</th><th>Status</th><th>Finalização</th><th>Origem</th><th>Observação</th><th>Informações</th></tr></thead><tbody id="nh-ponto-pending-body"></tbody></table></div>
+        </div>
+        <div class="card" id="nh-ponto-journey-panel" hidden>
+          <div class="section-head"><div><h3 id="nh-ponto-journey-title">Informações da jornada</h3><p id="nh-ponto-journey-summary" class="muted"></p></div><button id="nh-ponto-journey-close" class="outline" type="button">Fechar</button></div>
+          <p class="muted">Esta visão é somente para conferência do Administrador do projeto principal. A decisão da jornada continua no Apontamento Digital pelo Administrador da empresa ou Super Adm.</p>
+          <div class="table-wrap"><table><thead><tr><th>Ação</th><th>Horário</th><th>GPS da selfie</th><th>Unidade / referência</th><th>Observação</th><th>Selfie</th></tr></thead><tbody id="nh-ponto-journey-body"></tbody></table></div>
+        </div>
+        <div class="card" id="nh-ponto-selfies-panel" hidden>
+          <div class="section-head"><div><h3 id="nh-ponto-selfies-title">Selfies das marcações</h3><p class="muted">Evidências capturadas no momento da jornada. As imagens são descriptografadas somente para a visualização autorizada.</p></div><button id="nh-ponto-selfies-close" class="outline" type="button">Fechar</button></div>
+          <div id="nh-ponto-selfies-message" class="message" hidden></div>
+          <div class="table-wrap"><table><thead><tr><th>NSR</th><th>Ação</th><th>Horário</th><th>Status</th><th>Selfie</th></tr></thead><tbody id="nh-ponto-selfies-body"></tbody></table></div>
+        </div>
+        <div id="nh-ponto-selfie-modal" class="nh-ponto-selfie-modal" hidden>
+          <div class="nh-ponto-selfie-dialog" role="dialog" aria-modal="true" aria-labelledby="nh-ponto-selfie-modal-title">
+            <div class="nh-ponto-selfie-modal-head">
+              <div><span class="eyebrow">EVIDÊNCIA DA JORNADA</span><h3 id="nh-ponto-selfie-modal-title">Selfie da marcação</h3><p class="muted">Confira a foto antes de aprovar ou rejeitar.</p></div>
+              <button id="nh-ponto-selfie-modal-close" class="outline" type="button">Fechar</button>
+            </div>
+            <div class="nh-ponto-selfie-stage"><img id="nh-ponto-selfie-modal-image" alt="Selfie da marcação" /></div>
+            <div class="nh-ponto-selfie-modal-foot">Selfie conferida como evidência da jornada. A decisão diária é feita no Apontamento Digital pelo Administrador da empresa ou Super Adm.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-consultants" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Colaboradores</h2>
+            <p>
+              Cadastre consultores, analistas e supervisores, defina equipes e gerencie o status. O histórico permanece
+              salvo pelo nome registrado na atividade.
+            </p>
+          </div>
+          <button id="new-consultant-button" class="primary" type="button">
+            + Novo colaborador
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Cargo</th>
+                <th>Cidade</th>
+                <th>WhatsApp</th>
+                <th>Analista / equipe</th>
+                <th>Cotações</th>
+                <th>Retratos NH</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="consultants-body"></tbody>
+          </table>
+        </div>
+
+        <div class="card settings-card" style="margin-top:22px">
+          <div class="section-head" style="margin-top:0"><div><h3>Comissões e saldo dos consultores</h3><p>Defina a regra de comissão que será lançada quando boletos recorrentes forem pagos. A adesão não gera comissão.</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Consultor</th><th>Comissão</th><th>Valor</th><th>Fechamentos</th><th>Bloqueado</th><th>Disponível</th><th>Já sacado</th><th></th></tr></thead><tbody id="consultant-finance-body"></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="tab-users" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Usuários e senhas</h2>
+            <p>
+              Crie contas para administrador, eventos, financeiro, oficina, supervisão, analista, consultor ou guincho/reboque e altere
+              senhas diretamente pelo painel.
+            </p>
+          </div>
+          <button id="new-user-button" class="primary" type="button">
+            + Novo usuário
+          </button>
+        </div>
+        <div class="card settings-card" id="admin-passkey-card" style="margin-bottom:18px">
+          <div class="section-head" style="margin-bottom:10px">
+            <div>
+              <h3 style="margin:0">Passkeys do Administrador</h3>
+              <p class="helper">A primeira passkey é cadastrada pelo próprio Administrador autenticado nesta aba. Depois disso, nenhuma credencial é sobrescrita automaticamente; novas passkeys podem ser adicionadas e as antigas só podem ser revogadas com outra credencial válida já cadastrada.</p>
+            </div>
+            <button id="admin-add-passkey" class="primary" type="button">+ Cadastrar nova passkey</button>
+          </div>
+          <div id="admin-passkey-message" class="message" hidden></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nome</th><th>Cadastrada</th><th>Último uso</th><th>Ação</th></tr></thead>
+              <tbody id="admin-passkeys-body"><tr><td colspan="4" class="muted">Carregando passkeys…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>Nome</th>
+                <th>Colaborador vinculado</th>
+                <th>Perfil</th>
+                <th>Status</th>
+                <th>Passkey / biometria</th>
+                <th>Último acesso</th>
+                <th>Senha alterada</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="users-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-quotes" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Cotações</h2>
+            <p>
+              Analise os dados, altere o status e registre observações
+              administrativas. Todas as cotações são removidas automaticamente
+              apenas quando o prazo vencer e não houver nenhum arquivo de vistoria preservado.
+            </p>
+          </div>
+          <div class="section-head-actions">
+            <input
+              id="quote-filter"
+              placeholder="Filtrar por origem, consultor, cliente, placa ou número"
+              style="max-width: 360px"
+            />
+            <button id="delete-all-quotes" class="danger" type="button">
+              Excluir todas as cotações
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-date-toolbar" aria-label="Filtros de data das cotações">
+          <label>Data para filtrar e organizar
+            <select id="quote-date-field">
+              <option value="createdAt">Emissão</option>
+              <option value="updatedAt">Última modificação</option>
+            </select>
+          </label>
+          <label>De
+            <input id="quote-date-from" type="date" />
+          </label>
+          <label>Até
+            <input id="quote-date-to" type="date" />
+          </label>
+          <label>Ordem
+            <select id="quote-sort-direction">
+              <option value="desc">Mais recentes primeiro</option>
+              <option value="asc">Mais antigas primeiro</option>
+            </select>
+          </label>
+          <button id="quote-date-clear" class="outline date-filter-clear" type="button">Limpar datas</button>
+        </div>
+
+        <form id="public-quote-assignment-form" class="card settings-card" style="margin-bottom: 18px">
+          <h3 style="margin-top: 0">Distribuição das cotações feitas pelo site</h3>
+          <p class="helper">
+            Controle se uma nova cotação do botão “Faça sua cotação” deve ser atribuída automaticamente ao último consultor que entrou no sistema.
+          </p>
+          <div class="settings-row">
+            <span>Regra atual</span>
+            <strong id="public-quote-assignment-status">—</strong>
+          </div>
+          <div class="settings-row">
+            <span>Última alteração</span>
+            <strong id="public-quote-assignment-updated-at">—</strong>
+          </div>
+          <div class="form-check form-switch">
+            <input id="public-quote-assignment-enabled" class="form-check-input" type="checkbox" />
+            <label class="form-check-label" for="public-quote-assignment-enabled">
+              Atribuir automaticamente ao último consultor logado
+            </label>
+          </div>
+          <p class="helper">
+            Desativada: a cotação fica aguardando o Admin escolher o consultor responsável. Ativada: mantém a regra atual de distribuição automática.
+          </p>
+          <button class="primary" type="submit">Salvar regra</button>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Origem / responsável</th>
+                <th>Cliente</th>
+                <th>Placa</th>
+                <th>Plano</th>
+                <th>Total</th>
+                <th>Emissão</th>
+                <th>Última modificação</th>
+                <th>Validade</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="quotes-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-inspections" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Retrato NH</h2>
+            <p>
+              Analise novas vistorias e atualizações de boleto. O administrador
+              pode aprovar, rejeitar ou excluir qualquer vistoria, inclusive com
+              documentos pendentes. Arquivos confirmados permanecem vinculados à vistoria e não são apagados automaticamente por idade.
+            </p>
+          </div>
+          <div class="section-head-actions">
+            <input
+              id="inspection-associate-filter"
+              placeholder="Filtrar por associado"
+              style="max-width: 280px"
+            />
+            <input
+              id="inspection-filter"
+              placeholder="Filtrar por consultor, analista ou placa"
+              style="max-width: 360px"
+            />
+            <button id="delete-all-inspections" class="danger" type="button">
+              Excluir todas as vistorias
+            </button>
+          </div>
+        </div>
+        <div class="admin-date-toolbar" aria-label="Filtros de data das vistorias">
+          <label>Data para filtrar e organizar
+            <select id="inspection-date-field">
+              <option value="createdAt">Criação da vistoria</option>
+              <option value="updatedAt">Última modificação</option>
+            </select>
+          </label>
+          <label>De
+            <input id="inspection-date-from" type="date" />
+          </label>
+          <label>Até
+            <input id="inspection-date-to" type="date" />
+          </label>
+          <label>Ordem
+            <select id="inspection-sort-direction">
+              <option value="desc">Mais recentes primeiro</option>
+              <option value="asc">Mais antigas primeiro</option>
+            </select>
+          </label>
+          <button id="inspection-date-clear" class="outline date-filter-clear" type="button">Limpar datas</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Associado</th>
+                <th>Consultor</th>
+                <th>Analista responsável</th>
+                <th>Placa</th>
+                <th>Tipo</th>
+                <th>Arquivos</th>
+                <th>Status</th>
+                <th>Criada</th>
+                <th>Última modificação</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="inspections-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-plans" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Planos e pacotes</h2>
+            <p>
+              Crie, edite ou exclua completamente os planos disponíveis para
+              novas cotações.
+            </p>
+          </div>
+          <button id="new-plan-button" class="primary" type="button">
+            + Novo plano
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Código / plano</th>
+                <th>Categoria</th>
+                <th>Abrangência</th>
+                <th>Origem da moto</th>
+                <th>Subtítulo</th>
+                <th>Ordem</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="plans-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-discounts" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Descontos e regras comerciais</h2>
+            <p>
+              Controle totalmente os percentuais, os planos elegíveis, as regras por idade/FIPE,
+              a exigência de perfurado traseiro, onde o desconto incide e o efeito em cada benefício.
+            </p>
+          </div>
+          <button id="new-discount-button" class="primary" type="button">
+            + Novo desconto
+          </button>
+        </div>
+        <div class="card retention-notice" style="margin-bottom: 14px">
+          <strong>Regras administráveis pelo Cota/Vistoria</strong>
+          <p>
+            O administrador pode criar, editar, ativar, desativar e excluir descontos.
+            As regras são aplicadas automaticamente nas novas cotações e nas revisões comerciais das vistorias.
+          </p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Desconto</th>
+                <th>Planos</th>
+                <th>Condições</th>
+                <th>Aplicação no preço</th>
+                <th>Benefícios</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="discounts-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-vehicle-categories" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Categorias de veículos</h2>
+            <p>
+              Ative ou desative os botões disponíveis na etapa “Categoria do
+              veículo” da cotação.
+            </p>
+          </div>
+        </div>
+        <div class="card retention-notice" style="margin-bottom: 14px">
+          <strong>Controle de disponibilidade</strong>
+          <p>
+            Ao desativar uma categoria, o botão correspondente fica oculto
+            imediatamente nas novas cotações. Os planos, valores e cotações
+            antigas permanecem salvos.
+          </p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Categoria</th>
+                <th>Status</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="vehicle-categories-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-prices" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Valores dos pacotes</h2>
+            <p>Crie, altere e exclua faixas FIPE e mensalidades.</p>
+          </div>
+          <button id="new-price-button" class="primary" type="button">
+            + Nova faixa de valor
+          </button>
+        </div>
+
+        <div class="filter-grid">
+          <label
+            >Pesquisar<input
+              id="price-filter"
+              placeholder="Plano, categoria ou origem da moto"
+          /></label>
+          <label
+            >Plano<select id="price-plan-filter">
+              <option value="">Todos os planos</option>
+            </select></label
+          >
+        </div>
+        <div class="table-wrap" style="margin-top: 16px">
+          <table>
+            <thead>
+              <tr>
+                <th>Plano</th>
+                <th>Categoria</th>
+                <th>Abrangência / origem</th>
+                <th>Faixa FIPE</th>
+                <th>Mensalidade</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="prices-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-coverages" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Benefícios</h2>
+            <p>
+              Crie, edite ou exclua benefícios e adicionais. Aqui você define em quais planos ele é integrado, adicional pago ou não incluído, o valor do adicional e os tipos de veículo permitidos.
+            </p>
+          </div>
+          <button id="new-coverage-button" class="primary" type="button">
+            + Novo benefício
+          </button>
+        </div>
+        <div class="filter-grid">
+          <label
+            >Categoria<select id="coverage-category-filter">
+              <option value="">Todas as categorias</option>
+            </select></label
+          >
+          <label
+            >Situação no plano<select id="coverage-status-filter">
+              <option value="">Todas</option>
+              <option value="INCLUDED">Integrado ao plano</option>
+              <option value="NOT_INCLUDED">Não incluído</option>
+              <option value="OPTIONAL">Adicional pago</option>
+              <option value="UNLINKED">Sem vínculo</option>
+            </select></label
+          >
+          <label
+            >Pesquisar<input
+              id="coverage-text-filter"
+              placeholder="Nome do benefício"
+          /></label>
+        </div>
+        <div class="table-wrap coverage-catalog-wrap" style="margin-top: 16px">
+          <table>
+            <thead>
+              <tr>
+                <th>Benefício</th>
+                <th>Tipos de veículo</th>
+                <th>Uso nos planos</th>
+                <th>Regras</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="coverages-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-settings" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Envios e arquivos do site</h2>
+            <p>
+              Gerencie os destinos de comunicação e os documentos institucionais
+              disponibilizados no site.
+            </p>
+          </div>
+        </div>
+        <div class="card settings-card">
+          <h3 style="margin-top: 0">Destinos de envio</h3>
+          <div class="settings-row">
+            <span>E-mail da equipe</span
+            ><strong id="settings-team-email">Não configurado</strong>
+          </div>
+          <div class="settings-row">
+            <span>WhatsApp da equipe</span
+            ><strong id="settings-team-whatsapp">Não configurado</strong>
+          </div>
+          <div class="settings-row">
+            <span>Última alteração</span
+            ><strong id="settings-updated-at">—</strong>
+          </div>
+          <button class="primary" type="button" data-open-settings>
+            Alterar destinos de envio
+          </button>
+        </div>
+
+
+
+        <form
+          id="regulation-upload-form"
+          class="card settings-card"
+          style="margin-top: 16px"
+        >
+          <h3 style="margin-top: 0">Regulamento da Proteção Veicular</h3>
+          <p class="helper">
+            Este é o PDF aberto pelo botão “Consulte o regulamento” na página principal.
+          </p>
+          <div class="settings-row">
+            <span>Arquivo atual</span
+            ><strong id="settings-regulation-file">—</strong>
+          </div>
+          <div class="settings-row">
+            <span>Tamanho</span><strong id="settings-regulation-size">—</strong>
+          </div>
+          <div class="settings-row">
+            <span>Origem</span
+            ><strong id="settings-regulation-source">—</strong>
+          </div>
+          <div class="settings-row">
+            <span>Última alteração</span
+            ><strong id="settings-regulation-updated-at">—</strong>
+          </div>
+          <label style="margin-top: 16px"
+            >Novo regulamento em PDF
+            <input
+              id="settings-regulation-input"
+              type="file"
+              accept="application/pdf,.pdf"
+              required
+            />
+          </label>
+          <p class="helper">
+            Envie somente PDF, com até 15 MB. Ao salvar, o botão do site passa a
+            baixar este arquivo automaticamente.
+          </p>
+          <div class="actions" style="margin-top: 14px">
+            <a
+              id="settings-regulation-download"
+              class="outline"
+              href="/api/public/documents/regulation"
+              download
+              >Baixar arquivo atual</a
+            >
+            <button id="settings-regulation-save" class="primary" type="submit">
+              Salvar novo regulamento
+            </button>
+          </div>
+        </form>
+
+        <div class="card settings-card" style="margin-top: 16px">
+          <h3 style="margin-top: 0">Capa e página final dos relatórios / dossiês</h3>
+          <p class="helper">Configure dois PDFs de 1 página. A <strong>capa</strong> será inserida antes da primeira página do relatório/dossiê e a <strong>página final</strong> será inserida depois da última página. A configuração vale para novos Relatórios Retrato NH e dossiês de Eventos.</p>
+
+          <form id="report-cover-upload-form" class="report-decoration-form">
+            <div class="settings-row"><span>Capa atual</span><strong id="settings-report-cover-file">Não configurada</strong></div>
+            <div class="settings-row"><span>Última alteração</span><strong id="settings-report-cover-updated-at">—</strong></div>
+            <label style="margin-top: 12px">PDF da capa — exatamente 1 página
+              <input id="settings-report-cover-input" type="file" accept="application/pdf,.pdf" required />
+            </label>
+            <p class="helper">Máximo de 5 MB. Esta página ficará antes da página 1 do relatório.</p>
+            <div class="actions" style="margin-top: 12px">
+              <button id="settings-report-cover-preview" class="outline" type="button" hidden>Visualizar capa atual</button>
+              <button id="settings-report-cover-remove" class="outline danger" type="button" hidden>Remover capa</button>
+              <button id="settings-report-cover-save" class="primary" type="submit">Salvar capa</button>
+            </div>
+          </form>
+
+          <hr style="border:0;border-top:1px solid var(--border,#ddd);margin:20px 0" />
+
+          <form id="report-ending-upload-form" class="report-decoration-form">
+            <div class="settings-row"><span>Página final atual</span><strong id="settings-report-ending-file">Não configurada</strong></div>
+            <div class="settings-row"><span>Última alteração</span><strong id="settings-report-ending-updated-at">—</strong></div>
+            <label style="margin-top: 12px">PDF da página final — exatamente 1 página
+              <input id="settings-report-ending-input" type="file" accept="application/pdf,.pdf" required />
+            </label>
+            <p class="helper">Máximo de 5 MB. Esta página ficará depois da última página do relatório/dossiê.</p>
+            <div class="actions" style="margin-top: 12px">
+              <button id="settings-report-ending-preview" class="outline" type="button" hidden>Visualizar página final</button>
+              <button id="settings-report-ending-remove" class="outline danger" type="button" hidden>Remover página final</button>
+              <button id="settings-report-ending-save" class="primary" type="submit">Salvar página final</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section id="tab-audit" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Auditoria completa</h2>
+            <p>
+              Histórico completo das ações administrativas, incluindo catálogo,
+              colaboradores, análises e configurações.
+            </p>
+          </div>
+          <input
+            id="audit-filter"
+            placeholder="Filtrar por tipo, item ou administrador"
+            style="max-width: 360px"
+          />
+        </div>
+        <div id="audit-list" class="audit-list" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <dialog id="admin-operations-dialog" class="admin-dialog wide-dialog">
+      <div class="dialog-card admin-operations-card">
+        <div class="dialog-head">
+          <div><span class="eyebrow" style="color:#070c40">OPERAÇÃO NH</span><h2 id="admin-operations-title">Detalhes</h2></div>
+          <button class="dialog-close" type="button" data-close-dialog="admin-operations-dialog" aria-label="Fechar">×</button>
+        </div>
+        <div id="admin-operations-content"></div>
+        <div class="actions dialog-actions"><button class="outline" type="button" data-close-dialog="admin-operations-dialog">Fechar</button></div>
+      </div>
+    </dialog>
+
+    <dialog id="admin-file-preview-dialog" class="admin-dialog wide-dialog">
+      <div class="dialog-card admin-file-preview-card">
+        <div class="dialog-head">
+          <div><span class="eyebrow" style="color:#070c40">PRÉVIA DO ARQUIVO</span><h2 id="admin-file-preview-title">Arquivo</h2></div>
+          <button class="dialog-close" type="button" data-close-dialog="admin-file-preview-dialog" aria-label="Fechar">×</button>
+        </div>
+        <div id="admin-file-preview-content" class="admin-file-preview-content"></div>
+        <div class="actions dialog-actions">
+          <button id="admin-file-preview-open" class="secondary" type="button" hidden>Abrir em nova aba</button>
+          <button id="admin-file-preview-download" class="outline" type="button" hidden>Baixar arquivo</button>
+          <button class="outline" type="button" data-close-dialog="admin-file-preview-dialog">Fechar</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="admin-associate-acceptance-dialog" class="admin-dialog">
+      <div class="dialog-card admin-acceptance-card">
+        <div class="dialog-head">
+          <div><span class="eyebrow" style="color:#070c40">EMPRESA CLIENTE</span><h2>Enviar dossiê + aceite</h2></div>
+          <button class="dialog-close" type="button" data-close-dialog="admin-associate-acceptance-dialog" aria-label="Fechar">×</button>
+        </div>
+        <p class="helper">O associado recebe somente o dossiê externo. Fornecedor, valores, prazos e demais informações internas de compras não são compartilhados.</p>
+        <div id="admin-acceptance-status" class="admin-acceptance-status loading"><strong>Preparando dossiê...</strong><span>Aguarde um instante.</span></div>
+        <label class="admin-acceptance-link-label" data-admin-acceptance-pending>
+          <span>Link seguro do associado</span>
+          <div class="admin-acceptance-link-row">
+            <input id="admin-acceptance-link" readonly aria-label="Link do dossiê e aceite" />
+            <button id="admin-acceptance-copy" class="outline" type="button">Copiar link</button>
+          </div>
+        </label>
+        <div id="admin-acceptance-accepted-note" class="admin-acceptance-proof-note" hidden></div>
+        <div class="actions admin-acceptance-actions">
+          <button id="admin-acceptance-whatsapp" class="primary" type="button" data-admin-acceptance-pending>Enviar pelo WhatsApp</button>
+          <button id="admin-acceptance-open" class="secondary" type="button" hidden>Abrir página do associado</button>
+          <button id="admin-acceptance-download" class="outline" type="button" hidden>Baixar dossiê</button>
+          <button class="outline" type="button" data-close-dialog="admin-associate-acceptance-dialog">Fechar</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="inspection-bulk-delete-dialog" class="admin-dialog">
+      <form id="inspection-bulk-delete-form" class="dialog-card">
+        <div class="dialog-head">
+          <div><span class="eyebrow" style="color:#070c40">EXCLUSÃO PROTEGIDA</span><h2>Confirmar exclusão de todas as vistorias</h2></div>
+          <button class="dialog-close" type="button" data-close-dialog="inspection-bulk-delete-dialog" aria-label="Fechar">×</button>
+        </div>
+        <p class="helper">Esta ação é irreversível. Digite a senha de confirmação administrativa para continuar.</p>
+        <label>Senha de confirmação<input id="inspection-bulk-delete-password" type="password" autocomplete="off" required placeholder="Digite a senha administrativa" /></label>
+        <div id="inspection-bulk-delete-message"></div>
+        <div class="actions dialog-actions"><button class="outline" type="button" data-close-dialog="inspection-bulk-delete-dialog">Cancelar</button><button id="inspection-bulk-delete-confirm" class="danger" type="submit">Excluir todas as vistorias</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="confirm-dialog" class="admin-dialog">
+      <form method="dialog" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40">CONFIRMAÇÃO</span>
+            <h2 id="confirm-title">Confirmar ação</h2>
+          </div>
+          <button class="dialog-close" value="cancel" aria-label="Fechar">
+            ×
+          </button>
+        </div>
+        <p id="confirm-text" class="muted"></p>
+        <div class="actions dialog-actions">
+          <button class="outline" value="cancel">Cancelar</button
+          ><button id="confirm-action" class="danger" value="default">
+            Confirmar
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="consultant-dialog" class="admin-dialog">
+      <form id="consultant-form" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40">COLABORADOR</span>
+            <h2 id="consultant-dialog-title">Cadastrar colaborador</h2>
+          </div>
+          <button
+            class="dialog-close"
+            type="button"
+            data-close-dialog="consultant-dialog"
+          >
+            ×
+          </button>
+        </div>
+        <input id="consultant-id" type="hidden" />
+        <div class="form-grid">
+          <label
+            >Nome completo<input id="consultant-name" maxlength="140" required
+          /></label>
+          <label
+            >Função<select id="consultant-role" required>
+              <option value="CONSULTANT">Consultor</option>
+              <option value="ANALYST">Analista</option>
+              <option value="SUPERVISION_ANALYSIS">Supervisão de Análise</option>
+            </select></label
+          >
+          <label id="consultant-whatsapp-wrap"
+            >WhatsApp do colaborador<input id="consultant-whatsapp" inputmode="tel" maxlength="18" placeholder="(82) 99999-9999"
+          /></label>
+          <label>Cidade<input id="consultant-city" maxlength="120" placeholder="Ex.: Maceió" /></label>
+          <label id="consultant-analyst-wrap" class="span-2" hidden>Analista responsável
+            <select id="consultant-assigned-analyst"><option value="">Selecione um analista</option></select>
+            <small class="field-help">Cada consultor pode ter 1 analista responsável. Cada analista pode receber no máximo 30 consultores.</small>
+          </label>
+        </div>
+        <p id="consultant-whatsapp-help" class="helper">O Admin pode alterar este número a qualquer momento. Para consultores, ele também será usado para receber a escolha de plano e adicionais feita pelo associado no link de comparação.</p>
+        <div id="consultant-active-wrap" class="form-check form-switch" hidden>
+          <input
+            id="consultant-active"
+            class="form-check-input"
+            type="checkbox"
+          /><label class="form-check-label" for="consultant-active"
+            >Colaborador ativo</label
+          >
+        </div>
+        <div class="actions dialog-actions">
+          <button
+            class="outline"
+            type="button"
+            data-close-dialog="consultant-dialog"
+          >
+            Cancelar</button
+          ><button class="primary" type="submit">Salvar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="user-dialog" class="admin-dialog">
+      <form id="user-form" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40">CONTA DE ACESSO</span>
+            <h2 id="user-dialog-title">Novo usuário</h2>
+          </div>
+          <button
+            class="dialog-close"
+            type="button"
+            data-close-dialog="user-dialog"
+          >
+            ×
+          </button>
+        </div>
+        <input id="user-id" type="hidden" />
+        <div class="form-grid">
+          <label class="span-2"
+            >Nome do usuário<input
+              id="user-username"
+              autocomplete="off"
+              maxlength="160"
+              required
+              placeholder="Ex.: carlos.lima"
+          /></label>
+          <input id="user-display-name" type="hidden" />
+          <label
+            >Perfil de acesso<select id="user-role" required>
+              <option value="CONSULTANT">Consultor</option>
+              <option value="ANALYST">Analista</option>
+              <option value="SUPERVISION_ANALYSIS">Supervisão de Análise</option>
+              <option value="TOW_DRIVER">Guincho / Reboque</option>
+              <option value="WORKSHOP_MANAGER">Gerente da Oficina</option>
+              <option value="EVENT_OPERATOR">Eventos</option>
+              <option value="BUYER">Financeiro</option>
+            </select></label
+          >
+          <label id="user-password-wrap"
+            >Senha<input
+              id="user-password"
+              type="password"
+              autocomplete="new-password"
+              minlength="8"
+              maxlength="120"
+              placeholder="Mínimo de 8 caracteres"
+          /></label>
+          <div id="user-consultant-wrap" class="span-2">
+            <div class="form-grid">
+              <label class="span-2"
+                ><span id="user-collaborator-label">Colaborador vinculado</span><select id="user-consultant">
+                  <option value="">Selecione um colaborador ativo</option>
+                </select></label
+              >
+              <label id="user-new-consultant-wrap" class="span-2" hidden
+                ><span id="user-new-collaborator-label">Nome do novo colaborador</span><input
+                  id="user-new-consultant-name"
+                  maxlength="140"
+                  placeholder="Nome completo do colaborador"
+              /></label>
+            </div>
+            <p class="helper">
+              Se o colaborador ainda não existir, escolha “Cadastrar novo”. O nome será criado automaticamente na aba Colaboradores com o cargo selecionado.
+            </p>
+          </div>
+        </div>
+        <div id="user-active-wrap" class="form-check form-switch" hidden>
+          <input
+            id="user-active"
+            class="form-check-input"
+            type="checkbox"
+          /><label class="form-check-label" for="user-active"
+            >Conta ativa</label
+          >
+        </div>
+        <p class="helper">
+          Administrador e RH usam usuário, senha e passkey (WebAuthn) nos fluxos protegidos. Colaboradores entram com usuário e senha e, em cada ação da jornada, tiram apenas uma selfie simples. Essa selfie não é reconhecimento facial; o reconhecimento facial permanece reservado ao Totem.
+        </p>
+        <div class="actions dialog-actions">
+          <button class="outline" type="button" data-close-dialog="user-dialog">
+            Cancelar</button
+          ><button class="primary" type="submit">Salvar usuário</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="password-dialog" class="admin-dialog">
+      <form id="password-form" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40">ALTERAR SENHA</span>
+            <h2 id="password-dialog-title">Nova senha</h2>
+          </div>
+          <button
+            class="dialog-close"
+            type="button"
+            data-close-dialog="password-dialog"
+          >
+            ×
+          </button>
+        </div>
+        <input id="password-user-id" type="hidden" />
+        <label
+          >Nova senha<input
+            id="password-new"
+            type="password"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="120"
+            required
+        /></label>
+        <label style="margin-top: 14px"
+          >Confirmar nova senha<input
+            id="password-confirm"
+            type="password"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="120"
+            required
+        /></label>
+        <p class="helper">
+          A senha anterior deixa de funcionar imediatamente para novos logins.
+        </p>
+        <div class="actions dialog-actions">
+          <button
+            class="outline"
+            type="button"
+            data-close-dialog="password-dialog"
+          >
+            Cancelar</button
+          ><button class="primary" type="submit">Alterar senha</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="plan-dialog" class="admin-dialog wide-dialog">
+      <form id="plan-form" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40">PLANO OU PACOTE</span>
+            <h2 id="plan-dialog-title">Novo plano</h2>
+          </div>
+          <button
+            class="dialog-close"
+            type="button"
+            data-close-dialog="plan-dialog"
+          >
+            ×
+          </button>
+        </div>
+        <input id="plan-id" type="hidden" />
+        <div class="form-grid">
+          <label>Nome<input id="plan-name" maxlength="120" required /></label>
+          <label>Categoria<select id="plan-category" required></select></label>
+          <label
+            >Abrangência<select id="plan-region" required disabled>
+              <option value="NATIONAL">Nacional</option></select
+            ><small
+              >Todos os planos e pacotes possuem abrangência nacional.</small
+            ></label
+          >
+          <label id="plan-motorcycle-origin-field" hidden
+            >Origem da moto<select id="plan-motorcycle-origin">
+              <option value="NORTHEAST">Demais cidades do Nordeste</option>
+              <option value="CAPITAL">Capital</option></select
+            ><small
+              >Define somente a tabela comercial da motocicleta.</small
+            ></label
+          >
+          <label id="plan-subtitle-field" class="span-2"
+            >Subtítulo<input id="plan-subtitle" maxlength="180"
+          /></label>
+          <label
+            >Ordem de exibição<input
+              id="plan-order"
+              type="number"
+              min="0"
+              value="100"
+              required
+          /></label>
+          <label
+            >Status<select id="plan-active">
+              <option value="true">Ativo</option>
+              <option value="false">Inativo</option>
+            </select></label
+          >
+
+          <div class="span-2 admin-form-section">
+            <strong>Benefícios e coberturas do plano</strong>
+            <small>Marque somente o que este plano oferece. Para cada item marcado, escolha se é integrado ao plano, não incluído ou adicional pago.</small>
+          </div>
+          <label class="span-2">Pesquisar benefício
+            <input id="plan-benefit-search" placeholder="Digite o nome do benefício" />
+          </label>
+          <label class="span-2">Visualizar
+            <select id="plan-benefit-view">
+              <option value="">Todos os benefícios</option>
+              <option value="SELECTED">Somente selecionados</option>
+              <option value="UNSELECTED">Somente não selecionados</option>
+            </select>
+          </label>
+          <div id="plan-benefit-options" class="span-2 plan-benefit-options" aria-label="Benefícios do plano"></div>
+
+          <div class="span-2 admin-form-section">
+            <strong>Regra automática para FIPE acima da última faixa</strong>
+            <small
+              >Deixe os quatro campos vazios para desativar. Quando usada, todos
+              precisam ser preenchidos.</small
+            >
+          </div>
+          <label
+            >Aplicar acima de<input
+              id="plan-extra-above"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              placeholder="Ex.: 210.000,00"
+          /></label>
+          <label
+            >Intervalo de FIPE<input
+              id="plan-extra-step"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              placeholder="Ex.: 10.000,00"
+          /></label>
+          <label
+            >Acréscimo por intervalo<input
+              id="plan-extra-increment"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              placeholder="Ex.: 50,00"
+          /></label>
+          <label
+            >Mensalidade base<input
+              id="plan-extra-base-price"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              placeholder="Ex.: 447,45"
+          /></label>
+
+          <div class="span-2 admin-form-section">
+            <strong>Rastreador obrigatório</strong>
+            <small
+              >Deixe os três campos vazios quando o plano não exigir rastreador
+              por valor FIPE.</small
+            >
+          </div>
+          <label
+            >Obrigatório a partir de<input
+              id="plan-tracker-required-above"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              placeholder="Ex.: 150.000,00"
+          /></label>
+          <label
+            >Taxa de instalação<input
+              id="plan-tracker-installation-fee"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              placeholder="Ex.: 200,00"
+          /></label>
+          <label class="span-2"
+            >Mensalidade do rastreador<input
+              id="plan-tracker-monthly-fee"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              placeholder="Ex.: 20,00"
+          /></label>
+        </div>
+        <p class="helper">
+          Somente o administrador pode cadastrar, editar, ativar, desativar ou
+          excluir planos e suas regras financeiras.
+        </p>
+        <div class="actions dialog-actions">
+          <button class="outline" type="button" data-close-dialog="plan-dialog">
+            Cancelar</button
+          ><button class="primary" type="submit">Salvar plano</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="discount-dialog" class="admin-dialog wide-dialog">
+      <form id="discount-form" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40">DESCONTO E REGRAS</span>
+            <h2 id="discount-dialog-title">Novo desconto</h2>
+          </div>
+          <button class="dialog-close" type="button" data-close-dialog="discount-dialog">×</button>
+        </div>
+        <input id="discount-id" type="hidden" />
+        <div class="form-grid">
+          <label>Nome<input id="discount-name" maxlength="120" required placeholder="Ex.: Desconto 15%" /></label>
+          <label>Percentual<input id="discount-percent" type="number" min="1" max="100" step="1" required /></label>
+          <label>Ordem de exibição<input id="discount-order" type="number" min="0" value="100" required /></label>
+          <label>Status<select id="discount-active"><option value="true">Ativo</option><option value="false">Inativo</option></select></label>
+
+          <div class="span-2 admin-form-section">
+            <strong>Planos e pacotes elegíveis</strong>
+            <small>Marque exatamente em quais planos este percentual pode ser usado. Isso permite, por exemplo, deixar motos somente em 10%.</small>
+          </div>
+          <label class="span-2">Planos permitidos
+            <div id="discount-plan-options" class="coverage-plan-options" role="group" aria-label="Planos permitidos para o desconto"></div>
+          </label>
+
+          <div class="span-2 admin-form-section">
+            <strong>Condições de elegibilidade</strong>
+            <small>Todos os campos são opcionais. Quando preenchidos, a condição passa a ser validada automaticamente.</small>
+          </div>
+          <label>Idade mínima do veículo (anos)<input id="discount-min-age" type="number" min="0" step="1" placeholder="Sem mínimo" /></label>
+          <label>Idade máxima do veículo (anos)<input id="discount-max-age" type="number" min="0" step="1" placeholder="Sem máximo" /></label>
+          <label>FIPE mínima<input id="discount-min-fipe" data-money inputmode="decimal" maxlength="18" placeholder="Sem mínimo" /></label>
+          <label>FIPE máxima<input id="discount-max-fipe" data-money inputmode="decimal" maxlength="18" placeholder="Sem máximo" /></label>
+          <label class="span-2">Exigir perfurado no vigia traseiro
+            <select id="discount-requires-perforation"><option value="false">Não</option><option value="true">Sim</option></select>
+            <small>Quando ativado, basta o perfurado traseiro; não existe mais obrigação de dividir entre duas logomarcas.</small>
+          </label>
+
+          <div class="span-2 admin-form-section">
+            <strong>Onde o percentual será aplicado</strong>
+            <small>Escolha pelo menos um componente. Assim o administrador define se o desconto afeta plano base, taxas mensais obrigatórias e/ou adicionais.</small>
+          </div>
+          <label class="coverage-plan-choice"><input id="discount-apply-base" type="checkbox" checked /><span><strong>Mensalidade base do plano</strong></span></label>
+          <label class="coverage-plan-choice"><input id="discount-apply-mandatory" type="checkbox" checked /><span><strong>Taxas mensais obrigatórias</strong></span></label>
+          <label class="coverage-plan-choice span-2"><input id="discount-apply-optionals" type="checkbox" checked /><span><strong>Serviços adicionais pagos</strong></span></label>
+
+          <label class="span-2">Observações administrativas<textarea id="discount-notes" maxlength="600" rows="3" placeholder="Explique a regra para quem administra o catálogo."></textarea></label>
+        </div>
+
+        <section class="coverage-rules-editor">
+          <div class="coverage-rules-head">
+            <div>
+              <h3>Efeito do desconto nos benefícios e coberturas</h3>
+              <p class="helper">Para cada benefício, deixe “Sem regra” ou determine que ele seja removido/obrigatoriamente incluído. Também é possível substituir o texto/limite exibido.</p>
+            </div>
+          </div>
+          <div id="discount-benefit-options" class="coverage-rules-list"></div>
+        </section>
+
+        <div class="actions dialog-actions">
+          <button class="outline" type="button" data-close-dialog="discount-dialog">Cancelar</button>
+          <button class="primary" type="submit">Salvar desconto</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="promo-motorcycle-price-dialog" class="admin-dialog">
+      <form id="promo-motorcycle-price-form" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40"
+              >TABELA PROMOCIONAL</span
+            >
+            <h2>Editar faixa promocional</h2>
+          </div>
+          <button
+            class="dialog-close"
+            type="button"
+            data-close-dialog="promo-motorcycle-price-dialog"
+          >
+            ×
+          </button>
+        </div>
+        <input id="promo-motorcycle-price-id" type="hidden" />
+        <div class="form-grid">
+          <label class="span-2"
+            >Faixa promocional<input
+              id="promo-motorcycle-price-label"
+              maxlength="120"
+              placeholder="Ex.: Até 150cc até R$ 11 mil"
+              required
+          /></label>
+          <label
+            >Valor FIPE mínimo<input
+              id="promo-motorcycle-price-min-fipe"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              placeholder="Ex.: 0,00"
+              required
+          /></label>
+          <label
+            >Valor FIPE máximo<input
+              id="promo-motorcycle-price-max-fipe"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              placeholder="Sem limite se ficar vazio"
+          /></label>
+          <label
+            >Cilindrada mínima<input
+              id="promo-motorcycle-price-min-cc"
+              type="number"
+              min="1"
+              max="2500"
+              step="1"
+              placeholder="Ex.: 1"
+              required
+          /></label>
+          <label
+            >Cilindrada máxima<input
+              id="promo-motorcycle-price-max-cc"
+              type="number"
+              min="1"
+              max="2500"
+              step="1"
+              placeholder="Ex.: 150"
+              required
+          /></label>
+          <label class="span-2"
+            >Mensalidade<input
+              id="promo-motorcycle-price-monthly"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              placeholder="Ex.: 35,00"
+              required
+          /></label>
+        </div>
+        <p class="helper">
+          Nome, FIPE, cilindradas e mensalidade passam a valer nas novas
+          cotações assim que você salvar.
+        </p>
+        <div class="actions dialog-actions">
+          <button
+            id="promo-motorcycle-price-delete"
+            class="danger"
+            type="button"
+          >
+            Excluir faixa</button
+          ><button
+            class="outline"
+            type="button"
+            data-close-dialog="promo-motorcycle-price-dialog"
+          >
+            Cancelar</button
+          ><button class="primary" type="submit">Salvar faixa</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="price-dialog" class="admin-dialog">
+      <form id="price-form" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40">FAIXA FIPE</span>
+            <h2 id="price-dialog-title">Nova faixa de valor</h2>
+          </div>
+          <button
+            class="dialog-close"
+            type="button"
+            data-close-dialog="price-dialog"
+          >
+            ×
+          </button>
+        </div>
+        <input id="price-id" type="hidden" />
+        <div class="form-grid">
+          <label class="span-2"
+            >Plano<select id="price-plan" required></select
+          ></label>
+          <label
+            >Valor FIPE mínimo<input
+              id="price-min"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              required
+          /></label>
+          <label
+            >Valor FIPE máximo<input
+              id="price-max"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              required
+          /></label>
+          <label class="span-2"
+            >Mensalidade<input
+              id="price-monthly"
+              data-money
+              inputmode="decimal"
+              maxlength="18"
+              required
+          /></label>
+        </div>
+        <div class="actions dialog-actions">
+          <button
+            class="outline"
+            type="button"
+            data-close-dialog="price-dialog"
+          >
+            Cancelar</button
+          ><button class="primary" type="submit">Salvar faixa</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="coverage-dialog" class="admin-dialog wide-dialog">
+      <form id="coverage-form" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40">COBERTURA / BENEFÍCIO</span>
+            <h2 id="coverage-dialog-title">Nova cobertura</h2>
+          </div>
+          <button class="dialog-close" type="button" data-close-dialog="coverage-dialog">×</button>
+        </div>
+        <input id="coverage-id" type="hidden" />
+        <div class="form-grid">
+          <label class="span-2">Nome do benefício
+            <input id="coverage-name" maxlength="180" required placeholder="Ex.: Carro reserva" />
+          </label>
+        </div>
+
+        <section class="coverage-rules-editor">
+          <div class="coverage-rules-head">
+            <div>
+              <h3>Tipos de veículo permitidos como adicional</h3>
+              <p class="helper">Marque os tipos de veículo nos quais esta cobertura poderá ser contratada como adicional pago. Os códigos técnicos ficam apenas no sistema e não são exibidos nesta tela.</p>
+            </div>
+          </div>
+          <div id="coverage-vehicle-categories" class="coverage-plan-options"></div>
+        </section>
+
+        <section class="coverage-rules-editor">
+          <div class="coverage-rules-head">
+            <div>
+              <h3>Configuração nos planos</h3>
+              <p class="helper">Ative os planos desejados e escolha um dos dois cards: “Integrado ao plano” ou “Adicional pago”. Para adicional pago, informe o valor mensal.</p>
+            </div>
+          </div>
+          <div id="coverage-plan-assignments" class="plan-benefit-options"></div>
+        </section>
+
+        <section class="coverage-rules-editor">
+          <div class="coverage-rules-head">
+            <div>
+              <h3>Regras da cobertura quando houver desconto</h3>
+              <p class="helper">Os percentuais vêm da aba Descontos. Aqui você define o efeito deste benefício em cada percentual e, quando necessário, qual será o valor/limite recebido pelo associado.</p>
+            </div>
+          </div>
+          <div id="coverage-discount-effects" class="coverage-discount-effects"></div>
+        </section>
+
+        <section class="coverage-rules-editor">
+          <div class="coverage-rules-head">
+            <div>
+              <h3>Regras de limite por FIPE</h3>
+              <p class="helper">Opcional. Use quando o limite da cobertura variar conforme tipo de veículo ou faixa FIPE. Para percentuais específicos de desconto, use a seção acima.</p>
+            </div>
+            <button id="add-coverage-rule" class="outline small-button" type="button">+ Adicionar regra</button>
+          </div>
+          <div id="coverage-rules-list" class="coverage-rules-list"></div>
+        </section>
+
+        <p class="helper">
+          Esta tela altera a mesma fonte de dados usada na cotação e em “Editar tudo” do plano; não existe uma segunda lista de coberturas.
+        </p>
+        <div class="actions dialog-actions">
+          <button class="outline" type="button" data-close-dialog="coverage-dialog">Cancelar</button>
+          <button class="primary" type="submit">Salvar benefício</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="quote-dialog" class="admin-dialog wide-dialog">
+      <form id="quote-analysis-form" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40"
+              >ANÁLISE DE COTAÇÃO</span
+            >
+            <h2 id="quote-dialog-title">Cotação</h2>
+          </div>
+          <button
+            class="dialog-close"
+            type="button"
+            data-close-dialog="quote-dialog"
+          >
+            ×
+          </button>
+        </div>
+        <input id="quote-analysis-id" type="hidden" />
+        <div id="quote-detail-grid" class="detail-grid"></div>
+        <section class="message" style="margin-top:18px">
+          <strong>Editar dados do associado e veículo</strong>
+          <p>O Admin pode corrigir todos os dados cadastrais abaixo enquanto a vistoria ainda não estiver com status <strong>Cadastro feito</strong>. O valor FIPE permanece bloqueado.</p>
+          <div class="form-grid" style="margin-top:12px">
+            <label>Nome do associado<input id="quote-edit-name" maxlength="120"></label>
+            <label>CPF<input id="quote-edit-cpf" maxlength="14" inputmode="numeric" placeholder="000.000.000-00"></label>
+            <label>WhatsApp<input id="quote-edit-whatsapp" maxlength="30" inputmode="tel" placeholder="(82) 99999-9999"></label>
+            <label>Placa<input id="quote-edit-plate" maxlength="10" placeholder="ABC1D23"></label>
+            <label>Veículo 0 km<select id="quote-edit-zero-km"><option value="false">Não</option><option value="true">Sim</option></select></label>
+            <label>Modelo do veículo<input id="quote-edit-model" maxlength="120"></label>
+            <label>Ano do modelo<input id="quote-edit-model-year" type="number" min="1950" max="2100"></label>
+            <label class="span-2">Observação da cotação<textarea id="quote-edit-observation" maxlength="1200" rows="3"></textarea></label>
+          </div>
+          <div class="actions" style="margin-top:10px"><button id="quote-save-details" class="secondary" type="button">Salvar dados corrigidos</button></div>
+        </section>
+        <div class="form-grid" style="margin-top: 18px">
+          <label id="quote-analysis-consultant-field" class="span-2" hidden
+            >Consultor responsável
+            <select id="quote-analysis-consultant">
+              <option value="">Selecione um consultor</option>
+            </select>
+            <small class="helper">Disponível para cotações feitas pelo site. Ao trocar o responsável, uma vistoria já criada também é atualizada.</small>
+          </label>
+          <label
+            >Status<select id="quote-analysis-status">
+              <option value="CREATED">Pendente</option>
+              <option value="UNDER_REVIEW">Em análise</option>
+              <option value="ACCEPTED">Aceita</option>
+              <option value="DECLINED">Recusada</option>
+              <option value="CANCELLED">Cancelada</option>
+            </select></label
+          >
+          <label class="span-2"
+            >Observação da aprovação/rejeição<textarea
+              id="quote-analysis-note"
+              maxlength="1200"
+              rows="4"
+              placeholder="Obrigatória ao aprovar ou rejeitar: informe o motivo da decisão."
+            ></textarea>
+          </label>
+        </div>
+        <div id="quote-links" class="actions"></div>
+        <div class="actions dialog-actions">
+          <button
+            class="outline"
+            type="button"
+            data-close-dialog="quote-dialog"
+          >
+            Fechar</button
+          ><button class="primary" type="submit">Salvar análise</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="inspection-dialog" class="admin-dialog wide-dialog">
+      <form id="inspection-analysis-form" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40"
+              >ANÁLISE DO RETRATO NH</span
+            >
+            <h2 id="inspection-dialog-title">Retrato NH</h2>
+          </div>
+          <button
+            class="dialog-close"
+            type="button"
+            data-close-dialog="inspection-dialog"
+          >
+            ×
+          </button>
+        </div>
+        <input id="inspection-analysis-id" type="hidden" />
+        <div id="inspection-detail-grid" class="detail-grid"></div>
+        <section class="message" style="margin-top:18px">
+          <strong>Editar dados do associado e veículo</strong>
+          <p>O Admin pode corrigir completamente a vistoria, inclusive depois de aprovada, enquanto o associado ainda não tiver realizado o aceite digital. Depois do aceite digital, o dossiê fica bloqueado.</p>
+          <div id="admin-digital-lock" class="commercial-lock-banner" hidden><strong>Vistoria bloqueada</strong><span>O associado já realizou o aceite digital. Dados, valores, benefícios, arquivos e decisão final não podem mais ser alterados.</span></div>
+          <div class="form-grid" style="margin-top:12px">
+            <label>Nome do associado<input id="inspection-edit-name" maxlength="140"></label>
+            <label>CPF<input id="inspection-edit-cpf" maxlength="14" inputmode="numeric" placeholder="000.000.000-00"></label>
+            <label>WhatsApp<input id="inspection-edit-whatsapp" maxlength="30" inputmode="tel" placeholder="(82) 99999-9999"></label>
+            <label>Placa<input id="inspection-edit-plate" maxlength="10" placeholder="ABC1D23"></label>
+            <label>Veículo 0 km<select id="inspection-edit-zero-km"><option value="false">Não</option><option value="true">Sim</option></select></label>
+            <label>Tipo de veículo (FIPE)
+              <select id="admin-fipe-type" aria-label="Tipo de veículo da tabela FIPE"><option value="">Carregando tipos...</option></select>
+            </label>
+            <label>Marca do veículo (digite ou selecione)
+              <input id="admin-fipe-brand" list="admin-fipe-brand-list" maxlength="120" autocomplete="off" placeholder="Ex.: Honda" />
+              <datalist id="admin-fipe-brand-list"></datalist>
+            </label>
+            <label>Modelo do veículo (digite ou selecione)
+              <input id="inspection-edit-model" list="admin-fipe-model-list" maxlength="120" autocomplete="off" placeholder="Ex.: CG 160" />
+              <datalist id="admin-fipe-model-list"></datalist>
+            </label>
+            <label>Ano do modelo<input id="inspection-edit-model-year" type="number" min="1950" max="2100"></label>
+            <label>Versão do veículo (Tabela FIPE)
+              <select id="admin-fipe-version" aria-describedby="admin-fipe-version-status"><option value="">Informe modelo e ano-modelo</option></select>
+            </label>
+            <label>Código FIPE<input id="admin-fipe-code" readonly aria-readonly="true" placeholder="Preenchimento automático"></label>
+            <label>Valor FIPE encontrado<input id="admin-fipe-display" readonly aria-readonly="true" placeholder="Preenchimento automático"></label>
+            <p id="admin-fipe-version-status" class="helper span-2" aria-live="polite">Consulte o modelo e ano para escolher a versão correta. Se houver mais de uma, a escolha é obrigatória.</p>
+            <fieldset class="nh-admin-address-editor span-2">
+              <legend>Endereço residencial — consulta CEP</legend>
+              <div class="nh-admin-address-grid">
+                <label>CEP<span class="nh-admin-cep-control"><input id="admin-edit-cep" maxlength="9" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"><button id="admin-find-cep" type="button" class="secondary">Buscar CEP</button></span></label>
+                <label>Rua / Avenida<input id="admin-edit-street" maxlength="160"></label>
+                <label>Número<input id="admin-edit-number" maxlength="20"></label>
+                <label>Complemento<input id="admin-edit-complement" maxlength="120"></label>
+                <label>Bairro<input id="admin-edit-neighborhood" maxlength="120"></label>
+                <label>Cidade<input id="admin-edit-city" maxlength="120"></label>
+                <label>UF<select id="admin-edit-state" autocomplete="address-level1"><option value="">Selecione</option><option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option></select></label>
+              </div>
+              <p id="admin-cep-status" class="helper" aria-live="polite">Consulte pelo CEP ou mantenha a edição do endereço cadastrado.</p>
+              <label id="admin-address-legacy-wrap" hidden>Endereço anterior (legado)<textarea id="inspection-edit-address" maxlength="600" rows="3"></textarea></label>
+            </fieldset>
+          </div>
+          <div class="actions" style="margin-top:10px"><button id="inspection-save-details" class="secondary" type="button">Salvar dados corrigidos</button></div>
+          <div id="admin-contract-values-section" class="message commercial-editor">
+            <strong>Valores do contrato</strong>
+            <p id="admin-contract-values-helper">O Admin pode corrigir FIPE, desconto, mensalidade, benefícios e adicionais inclusive em vistorias aprovadas, enquanto o associado ainda não tiver realizado o aceite digital.</p>
+            <p style="margin-top:10px"><strong>Plano da cotação:</strong> <span id="admin-contract-plan">—</span></p>
+            <div class="nh-admin-plan-change">
+              <label>Plano do veículo<select id="admin-contract-plan-select"><option value="">Carregando planos disponíveis...</option></select></label>
+              <button id="admin-save-contract-plan" class="secondary" type="button">Alterar plano</button>
+              <p class="helper">A troca recalcula a mensalidade e reconstrói as coberturas do novo plano. Não é permitida após o aceite digital.</p>
+            </div>
+            <div class="commercial-stage-heading">
+              <span>ETAPA 1</span>
+              <div><strong>Base do plano e condições do cálculo</strong><small>O valor-base vem da tabela cadastrada para o plano, tipo do veículo e FIPE. Rastreador/taxas só entram quando a regra atual exigir.</small></div>
+            </div>
+            <div class="form-grid" style="margin-top:10px">
+              <label>Valor FIPE do veículo<input id="admin-contract-fipe" data-money inputmode="decimal" placeholder="Ex.: 65.000,00"></label>
+              <label>Valor mensal final (automático)<input id="admin-contract-monthly" data-money inputmode="decimal" readonly aria-readonly="true"><small class="helper">Calculado na hora: valor-base cadastrado para o plano/FIPE + rastreador ou taxa aplicável + serviços adicionais selecionados − desconto.</small></label>
+              <label>Desconto aplicado
+                <select id="admin-contract-discount">
+                  <option value="0">Sem desconto</option>
+                </select>
+              </label>
+              <label>Perfurado no vigia traseiro
+                <select id="admin-contract-branding">
+                  <option value="NOT_APPLICABLE">Não se aplica</option>
+                  <option value="ANY_PERFORATED">Perfurado no vigia traseiro</option>
+                  <option value="NH_AND_OTHER_COMPANY">Empresa Cliente + outra empresa</option>
+                  <option value="NH_ONLY">Somente Empresa Cliente</option>
+                </select>
+              </label>
+            </div>
+            <div class="commercial-preview" aria-live="polite">
+              <div class="commercial-preview-item"><span>Mensalidade base do plano</span><strong id="admin-preview-base">R$ 0,00</strong></div>
+              <div class="commercial-preview-item"><span id="admin-preview-mandatory-label">Rastreador / taxa mensal aplicável</span><strong id="admin-preview-mandatory">R$ 0,00</strong></div>
+              <div class="commercial-preview-item"><span>Adicionais selecionados</span><strong id="admin-preview-optionals">R$ 0,00</strong></div>
+              <div class="commercial-preview-item"><span>Subtotal mensal</span><strong id="admin-preview-subtotal">R$ 0,00</strong></div>
+              <div class="commercial-preview-item"><span>Taxa única (fora da mensalidade)</span><strong id="admin-preview-one-time">R$ 0,00</strong></div>
+              <div class="commercial-preview-item commercial-preview-discount"><span id="admin-preview-discount-label">Desconto</span><strong id="admin-preview-discount">R$ 0,00</strong></div>
+              <div class="commercial-preview-item commercial-preview-total"><span>Valor final previsto</span><strong id="admin-preview-final">R$ 0,00</strong><small id="admin-preview-final-note">Calculado automaticamente com desconto e adicionais.</small></div>
+            </div>
+            <div class="commercial-benefits-section">
+              <div class="commercial-stage-heading commercial-stage-two">
+              <span>ETAPA 2</span>
+              <div><strong>Serviços adicionais e benefícios</strong><small>Esta lista vem do cadastro atual do plano. Ao adicionar ou remover um serviço, a prévia é recalculada na hora com o valor cadastrado.</small></div>
+            </div>
+              <div id="admin-contract-benefits" class="commercial-benefits-grid"></div>
+            </div>
+            <div class="actions" style="margin-top:10px"><button id="admin-save-contract-values" class="secondary" type="button">Salvar revisão comercial</button></div>
+            <div id="admin-contract-change-pending" class="message success" hidden style="margin-top:12px">
+              <strong>Novo valor aguardando confirmação do associado</strong>
+              <p id="admin-contract-change-pending-text">Envie o link para o cliente conferir o novo valor e decidir sobre os adicionais já contratados.</p>
+              <div class="actions">
+                <a id="admin-send-contract-change-link" class="secondary" target="_blank" rel="noopener">Enviar link para aceite</a>
+                <button id="admin-copy-contract-change-link" class="outline" type="button">Copiar link</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section
+          id="admin-inspection-files-section"
+          class="inspection-media-section"
+          hidden
+        >
+          <div class="inspection-media-head">
+            <div>
+              <h3>Arquivos enviados</h3>
+              <p id="admin-inspection-files-retention">
+                Arquivos confirmados permanecem disponíveis junto à vistoria.
+              </p>
+            </div>
+            <button
+              id="admin-download-all-files"
+              class="secondary"
+              type="button"
+            >
+              Baixar todos (.zip)
+            </button>
+          </div>
+          <div
+            id="admin-inspection-files-grid"
+            class="inspection-media-grid"
+          ></div>
+        </section>
+        <div class="form-grid" style="margin-top: 18px">
+          <label>Situação operacional<select id="inspection-analysis-status">
+              <option value="WAITING_FILES">Aguardando documentos</option>
+              <option value="UPLOADING_FILES">Envio em andamento</option>
+              <option value="UNDER_REVIEW">Em análise / Cadastro não feito</option>
+              <option value="CANCELLED">Cancelada</option>
+              <option value="EXPIRED">Expirada</option>
+            </select></label>
+          <label class="span-2">Observação da análise<textarea
+              id="inspection-analysis-note"
+              maxlength="1200"
+              rows="4"
+              placeholder="Registre pendências, conferências e observações da análise administrativa."
+            ></textarea>
+          </label>
+          <label class="span-2"><strong>O.B.S. Supervisão</strong><textarea
+              id="admin-supervision-note"
+              maxlength="1200"
+              rows="4"
+              placeholder="Orientações e cobranças para o analista responsável."
+            ></textarea><small id="admin-supervision-note-meta" class="helper">A observação ficará visível para o analista.</small></label>
+          <div class="span-2 actions" style="margin-top:0"><button id="admin-save-supervision-note" class="secondary" type="button">Salvar O.B.S. Supervisão</button></div>
+        </div>
+        <section class="message" style="margin-top:14px">
+          <strong>Responsável pela análise e acompanhamento</strong>
+          <div class="nh-admin-plan-change">
+            <label>Analista responsável<select id="admin-inspection-analyst"><option value="">Carregando analistas...</option></select></label>
+            <button id="admin-save-inspection-analyst" type="button" class="secondary">Salvar responsável</button>
+            <p id="admin-inspection-analyst-status" class="helper">O responsável pelo acompanhamento fica registrado na auditoria.</p>
+          </div>
+        </section>
+        <div id="inspection-links" class="actions"></div>
+        <div id="admin-registration-actions" class="actions registration-actions-panel" style="margin-top:18px">
+          <button id="admin-registration-not-complete" class="outline" type="button">Cadastro não realizado · Reabrir cadastro</button>
+          <button id="admin-registration-complete" class="secondary" type="button">✓ Cadastro realizado · Liberar decisão</button>
+        </div>
+        <div id="admin-inspection-decision-actions" class="actions" style="margin-top:18px">
+          <button id="admin-inspection-reject" class="danger" type="button">Rejeitar como Supervisão</button>
+          <button id="admin-inspection-approve" class="primary" type="button">Aprovar como Supervisão</button>
+        </div>
+        <div id="admin-webauthn-notification" class="message success webauthn-send-box" hidden>
+          <strong>Aceite digital WebAuthn pendente</strong>
+          <p>O administrador pode enviar o token/link seguro ao associado depois da aprovação final.</p>
+          <div class="actions">
+            <button id="admin-send-webauthn-token" class="secondary" type="button">Enviar link para aceite</button>
+            <button id="admin-copy-webauthn-link" class="outline" type="button">Copiar link do aceite</button>
+          </div>
+        </div>
+        <section id="admin-document-center" class="nh-doc-center" aria-live="polite"></section>
+    <div id="admin-responsibility-term-box" class="message webauthn-send-box" hidden>
+          <strong>Termo de Responsabilidade · aceite separado</strong>
+          <p id="admin-responsibility-term-status">Este veículo possui avaria pré-existente. O termo pode ser enviado sozinho ao associado, mesmo depois do aceite do dossiê.</p>
+          <label style="display:block;margin-top:10px">Peça(s) / avaria(s) do termo
+            <textarea id="admin-responsibility-term-damages" maxlength="4000" rows="4" placeholder="Ex.: Para-choque dianteiro — trincado; Farol esquerdo — quebrado"></textarea>
+            <small class="helper">Pode ser preenchido mesmo depois da vistoria ou do aceite do dossiê. Isso gera um termo separado e não altera o dossiê antigo.</small>
+          </label>
+          <div class="actions">
+            <button id="admin-send-responsibility-term" class="secondary" type="button">Enviar somente o termo</button>
+            <button id="admin-copy-responsibility-term" class="outline" type="button">Copiar link do termo</button>
+            <button id="admin-open-responsibility-term" class="outline" type="button">Abrir termo</button>
+            <button id="admin-download-responsibility-term" class="outline" type="button">Baixar termo (PDF)</button>
+          </div>
+        </div>
+        <section id="admin-parts-delay-term-box" class="message webauthn-send-box" hidden style="margin-top:16px">
+          <strong>Termo de Ciência — prazo para obtenção de peças</strong>
+          <p id="admin-parts-delay-term-status" aria-live="polite">Documento independente: possível atraso de mais de 90 dias no fornecimento de peças, sem prorrogação automática de prazos.</p>
+          <label>Observações sobre a disponibilidade de peças (opcional)
+            <textarea id="admin-parts-delay-term-notes" maxlength="4000" rows="3"></textarea>
+          </label>
+          <div class="actions" style="margin-top:10px">
+            <button id="admin-send-parts-delay-term" class="secondary" type="button">Enviar termo de ciência</button>
+            <button id="admin-copy-parts-delay-term" class="outline" type="button">Copiar link</button>
+            <button id="admin-open-parts-delay-term" class="outline" type="button">Visualizar termo</button>
+            <button id="admin-download-parts-delay-term" class="outline" type="button">Baixar PDF</button>
+          </div>
+        </section>
+        <div class="actions dialog-actions">
+          <button class="outline" type="button" data-close-dialog="inspection-dialog">Fechar</button>
+          <button id="admin-save-analysis" class="primary" type="submit">Salvar análise</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="settings-dialog" class="admin-dialog">
+      <form id="settings-form" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <span class="eyebrow" style="color: #070c40"
+              >DESTINOS DE ENVIO</span
+            >
+            <h2>Alterar comunicação da equipe</h2>
+          </div>
+          <button
+            class="dialog-close"
+            type="button"
+            data-close-dialog="settings-dialog"
+          >
+            ×
+          </button>
+        </div>
+        <label
+          >E-mail que receberá as cotações<input
+            id="settings-email-input"
+            type="email"
+            maxlength="180"
+            placeholder="comercial@empresa.com.br"
+        /></label>
+        <label style="margin-top: 14px"
+          >WhatsApp da equipe<input
+            id="settings-whatsapp-input"
+            inputmode="numeric"
+            maxlength="15"
+            placeholder="5582999999999"
+        /></label>
+        <p class="helper">
+          Informe o WhatsApp somente com números, incluindo DDI e DDD.
+        </p>
+        <div class="actions dialog-actions">
+          <button
+            class="outline"
+            type="button"
+            data-close-dialog="settings-dialog"
+          >
+            Cancelar</button
+          ><button class="primary" type="submit">Salvar destinos</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="/shared/config.js?v=20260923-v77"></script>
+    <script src="/shared/face-auth.js?v=20260928-v86"></script>
+    <script src="/shared/url-tools.js?v=20260804-current-origin"></script>
+    <script src="/shared/money-input.js?v=20260805-brl-mask"></script>
+    <script src="/shared/inspection-documents.js?v=20261016-v83-129"></script>
+<script src="/shared/fipe-picker.js?v=20261016-v83-137"></script>
+<script src="/admin/admin.js?v=20261016-v83-137-fipe-combobox"></script>
+    <script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
+  
+  <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">
+    Gestao Software LTDA. Projetado e Desenvolvido por
+    <a href="https://www.linkedin.com/in/devcarloslima/" target="_blank" rel="noopener noreferrer">Carlos Lima</a>
+    e
+    Equipe de desenvolvimento.
+  </div>
+  <script defer src="/shared/developer-footer.js?v=20260929-v83-37"></script>
+</body>
+</html>

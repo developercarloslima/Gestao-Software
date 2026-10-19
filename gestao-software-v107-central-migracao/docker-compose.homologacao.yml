@@ -1,0 +1,53 @@
+# Ambientes descartáveis. Nunca executa containers ou volumes da instalação atual.
+# Rodar exclusivamente com: docker compose -p gs-cloud-v106-homologacao -f docker-compose.homologacao.yml ...
+services:
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ci_user
+      POSTGRES_PASSWORD: test_only_not_for_production
+      POSTGRES_DB: gs_cloud_homologacao
+    tmpfs:
+      - /var/lib/postgresql/data:size=268435456
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ci_user -d gs_cloud_homologacao"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [isolated]
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: jdbc:postgresql://database:5432/gs_cloud_homologacao
+      DATABASE_USERNAME: ci_user
+      DATABASE_PASSWORD: test_only_not_for_production
+      AUTH_TOKEN_SECRET: ci_only_random_no_real_tenant
+      AUTO_PROVISION_ENABLED: 'false'
+      TENANT_TEMPLATE_CERTIFIED: 'false'
+      CLOUD_ORCHESTRATOR_ENABLED: 'false'
+      CLOUD_DNS_PROVIDER: MANUAL
+    depends_on:
+      database: {condition: service_healthy}
+    networks: [isolated]
+  validator:
+    image: curlimages/curl:8.11.1
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        for i in $$(seq 1 75); do
+          if curl --fail --silent --show-error http://backend:8080/api/health; then
+            echo 'PASS: backend e Flyway inicializados com banco descartável'
+            exit 0
+          fi
+          sleep 3
+        done
+        echo 'FAIL: backend não iniciou com Postgres 16'
+        exit 1
+    depends_on:
+      backend: {condition: service_started}
+    networks: [isolated]
+networks:
+  isolated:
+    internal: true

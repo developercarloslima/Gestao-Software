@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070c40">
+  <title>Retrato NH | Vistoria Digital</title>
+  <link rel="icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="shortcut icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="apple-touch-icon" href="/assets/identidade-pendente.svg" />
+  <meta property="og:image" content="" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:image" content="" />
+<link rel="stylesheet" href="/shared/portal.css?v=20260923-v73">
+  <link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24">
+  <link rel="stylesheet" href="/shared/brand-system.css?v=20260923-v73">
+
+  <style id="nh-dev-credit-style">
+    .nh-dev-credit {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px 10px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: .01em;
+      opacity: .56;
+      color: inherit;
+    }
+    .nh-dev-credit a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .nh-dev-credit a:hover,
+    .nh-dev-credit a:focus-visible {
+      text-decoration: underline;
+      opacity: .95;
+    }
+    @media (max-width: 640px) {
+      .nh-dev-credit {
+        padding: 7px 10px 9px;
+        font-size: 10px;
+        opacity: .52;
+      }
+    }
+  </style>
+  <style id="retrato-photo-fullscreen-v16">
+    /* V17: fallback para navegadores que não abrem a câmera nativa por input capture.
+       Em iPhone/iPad/Android, a foto abre na câmera nativa em tela cheia. */
+    @media (max-width: 820px) {
+      .camera-modal.photo-fullscreen {
+        padding: 0 !important;
+        align-items: stretch !important;
+        background: #050816 !important;
+        overflow: hidden !important;
+      }
+      .camera-modal.photo-fullscreen .camera-panel {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        min-height: 100dvh !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: max(10px, env(safe-area-inset-top, 0px)) 10px max(10px, env(safe-area-inset-bottom, 0px)) !important;
+        display: grid !important;
+        grid-template-rows: auto minmax(0, 1fr) auto auto !important;
+        gap: 8px !important;
+        overflow: hidden !important;
+        background: #050816 !important;
+        color: #fff !important;
+      }
+      .camera-modal.photo-fullscreen .camera-panel-head {
+        margin: 0 !important;
+        padding: 0 2px !important;
+      }
+      .camera-modal.photo-fullscreen .camera-panel-head h2,
+      .camera-modal.photo-fullscreen .camera-panel-head .eyebrow,
+      .camera-modal.photo-fullscreen .camera-instruction {
+        color: #fff !important;
+      }
+      .camera-modal.photo-fullscreen .camera-live-frame {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        aspect-ratio: auto !important;
+        border-radius: 14px !important;
+        background: #000 !important;
+      }
+      .camera-modal.photo-fullscreen .camera-live-frame video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
+      }
+      .camera-modal.photo-fullscreen .camera-instruction {
+        margin: 0 !important;
+        padding: 3px 2px !important;
+        font-size: 13px !important;
+        line-height: 1.35 !important;
+      }
+      .camera-modal.photo-fullscreen .camera-controls {
+        margin: 0 !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+      }
+      .camera-modal.photo-fullscreen .camera-controls button {
+        width: 100% !important;
+        min-height: 46px !important;
+      }
+      .camera-modal.photo-fullscreen #capture-photo {
+        grid-column: 1 / -1 !important;
+        min-height: 52px !important;
+      }
+    }
+  </style>
+
+  <style id="retrato-close-focus-v83-81">
+    .camera-live-frame.tap-focus-enabled{cursor:crosshair;touch-action:manipulation}
+    .camera-focus-reticle{position:absolute;width:54px;height:54px;border:3px solid #ffd400;border-radius:10px;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 0 2px rgba(0,0,0,.25),0 0 22px rgba(255,212,0,.35);z-index:8}
+    .camera-focus-reticle.focus-ok{border-color:#32d583}.camera-focus-reticle.focus-error{border-color:#ff5a5f}
+    .camera-focus-controls{margin-top:10px;padding:10px 12px;border:1px solid rgba(17,35,86,.15);border-radius:14px;background:#f7f9ff}
+    .camera-focus-hint{margin:0 0 8px;font-size:13px;line-height:1.4;color:#334155;font-weight:700}
+    .camera-focus-hint[data-focus-state="ok"]{color:#12683f}.camera-focus-hint[data-focus-state="error"]{color:#9b1c1c}
+    .camera-focus-actions{display:flex;gap:8px;flex-wrap:wrap}.camera-focus-actions button{min-height:42px}
+    .manual-focus-wrap{display:block;margin-top:10px}.manual-focus-wrap>span{display:block;font-size:12px;font-weight:850;color:#10245b;margin-bottom:3px}
+    .manual-focus-labels{display:flex;justify-content:space-between;color:#64748b;margin-bottom:2px}.manual-focus-wrap input{width:100%}
+    @media(max-width:680px){.camera-focus-actions{display:grid;grid-template-columns:1fr}.camera-focus-actions button{width:100%}.camera-focus-controls{padding:9px}}
+  </style>
+<style id="preexisting-damage-v83-101">
+  .preexisting-damage-box{margin:16px 0;padding:16px;border:1px solid #dfe3ef;border-radius:16px;background:#fafbff}
+  .preexisting-damage-box>strong{display:block;color:#070c40;font-size:15px;margin-bottom:4px}
+  .preexisting-damage-options{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .preexisting-damage-options label{display:flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid #d8ddea;border-radius:12px;background:#fff;font-weight:750;cursor:pointer}
+  .preexisting-damage-options input{width:auto;margin:0}
+  .preexisting-damage-details{margin-top:14px}
+  .preexisting-damage-details textarea{width:100%;min-height:125px}
+  .responsibility-term-note{margin-top:10px;padding:11px 12px;border-left:4px solid #ffec00;border-radius:10px;background:#fff;color:#3f485e;font-size:13px;line-height:1.45}
+  .digital-responsibility-term{margin:14px 0;padding:14px;border:1px solid #e0e4ef;border-radius:13px;background:#fff8cf;color:#2f3850}
+  .digital-responsibility-term strong{display:block;color:#070c40;margin-bottom:5px}
+  .digital-responsibility-term pre{white-space:pre-wrap;font:inherit;margin:8px 0 0;color:#343b4c}
+  @media(max-width:680px){.preexisting-damage-options{display:grid;grid-template-columns:1fr 1fr}.preexisting-damage-options label{justify-content:center}}
+</style>
+<link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24" />
+<style id="nh-cep-v83-128">.nh-residence-address-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:10px}.nh-residence-address-grid label{display:grid;gap:5px;font-size:13px;font-weight:750;min-width:0}.nh-residence-address-grid input,.nh-residence-address-grid select{width:100%;min-width:0}.nh-cep-row{display:flex;gap:8px}.nh-cep-row input{flex:1;min-width:0}.nh-cep-row button{flex:0 0 auto}#residence-cep-status[data-kind="error"]{color:#ab2323}#residence-cep-status[data-kind="ok"]{color:#14643b}@media(max-width:650px){.nh-residence-address-grid{grid-template-columns:1fr}.nh-cep-row button{min-height:42px}}</style>
+</head>
+<body>
+<header class="portal-header">
+  <a class="portal-brand" href="/">
+    <img src="/assets/identidade-pendente.svg" alt="Empresa Cliente">
+    <span><strong>Retrato NH</strong><small>Vistoria digital</small></span>
+  </a>
+</header>
+
+<main class="shell" style="max-width:900px">
+  <section class="hero-panel">
+    <span class="eyebrow">VISTORIA DIGITAL</span>
+    <h1 id="title">Carregando solicitação...</h1>
+    <p id="subtitle">Aguarde enquanto validamos o link.</p>
+  </section>
+
+  <div id="message" aria-live="polite"></div>
+  <div id="connection-actions" class="connection-actions" hidden>
+    <button id="retry-load" class="secondary" type="button">Tentar carregar novamente</button>
+  </div>
+
+  <section id="guideline-card" class="card" hidden style="margin-top:22px">
+    <div class="steps">
+      <span class="step active">1. Diretrizes</span>
+      <span class="step">2. Câmera</span>
+      <span class="step">3. Envio</span>
+    </div>
+    <div class="guidelines">
+      <h3>Antes de começar</h3>
+      <p class="muted">O sistema mostrará a imagem ilustrativa correta antes de abrir a câmera em cada etapa.</p>
+      <div class="vehicle-guide-summary">
+        <div class="vehicle-guide-icon" aria-hidden="true">📷</div>
+        <div>
+          <span>Sequência selecionada</span>
+          <strong id="vehicle-guide-title">Identificando o tipo de veículo...</strong>
+          <small id="vehicle-guide-count">Carregando etapas...</small>
+        </div>
+      </div>
+      <ul>
+        <li>Posicione o veículo em local aberto, seguro e bem iluminado.</li>
+        <li>Limpe a lente da câmera e mantenha as imagens nítidas.</li>
+        <li>Toque em “Abrir câmera”; primeiro aparecerá o exemplo exato da foto que deve ser feita.</li>
+        <li>Observe no exemplo o ângulo, a distância e a parte do veículo que precisa aparecer.</li>
+        <li>As fotos e o vídeo serão registrados diretamente pela câmera; não será possível selecionar arquivos da galeria.</li>
+        <li>Quando solicitado, permita que o navegador use a câmera e o microfone.</li>
+      </ul>
+    </div>
+    <div class="actions">
+      <button id="start" class="primary" type="button">Vamos começar →</button>
+    </div>
+  </section>
+
+  <section id="upload-card" class="card" hidden style="margin-top:22px">
+    <div class="steps">
+      <span class="step">1. Diretrizes</span>
+      <span class="step active">2. Câmera</span>
+      <span class="step">3. Envio</span>
+    </div>
+    <h2 id="upload-heading">Registre os arquivos</h2>
+    <p id="upload-note" class="muted"></p>
+
+    <aside id="draft-panel" class="draft-panel" hidden aria-live="polite">
+      <div>
+        <strong>Rascunho salvo neste aparelho</strong>
+        <small id="draft-status">As fotos e o vídeo serão mantidos para uma nova tentativa de envio.</small>
+      </div>
+      <button id="discard-draft" class="outline" type="button">Apagar rascunho</button>
+    </aside>
+
+    <form id="upload-form">
+      <div id="photos" class="upload-grid"></div>
+
+      <article id="video-capture-card" class="upload-item camera-upload-item video-capture-card" style="margin-top:14px">
+        <strong id="video-title">Vídeo da vistoria *</strong>
+        <small id="video-card-instruction">Antes de gravar, as diretrizes específicas do vídeo serão exibidas. O vídeo final terá no máximo 1 minuto e 30 segundos. No iPhone, se o gravador nativo passar desse tempo, o sistema preservará automaticamente somente os primeiros 1min30s. Não há limite mínimo ou máximo de MB para o vídeo.</small>
+        <video id="video-preview" class="capture-preview video-preview" controls playsinline hidden></video>
+        <input id="ios-native-video-input" type="file" accept="video/*" capture="environment" hidden>
+        <p id="video-status" class="capture-status">Vídeo ainda não gravado. O arquivo final será limitado a 1min30s · sem limite de tamanho em MB.</p>
+        <button id="record-video" class="outline camera-action" type="button">Abrir câmera para gravar</button>
+      </article>
+
+      <section id="registration-fields" class="registration-fields" hidden>
+        <span class="eyebrow" style="color:#070c40">CONCLUSÃO DO CADASTRO</span>
+        <h3>Endereço, documentos e assinatura do associado</h3>
+        <p class="muted">Para venda nova, o endereço, o CRLV, a frente e o verso do RG ou da CNH e a assinatura são obrigatórios.</p>
+
+        <div id="residence-address-field" class="registration-field-block">
+          <strong style="display:block;margin-bottom:8px">Endereço residencial — CEP obrigatório *</strong>
+          <p class="field-helper">Informe o CEP para preencher automaticamente os campos disponíveis. Confira os dados e complete o número e o complemento, quando necessário.</p>
+          <div class="nh-residence-address-grid">
+            <label>CEP *<span class="nh-cep-row"><input id="residence-cep" autocomplete="postal-code" inputmode="numeric" maxlength="9" pattern="[0-9]{5}-?[0-9]{3}" placeholder="00000-000" required><button id="residence-search-cep" type="button" class="outline">Buscar CEP</button></span></label>
+            <label>Rua / Avenida *<input id="residence-street" autocomplete="address-line1" maxlength="160" placeholder="Logradouro" required></label>
+            <label>Número *<input id="residence-number" maxlength="20" placeholder="Ex.: 125 ou S/N" required></label>
+            <label>Complemento (opcional)<input id="residence-complement" autocomplete="address-line2" maxlength="120" placeholder="Apto, bloco, casa..."></label>
+            <label>Bairro *<input id="residence-neighborhood" maxlength="120" placeholder="Bairro" required></label>
+            <label>Cidade *<input id="residence-city" autocomplete="address-level2" maxlength="120" placeholder="Cidade" required></label>
+            <label>UF *<select id="residence-state" autocomplete="address-level1" required><option value="">Selecione</option><option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option><option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option><option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option><option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option><option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option></select></label>
+          </div>
+          <p id="residence-cep-status" class="field-helper" role="status" aria-live="polite">Digite os oito números do CEP.</p>
+          <textarea id="residence-address" rows="2" maxlength="600" hidden aria-hidden="true" tabindex="-1"></textarea>
+        </div>
+
+        <div id="preexisting-damage-box" class="preexisting-damage-box">
+          <strong>O veículo possui avaria pré-existente? *</strong>
+          <small class="field-helper">Marque Sim quando houver peça já danificada antes da proteção/vistoria atual.</small>
+          <div class="preexisting-damage-options" role="radiogroup" aria-label="Avaria pré-existente">
+            <label><input type="radio" name="preexisting-damage" value="false" checked> Não</label>
+            <label><input type="radio" name="preexisting-damage" value="true"> Sim</label>
+          </div>
+          <div id="preexisting-damage-details-wrap" class="preexisting-damage-details" hidden>
+            <label for="preexisting-damage-details">Peça(s) avariada(s) e descrição *</label>
+            <textarea id="preexisting-damage-details" maxlength="4000" placeholder="Informe uma peça por linha. Ex.:&#10;Para-choque dianteiro — trincado no lado direito&#10;Farol esquerdo — lente quebrada&#10;Porta traseira direita — amassada"></textarea>
+            <small class="field-helper">Preencha manualmente qual peça está avariada e, se necessário, descreva o dano. Use uma peça por linha.</small>
+            <div class="responsibility-term-note"><strong>Termo de responsabilidade:</strong> estas avarias serão incluídas em uma página própria do dossiê. O termo também pode ser enviado separadamente ao associado e receber um aceite WebAuthn exclusivo, independente do aceite do dossiê.</div>
+          </div>
+        </div>
+
+        <div class="document-upload-grid">
+          <label id="vehicle-document-card" class="document-upload-card" for="vehicle-document">
+            <span>CRLV do veículo *</span>
+            <small>Envie uma foto nítida ou o arquivo do documento, com no máximo 15 MB.</small>
+            <input id="vehicle-document" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.doc,.docx,.odt,.rtf,.txt">
+            <strong id="vehicle-document-status">Documento pendente.</strong>
+          </label>
+
+          <label id="identity-document-front-card" class="document-upload-card" for="identity-document-front">
+            <span>RG ou CNH — frente *</span>
+            <small>Envie a frente do documento oficial em foto nítida ou arquivo, com no máximo 15 MB.</small>
+            <input id="identity-document-front" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.doc,.docx,.odt,.rtf,.txt">
+            <strong id="identity-document-front-status">Frente pendente.</strong>
+          </label>
+
+          <label id="identity-document-back-card" class="document-upload-card" for="identity-document-back">
+            <span>RG ou CNH — verso *</span>
+            <small>Envie o verso do mesmo documento oficial, com no máximo 15 MB.</small>
+            <input id="identity-document-back" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.doc,.docx,.odt,.rtf,.txt">
+            <strong id="identity-document-back-status">Verso pendente.</strong>
+          </label>
+        </div>
+        <div id="signature-block" class="signature-block">
+          <div class="signature-heading">
+            <div>
+              <strong>Assinatura do associado *</strong>
+              <small>Assine com o dedo ou com a caneta do aparelho dentro do quadro.</small>
+            </div>
+            <button id="clear-signature" class="outline" type="button">Limpar assinatura</button>
+          </div>
+          <canvas id="signature-pad" width="900" height="260" tabindex="0" aria-label="Área para assinatura do associado"></canvas>
+          <p id="signature-status" class="capture-status">Assinatura pendente.</p>
+        </div>
+      </section>
+
+      <p id="capture-summary" class="capture-summary" aria-live="polite">Fotos e vídeo pendentes.</p>
+
+      <section id="upload-progress" class="upload-progress" hidden aria-live="polite">
+        <strong>Envio seguro em andamento</strong>
+        <progress id="upload-progress-bar" max="100" value="0"></progress>
+        <small id="upload-progress-text"></small>
+        <p>Não feche esta tela. Se a internet oscilar, o sistema tentará novamente e continuará do ponto em que parou.</p>
+      </section>
+
+      <div class="actions">
+        <button id="submit-inspection" class="secondary" type="submit">Enviar vistoria com segurança</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="capture-guide-card" class="card capture-guide-page" hidden style="margin-top:22px" aria-labelledby="capture-guide-title">
+    <div class="steps">
+      <span class="step">1. Diretrizes</span>
+      <span class="step active">2. Guia da captura</span>
+      <span class="step">3. Envio</span>
+    </div>
+  
+    <div class="capture-guide-panel">
+      <header class="capture-guide-head">
+        <div>
+          <span id="capture-guide-eyebrow" class="eyebrow">GUIA DA FOTO</span>
+          <h2 id="capture-guide-title">Confira o exemplo</h2>
+        </div>
+      </header>
+  
+      <p id="capture-guide-warning" class="capture-guide-warning">Esta foto deve seguir as diretrizes da imagem ilustrativa.</p>
+  
+      <figure class="capture-guide-figure">
+        <img id="capture-guide-image" alt="">
+      </figure>
+  
+      <p id="capture-guide-instruction" class="capture-guide-instruction"></p>
+  
+      <div class="capture-guide-actions">
+        <button id="capture-guide-back" class="outline" type="button">Voltar</button>
+        <button id="capture-guide-continue" class="primary" type="button">Entendi, abrir câmera</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="digital-acceptance" class="card digital-acceptance-card" hidden style="margin-top:22px">
+    <div class="steps">
+      <span class="step">1. Vistoria</span>
+      <span class="step">2. Supervisão</span>
+      <span class="step active">3. Aceite digital</span>
+    </div>
+    <div class="digital-acceptance-content">
+      <span class="eyebrow">PPV APROVADO</span>
+      <h2>Confirme o aceite digital do dossiê</h2>
+      <p>Para concluir, o aparelho fará a verificação local usando Face ID, Touch ID, PIN, senha de bloqueio ou outro método seguro disponível. <strong>A NH nunca recebe, lê ou armazena a senha/PIN do celular.</strong></p>
+      <div class="digital-evidence-list">
+        <strong>O registro criptográfico vinculará:</strong>
+        <span>• CPF e nome do associado</span>
+        <span>• selfie registrada na vistoria</span>
+        <span>• dossiê aprovado pela Supervisão</span>
+        <span id="digital-term-evidence" hidden>• termo de responsabilidade por avaria pré-existente</span>
+        <span>• data/hora, IP e informações técnicas do aparelho</span>
+        <span>• latitude, longitude e precisão do GPS do aparelho no momento do aceite</span>
+      </div>
+      <div id="digital-responsibility-term" class="digital-responsibility-term" hidden>
+        <strong>Termo de responsabilidade incluído neste aceite</strong>
+        <span>As seguintes avarias pré-existentes foram registradas no cadastro:</span>
+        <pre id="digital-responsibility-details"></pre>
+      </div>
+      <p class="muted">Ao continuar, você declara que é o associado identificado nesta vistoria e que está confirmando o aceite do dossiê aprovado. A localização do aparelho será solicitada e registrada como evidência de auditoria.</p>
+
+      <div id="ios-webauthn-help" class="ios-webauthn-help" hidden>
+        <strong>iPhone: abra este aceite no Safari</strong>
+        <p id="ios-webauthn-help-text">Em iPhones recentes, o WebAuthn pode falhar dentro do navegador do WhatsApp, Google, Chrome ou outros navegadores internos. Abra este mesmo link diretamente no Safari para usar Face ID/Touch ID/código do iPhone.</p>
+        <div class="actions">
+          <button id="copy-ios-webauthn-link" class="outline" type="button">Copiar link para abrir no Safari</button>
+        </div>
+        <small>Se o iPhone pedir para escolher onde gerenciar chaves-senha, habilite um provedor de Senhas/Chaves-senha nos Ajustes. Essa conta serve apenas para guardar a chave-senha; o sistema da NH não recebe o e-mail nem a senha dessa conta.</small>
+      </div>
+      <div id="digital-acceptance-details" class="digital-acceptance-details" hidden></div>
+      <div class="actions">
+        <button id="confirm-digital-acceptance" class="primary" type="button">Confirmar com Face ID/biometria/PIN do aparelho</button>
+      </div>
+      <p id="digital-acceptance-status" class="muted" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section id="complete" class="card" hidden style="margin-top:22px">
+    <div class="steps">
+      <span class="step">1. Diretrizes</span>
+      <span class="step">2. Câmera</span>
+      <span class="step active">3. Concluído</span>
+    </div>
+    <div class="completion">
+      <div class="check">✓</div>
+      <h2>Retrato NH enviado com sucesso</h2>
+      <p>Os arquivos e o relatório foram armazenados para análise da equipe Empresa Cliente.</p>
+      <p id="whatsapp-notice" class="muted">Seu consultor será orientado a comunicar você pelo WhatsApp.</p>
+      <div class="actions" style="justify-content:center">
+        <a id="report-link" class="button outline" target="_blank" rel="noreferrer">Abrir relatório</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+
+
+<input id="native-photo-input" type="file" accept="image/*" capture="environment" hidden>
+
+<section id="camera-modal" class="camera-modal" hidden aria-modal="true" role="dialog" aria-labelledby="camera-title">
+  <div class="camera-panel">
+    <header class="camera-panel-head">
+      <div>
+        <span class="eyebrow">CÂMERA AO VIVO</span>
+        <h2 id="camera-title">Registrar imagem</h2>
+      </div>
+      <button id="close-camera" class="camera-close" type="button" aria-label="Fechar câmera">×</button>
+    </header>
+
+    <div class="camera-live-frame">
+      <video id="camera-preview" autoplay playsinline muted></video>
+      <canvas id="photo-canvas" hidden></canvas>
+      <div id="recording-indicator" class="recording-indicator" hidden>
+        <span></span> Gravando <strong id="recording-time">00:00</strong>
+      </div>
+      <div id="recording-paused-banner" class="recording-paused-banner" hidden>
+        <strong>Gravação pausada</strong>
+        <span id="recording-paused-text">Desbloqueie o aparelho e retome a gravação.</span>
+      </div>
+      <div id="flash-status" class="camera-flash-status" hidden>Flash automático monitorando a iluminação.</div>
+      <div id="camera-focus-reticle" class="camera-focus-reticle" hidden aria-hidden="true"></div>
+    </div>
+
+    <p id="camera-instruction" class="camera-instruction"></p>
+
+    <div id="camera-focus-controls" class="camera-focus-controls" hidden>
+      <p id="camera-focus-hint" class="camera-focus-hint" hidden>Toque no chassi ou odômetro para ajustar o foco.</p>
+      <div class="camera-focus-actions">
+        <button id="focus-near" class="secondary" type="button" hidden>Foco próximo · chassi/odômetro</button>
+        <button id="reset-focus" class="outline" type="button" hidden>Voltar ao foco automático</button>
+      </div>
+      <label id="manual-focus-wrap" class="manual-focus-wrap" hidden>
+        <span>Foco manual</span>
+        <div class="manual-focus-labels"><small>Mais longe</small><small>Mais perto</small></div>
+        <input id="manual-focus-range" type="range" min="0" max="1" step="0.01" value="0.5" aria-label="Ajuste manual do foco">
+      </label>
+    </div>
+
+    <div class="camera-controls">
+      <button id="toggle-selfie-mirror" class="outline" type="button" hidden>Inverter imagem</button>
+      <button id="toggle-flash" class="outline camera-flash-button" type="button" aria-pressed="false" hidden>Ligar flash</button>
+      <button id="capture-photo" class="primary" type="button" hidden>Capturar foto</button>
+      <button id="start-recording" class="primary" type="button" hidden>Iniciar gravação</button>
+      <button id="resume-recording" class="primary resume-recording-button" type="button" hidden>Retomar gravação</button>
+      <button id="stop-recording" class="danger" type="button" hidden>Parar e usar vídeo</button>
+      <button id="cancel-camera" class="outline" type="button">Cancelar</button>
+    </div>
+  </div>
+</section>
+
+<script src="/shared/config.js?v=20260923-v77"></script>
+<script src="/shared/retrato-address.js?v=20261015-v83-128"></script>
+<script src="/retrato/retrato.js?v=20261015-v83-128"></script>
+<script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
+
+  <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">
+    Gestao Software LTDA. Projetado e Desenvolvido por
+    <a href="https://www.linkedin.com/in/devcarloslima/" target="_blank" rel="noopener noreferrer">Carlos Lima</a>
+    e
+    Equipe de desenvolvimento.
+  </div>
+  <script defer src="/shared/developer-footer.js?v=20260929-v83-37"></script>
+</body>
+</html>

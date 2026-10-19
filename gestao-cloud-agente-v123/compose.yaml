@@ -1,0 +1,207 @@
+# TEMPLATE da Gestão Software: instalar com imagens previamente aprovadas no registry.
+# Nunca reutilizar volumes entre empresas. Traefik, DNS wildcard e TLS exigidos no host.
+name: gs-${TENANT_SLUG:?}
+services:
+  database:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tenant_main
+      POSTGRES_USER: tenant
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    volumes: [main_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tenant -d tenant_main"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks: [internal]
+  ponto-database:
+    profiles: [ponto]
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tenant_ponto
+      POSTGRES_USER: tenant_ponto
+      POSTGRES_PASSWORD: ${PONTO_POSTGRES_PASSWORD:?}
+    volumes: [ponto_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tenant_ponto -d tenant_ponto"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks: [internal]
+  face-api:
+    profiles: [ponto]
+    image: ${NH_FACE_IMAGE:?}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: sqlite:////data/face_attendance.db
+      FACE_API_KEY: ${PONTO_JWT_SECRET:?}
+    volumes: [biometric_face:/data]
+    networks: [internal]
+  ponto-api:
+    profiles: [ponto]
+    image: ${NH_PONTO_API_IMAGE:?}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      GS_TENANT_MODE: 'true'
+      API_PORT: 3333
+      TENANT_DISPLAY_NAME: ${TENANT_DISPLAY_NAME:?}
+      ALLOW_UNVERSIONED_PRISMA_SYNC: ${ALLOW_UNVERSIONED_PRISMA_SYNC:-false}
+      TENANT_TIMEZONE: ${TENANT_TIMEZONE:-America/Sao_Paulo}
+      PONTO_TENANT_ADMIN_USERNAME: ${PONTO_TENANT_ADMIN_USERNAME:?}
+      PONTO_SUPER_ADMIN_USERNAME: ${PONTO_SUPER_ADMIN_USERNAME:?}
+      PONTO_DEFAULT_PASSWORD: ${PONTO_DEFAULT_PASSWORD:?}
+      PONTO_SUPER_ADMIN_PASSWORD: ${PONTO_SUPER_ADMIN_PASSWORD:?}
+      DATABASE_URL: postgresql://tenant_ponto:${PONTO_POSTGRES_PASSWORD:?}@ponto-database:5432/tenant_ponto?schema=public
+      JWT_SECRET: ${PONTO_JWT_SECRET:?}
+      FACE_API_URL: http://face-api:8000
+      FACE_API_KEY: ${PONTO_JWT_SECRET:?}
+      INTERNAL_SERVICE_TOKEN: ${PONTO_JWT_SECRET:?}
+      NH_PONTO_TENANT_DOCUMENT: ${TENANT_DOCUMENT:?}
+      WEB_ORIGIN: https://${TENANT_HOST:?}
+      GESTAO_TENANT_CONFIG_URL: http://backend:8080/api/public/tenant-config
+      BIOMETRIC_ENCRYPTION_KEY: ${BIOMETRIC_ENCRYPTION_KEY:?}
+      AUDIT_PRIVACY_HASH_KEY: ${PONTO_AUDIT_HASH_KEY:?}
+      PRESENCE_SIGNING_SECRET: ${PONTO_PRESENCE_SECRET:?}
+      WEBAUTHN_RP_ID: ${TENANT_HOST:?}
+      WEBAUTHN_ORIGIN: https://${TENANT_HOST:?}
+      WEBAUTHN_RP_NAME: Apontamento Digital
+      BIOMETRIC_STORAGE_DIR: /data/biometrics
+      BRANDING_STORAGE_DIR: /data/branding
+      WORK_MONITOR_STORAGE_DIR: /data/work-monitor
+    volumes: [ponto_biometrics:/data/biometrics,ponto_branding:/data/branding,ponto_monitor:/data/work-monitor]
+    depends_on:
+      ponto-database: {condition: service_healthy}
+    networks: [internal]
+  ponto-web:
+    profiles: [ponto]
+    image: ${NH_PONTO_WEB_IMAGE:?}
+    restart: unless-stopped
+    networks: [internal]
+    depends_on: [ponto-api]
+  # FIPE interna, isolada por cliente. Disponível apenas para Cotação/Vistoria.
+  fipe-api:
+    profiles: [fipe]
+    image: ${NH_FIPE_IMAGE:?}
+    restart: unless-stopped
+    environment:
+      DATABASE_PATH: /app/data/fipe.sqlite3
+      API_KEY: ${FIPE_API_KEY:-}
+      API_WORKERS: ${FIPE_API_WORKERS:-2}
+    command: ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers $${API_WORKERS:-2} --no-access-log"]
+    volumes: [tenant_fipe_data:/app/data]
+    expose: ["8000"]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    networks: [internal]
+  fipe-updater:
+    profiles: [fipe]
+    image: ${NH_FIPE_IMAGE:?}
+    restart: unless-stopped
+    environment:
+      DATABASE_PATH: /app/data/fipe.sqlite3
+      AUTO_SYNC_INTERVAL_SECONDS: ${FIPE_AUTO_SYNC_INTERVAL_SECONDS:-86400}
+      AUTO_SYNC_MIN_REGISTROS: ${FIPE_AUTO_SYNC_MIN_REGISTROS:-1000}
+    command: ["python", "-m", "scripts.autoatualizar"]
+    volumes: [tenant_fipe_data:/app/data]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    networks: [internal]
+  hinova-api:
+    profiles: [hinova]
+    image: ${NH_HINOVA_IMAGE:?}
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      HINOVA_API_BASE_URL: https://api.hinova.com.br/api/sga/v2
+      HINOVA_API_TOKEN: ${HINOVA_API_TOKEN:-}
+    networks: [internal]
+  backend:
+    image: ${NH_BACKEND_IMAGE:?}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: jdbc:postgresql://database:5432/tenant_main
+      DATABASE_USERNAME: tenant
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?}
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:?}
+      IMPORT_AES_KEY_BASE64: ${IMPORT_AES_KEY_BASE64:-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:?}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?}
+      CONSULTANT_USERNAME: ${CONSULTANT_USERNAME:?}
+      CONSULTANT_PASSWORD: ${CONSULTANT_PASSWORD:?}
+      ANALYST_USERNAME: ${ANALYST_USERNAME:?}
+      ANALYST_PASSWORD: ${ANALYST_PASSWORD:?}
+      TOW_USERNAME: ${TOW_USERNAME:?}
+      TOW_PASSWORD: ${TOW_PASSWORD:?}
+      WORKSHOP_USERNAME: ${WORKSHOP_USERNAME:?}
+      WORKSHOP_PASSWORD: ${WORKSHOP_PASSWORD:?}
+      EVENT_USERNAME: ${EVENT_USERNAME:?}
+      EVENT_PASSWORD: ${EVENT_PASSWORD:?}
+      BUYER_USERNAME: ${BUYER_USERNAME:?}
+      BUYER_PASSWORD: ${BUYER_PASSWORD:?}
+      INITIAL_PORTAL_PASSWORD: ${INITIAL_PORTAL_PASSWORD:?}
+      ADMIN_BULK_DELETE_PASSWORD: ${ADMIN_BULK_DELETE_PASSWORD:?}
+      GS_TENANT_MODE: 'true'
+      FIPE_API_BASE_URL: http://fipe-api:8000
+      FIPE_API_KEY: ${FIPE_API_KEY:-}
+      TENANT_PARTS_DELAY_CLAUSES: ${TENANT_PARTS_DELAY_CLAUSES:-}
+      SPRING_PROFILES_ACTIVE: tenant
+      TENANT_REQUIRES_COMMERCIAL_CATALOG: ${TENANT_REQUIRES_COMMERCIAL_CATALOG:-true}
+      TENANT_REQUIRES_PAYMENT_INTEGRATION: ${TENANT_REQUIRES_PAYMENT_INTEGRATION:-false}
+      TENANT_REQUIRES_PONTO_SETUP: ${TENANT_REQUIRES_PONTO_SETUP:-false}
+      TENANT_DISPLAY_NAME: ${TENANT_DISPLAY_NAME:?}
+      TENANT_LEGAL_NAME: ${TENANT_LEGAL_NAME:?}
+      TENANT_DOCUMENT: ${TENANT_DOCUMENT:?}
+      DEMO_ASSOCIATE_ENABLED: 'false'
+      PUBLIC_API_URL: https://${TENANT_HOST:?}
+      PUBLIC_WEB_URL: https://${TENANT_HOST:?}
+      ALLOWED_ORIGINS: https://${TENANT_HOST:?}
+      GESTAO_COMPANY_ID: ${GESTAO_COMPANY_ID:?}
+      GESTAO_TENANT_HOST: ${TENANT_HOST:?}
+      GESTAO_CONTROL_URL: ${GESTAO_CONTROL_URL:?}
+      GESTAO_CONTROL_PUBLIC_URL: ${GESTAO_CONTROL_PUBLIC_URL:?}
+      NH_PONTO_INTERNAL_URL: http://ponto-api:3333
+      NH_PONTO_INTERNAL_TOKEN: ${PONTO_JWT_SECRET:?}
+      FACE_API_INTERNAL_URL: http://face-api:8000
+      FACE_API_KEY: ${PONTO_JWT_SECRET:?}
+      ASAAS_ENABLED: 'false'
+      TEAM_EMAIL: ${TENANT_EMAIL:-}
+      TEAM_WHATSAPP_NUMBER: ${TENANT_WHATSAPP:-}
+    networks: [internal]
+    depends_on:
+      database: {condition: service_healthy}
+  web:
+    image: ${NH_WEB_IMAGE:?}
+    restart: unless-stopped
+    depends_on: [backend]
+    networks: [internal,public]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_PUBLIC_NETWORK:?}
+      - traefik.http.routers.gs-${TENANT_SLUG:?}.rule=Host(`${TENANT_HOST:?}`)
+      - traefik.http.routers.gs-${TENANT_SLUG:?}.entrypoints=websecure
+      - traefik.http.routers.gs-${TENANT_SLUG:?}.tls=true
+      - traefik.http.routers.gs-${TENANT_SLUG:?}.tls.certresolver=${TRAEFIK_CERTRESOLVER:?}
+      - traefik.http.services.gs-${TENANT_SLUG:?}.loadbalancer.server.port=80
+    environment:
+      TEAM_WHATSAPP_NUMBER: ${TENANT_WHATSAPP:-}
+volumes:
+  tenant_fipe_data: {}
+  main_data: {}
+  ponto_data: {}
+  biometric_face: {}
+  ponto_biometrics: {}
+  ponto_branding: {}
+  ponto_monitor: {}
+networks:
+  internal:
+    # Rede exclusiva do projeto: isolada de outros tenants, com acesso de saída para APIs autorizadas.
+    internal: false
+  public:
+    external: true
+    name: ${TRAEFIK_PUBLIC_NETWORK:?}

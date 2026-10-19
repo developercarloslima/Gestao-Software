@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Gestão Software | Control Plane</title>
+  <link rel="icon" href="/assets/logo-gestao-software.png">
+  <link rel="stylesheet" href="/shared/brand-system.css">
+  <link rel="stylesheet" href="/shared/responsive.css">
+  <link rel="stylesheet" href="/admin/styles.css">
+  <script src="/shared/config.js" defer></script>
+  
+  
+  <link rel="stylesheet" href="/admin/cloud.css">
+  <script src="/admin/app.js" defer></script>
+  <script src="/admin/onboarding.js" defer></script>
+  <script src="/admin/cloud.js" defer></script>
+  <script src="/admin/migracao.js" defer></script>
+</head>
+<body>
+<header class="platform-header">
+  <div class="platform-header-inner">
+    <div class="brand-lockup">
+      <img src="/assets/logo-gestao-software.png" alt="Gestão Software">
+      <div><strong>Gestão Software</strong><small>Control Plane • administração da plataforma</small></div>
+    </div>
+    <div class="header-actions">
+      <span id="owner-name" class="owner-chip">Sócio</span>
+      <button id="logout" class="button ghost" type="button">Sair</button>
+    </div>
+  </div>
+</header>
+
+<main id="app" class="platform-shell" hidden>
+  <section class="platform-hero">
+    <div>
+      <span class="eyebrow">GESTÃO SOFTWARE • OPERAÇÃO SaaS</span>
+      <h1>Empresas, branding, módulos e infraestrutura em um só lugar.</h1>
+      <p>Gerencie clientes, identidade visual, domínios, subdomínios, módulos contratados, mensalidades, inadimplência, divisão societária e capacidade de hospedagem.</p>
+    </div>
+    <div class="month-control">
+      <label for="reference-month">Competência financeira</label>
+      <input id="reference-month" type="month">
+    </div>
+  </section>
+
+  <nav class="platform-tabs" aria-label="Seções do módulo">
+    <button class="active" data-tab="overview" type="button">Visão geral</button>
+    <button data-tab="companies" type="button">Empresas-clientes</button>
+    <button data-tab="finance" type="button">Financeiro</button>
+    <button data-tab="onboarding" type="button">Implantação guiada</button>
+    <button data-tab="cloud" type="button">Gestão Cloud</button>
+    <button data-tab="migration" type="button">Importar dados</button>
+    <button data-tab="vps" type="button">VPS e hospedagem</button>
+    <button id="plan-calculator-tab-button" data-tab="calculator" type="button" hidden>Calculadora de planos</button>
+  </nav>
+
+  <div id="page-message" class="page-message" hidden></div>
+
+  <section id="tab-overview" class="tab-panel active">
+    <div class="kpi-grid">
+      <article class="metric-card"><span>Receita bruta mensal</span><strong id="kpi-gross">R$ 0,00</strong><small id="kpi-gross-help">Mensalidades pagas</small></article>
+      <article class="metric-card"><span>Receita líquida operacional</span><strong id="kpi-net">R$ 0,00</strong><small>Após despesas + VPS</small></article>
+      <article class="metric-card"><span>Receita mensal contratada</span><strong id="kpi-mrr">R$ 0,00</strong><small>MRR das empresas ativas</small></article>
+      <article class="metric-card"><span>Empresas inadimplentes</span><strong id="kpi-delinquent">0</strong><small>Com mensalidade vencida</small></article>
+    </div>
+
+    <div class="overview-grid">
+      <article class="panel">
+        <div class="panel-head"><div><span class="section-kicker">DISTRIBUIÇÃO</span><h2>Sócios</h2></div><button class="button outline small" data-tab-target="finance" type="button">Configurar</button></div>
+        <div id="partner-overview" class="partner-grid"></div>
+      </article>
+      <article class="panel capacity-panel">
+        <div class="panel-head"><div><span class="section-kicker">INFRAESTRUTURA</span><h2>Capacidade de VPS</h2></div><button class="button outline small" data-tab-target="vps" type="button">Ver VPS</button></div>
+        <div id="capacity-status" class="capacity-status"></div>
+        <div class="capacity-stats">
+          <div><strong id="capacity-companies">0 / 0</strong><span>empresas / capacidade</span></div>
+          <div><strong id="capacity-vps">0</strong><span>VPS ativas</span></div>
+          <div><strong id="capacity-risk">0%</strong><span>maior utilização</span></div>
+        </div>
+      </article>
+    </div>
+
+    <article class="panel">
+      <div class="panel-head"><div><span class="section-kicker">ATENÇÃO</span><h2>Empresas inadimplentes</h2></div><button class="button outline small" data-tab-target="companies" type="button">Gerenciar empresas</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Empresa</th><th>Grupo</th><th>Vencimento mais antigo</th><th>Dias</th><th>Em aberto</th><th></th></tr></thead><tbody id="overview-delinquent-body"></tbody></table></div>
+    </article>
+  </section>
+
+  <section id="tab-companies" class="tab-panel">
+    <article class="panel">
+      <div class="panel-head wrap"><div><span class="section-kicker">CLIENTES</span><h2>Empresas cadastradas</h2><p>Cada empresa possui plano, módulos, financeiro e hospedagem próprios.</p></div><button id="new-company" class="button primary" type="button">+ Cadastrar empresa-cliente</button></div>
+      <div class="toolbar"><input id="company-search" type="search" placeholder="Buscar empresa, grupo, CNPJ ou contato"><select id="company-status-filter"><option value="">Todos os status</option><option value="ACTIVE">Ativas</option><option value="TRIAL">Teste</option><option value="SUSPENDED">Suspensas</option><option value="CANCELLED">Canceladas</option></select></div>
+      <div class="table-wrap"><table><thead><tr><th>Empresa</th><th>Grupo</th><th>Plano</th><th>Módulos</th><th>Mensalidade</th><th>Financeiro</th><th>Hospedagem</th><th></th></tr></thead><tbody id="companies-body"></tbody></table></div>
+    </article>
+  </section>
+
+  <section id="tab-cloud" class="tab-panel" aria-label="Gestão Cloud">
+  <div class="panel cloud-heading">
+    <div class="panel-head wrap"><div><span class="section-kicker">SUA NUVEM GERENCIADA</span><h2>Servidores, subdomínios e empresas</h2>
+      <p>Escolha uma empresa, reserve um endereço único e acompanhe se a VPS está apta. Sem enviar ZIPs por cliente.</p></div>
+      <button id="cloud-refresh" class="button outline" type="button">Atualizar servidores</button></div>
+    <div id="cloud-status" class="form-message" role="status" aria-live="polite">Carregando infraestrutura...</div>
+    <div class="cloud-overview" aria-label="Visão geral da nuvem">
+      <div><span>Servidores cadastrados</span><strong id="cloud-count-servers">—</strong></div>
+      <div><span>Agentes online</span><strong id="cloud-count-online">—</strong></div>
+      <div><span>Subdomínios reservados</span><strong id="cloud-count-domains">—</strong></div>
+    </div>
+  </div>
+  <div class="cloud-columns">
+    <article class="panel">
+      <span class="section-kicker">PASSO 1 · ENDEREÇO</span><h2>Onde sua empresa vai aparecer?</h2>
+      <p class="form-help">A reserva impede que outra empresa use o mesmo endereço. Ainda não coloca o site no ar.</p>
+      <form id="cloud-domain-form" class="stack-form">
+        <label>Empresa-cliente<select id="cloud-company" required><option value="">Escolha uma empresa cadastrada</option></select></label>
+        <label>Nome do subdomínio<small>Use apenas letras, números e hífens. Ex.: protecaobrasil</small>
+          <input id="cloud-slug" required minlength="3" maxlength="48" placeholder="protecaobrasil" autocomplete="off" spellcheck="false" pattern="[a-z0-9][a-z0-9-]{1,46}[a-z0-9]"></label>
+        <div class="cloud-address-preview" id="cloud-domain-preview" aria-live="polite">Seu endereço aparecerá aqui.</div>
+        <label>Servidor responsável<select id="cloud-server" required><option value="">Escolha a VPS</option></select></label>
+        <div class="cloud-orchestrator-box" aria-label="Seleção inteligente de servidor">
+          <div class="cloud-orchestrator-title"><strong>Seleção inteligente de VPS</strong><span id="cloud-orchestrator-mode">Verificando configuração...</span></div>
+          <p class="form-help">O sistema confere recursos já reservados, consumo real e disponibilidade do agente. Você pode conferir os motivos antes de reservar.</p>
+          <button id="cloud-recommend" class="button outline" type="button">Analisar as VPS para esta empresa</button>
+          <div id="cloud-recommendation" role="status" aria-live="polite">Escolha uma empresa e conclua o dimensionamento para comparar os servidores.</div>
+          <button id="cloud-auto-reserve" class="button primary" type="button" disabled>Escolher VPS e reservar automaticamente</button>
+          <button id="cloud-configure-dns" class="button outline" type="button" disabled>Configurar DNS Cloudflare após pagamento</button>
+        </div>
+        <div id="cloud-server-tip" class="onboarding-next-action">Cadastre uma VPS em “VPS e hospedagem” e instale o agente autorizado para receber métricas.</div>
+        <div class="form-actions"><button id="cloud-check" class="button outline" type="button">Conferir disponibilidade</button>
+          <button id="cloud-reserve" class="button primary" type="submit">Reservar endereço</button></div>
+        <div id="cloud-form-message" class="form-message" role="status" aria-live="polite"></div>
+      </form>
+      <p class="form-help">Após reservar, conclua <strong>Implantação guiada</strong>: capacidade, assinaturas, pagamento e validação final.</p>
+    </article>
+    <article class="panel">
+      <div class="panel-head wrap"><div><span class="section-kicker">PASSO 2 · CAPACIDADE</span><h2>Seus servidores</h2><p>Status baseado em dados recentes do agente, não em valores digitados manualmente.</p></div>
+        <button class="button outline small" type="button" data-tab-target="vps">Cadastrar VPS</button></div>
+      <div id="cloud-servers" class="cloud-server-list" aria-live="polite">Buscando servidores...</div>
+    </article>
+  </div>
+  <article class="panel">
+    <div class="panel-head"><div><span class="section-kicker">ENDEREÇOS RESERVADOS</span><h2>Empresas na sua nuvem</h2><p>“Reservado” não significa que o site está publicado.</p></div></div>
+    <div id="cloud-domains" class="cloud-domain-list" aria-live="polite">Nenhum endereço reservado.</div>
+  </article>
+  <article class="panel cloud-guide">
+    <span class="section-kicker">PARA COLOCAR NO AR</span><h2>O que falta para o endereço funcionar?</h2>
+    <ol><li>Configure no DNS um <strong>registro wildcard</strong> ou o registro A do subdomínio apontando para o proxy.</li>
+      <li>Instale o Traefik na VPS com certificados HTTPS válidos e publique as imagens homologadas dos módulos.</li>
+      <li>Execute o agente autorizado e confira o status online. Conclua contrato e pagamento pela Implantação Guiada.</li>
+      <li>Implante e valide o checklist no painel do cliente. A URL será liberada apenas após confirmação real pelo backend.</li></ol>
+    <p class="form-help">Domínio próprio do cliente: requer validação de titularidade e configuração DNS separada. Não é criado automaticamente nesta versão.</p>
+  </article>
+</section>
+
+<section id="tab-onboarding" class="tab-panel">
+    <div class="panel">
+      <div class="panel-head wrap"><div><span class="section-kicker">IMPLANTAÇÃO GUIADA</span><h2>Preparar nova empresa</h2>
+      <p>Sem ZIP por cliente: dimensionamento, identidade visual, contrato, pagamento verificado e fila de provisionamento.</p></div>
+      <button class="button outline" id="onboarding-new-company" type="button">+ Cadastrar empresa</button></div>
+      <div class="onboarding-steps" id="onboarding-steps" aria-label="Etapas da implantação">
+        <span data-stage="company">1. Empresa</span><span data-stage="capacity">2. Dimensionar</span><span data-stage="contract">3. Contrato</span><span data-stage="payment">4. Pagamento</span><span data-stage="deploy">5. Implantar</span><span data-stage="url">6. Entregar</span>
+      </div>
+      <p class="form-help onboarding-intro">Acompanhe os passos abaixo. O sistema mostra o que falta e impede liberar a empresa com alguma etapa pendente.</p>
+      <label>Empresa cadastrada
+        <select id="onboarding-company"><option value="">Selecione uma empresa</option></select>
+      </label>
+      <div id="onboarding-message" class="form-message" role="status" aria-live="polite"></div>
+      <div id="onboarding-next-action" class="onboarding-next-action" role="status" aria-live="polite">Comece selecionando uma empresa já cadastrada ou clique em <strong>Cadastrar empresa</strong>.</div>
+      <div id="onboarding-provider-notice" class="onboarding-provider-notice" role="status">Verificando modalidades de hospedagem...</div>
+    </div>
+    <div class="onboarding-columns">
+      <article class="panel">
+        <div class="panel-head"><div><span class="section-kicker">PASSO 2 · ESTIMAR NECESSIDADES</span><h2>Qual é o tamanho da empresa?</h2>
+        <p>Responda com números aproximados. As perguntas têm exemplos para facilitar.</p></div></div>
+        <form id="sizing-form" class="stack-form">
+          <div class="form-grid two">
+            <label>Funcionários que vão utilizar o sistema<small>Ex.: 30 pessoas da equipe ou 100 mil colaboradores.</small><input id="size-employees" type="number" min="1" max="10000000" value="250" required></label>
+            <label>Pessoas conectadas ao mesmo tempo<small>Ex.: quantos registram ponto juntos na entrada?</small><input id="size-concurrent" type="number" min="1" max="10000000" value="50" required></label>
+            <label>Novas vendas por mês (quantidade)<small>Conte as vendas, não o faturamento em reais.</small><input id="size-sales" type="number" min="0" value="7500" required></label>
+            <label>Cobranças geradas por mês<small>Quantos boletos/Pix são enviados em um mês?</small><input id="size-payments" type="number" min="0" value="7500" required></label>
+            <label>Dias de trabalho por mês<small>Normalmente 22 dias úteis.</small><input id="size-days" type="number" min="1" max="31" value="22" required></label>
+            <label>Marcações diárias por pessoa<small>Ex.: entrada, intervalo, retorno e saída = 4.</small><input id="size-marks" type="number" min="0" max="30" value="4" required></label>
+            <label>Tamanho médio da foto (KB)<small>Se não souber, use 250 KB.</small><input id="size-photo-kb" type="number" min="0" max="15000" value="250" required></label>
+            <label>Por quantos dias guardar as fotos?<small>Revisar necessidade legal, privacidade e política de retenção.</small><input id="size-retention" type="number" min="1" max="3650" value="365" required></label>
+          </div>
+          <div class="form-grid two">
+            <label>Onde os sistemas deverão funcionar?<small>Algumas opções exigem configuração técnica antes de implantar.</small><select id="size-provider"><option value="MANAGED_VPS">VPS fornecida pela Gestão</option><option value="CLIENT_VPS">VPS do cliente</option><option value="RENDER">Render</option><option value="AWS">AWS</option></select></label>
+            <div class="onboarding-toggle-group"><label><input id="size-face" type="checkbox"> Reconhecimento facial / totem</label><label><input id="size-ha" type="checkbox"> Alta disponibilidade (24h)</label></div>
+          </div>
+          <fieldset class="module-fieldset"><legend>Módulos incluídos na análise</legend><div id="size-modules" class="module-grid"></div><p class="form-help">Os módulos são preenchidos com base no cadastro da empresa. Para mudar, abra a ficha da empresa antes de salvar.</p></fieldset>
+          <div class="form-actions"><button type="submit" id="size-estimate-btn" class="button primary">Analisar capacidade</button><button type="button" id="size-save-btn" class="button outline" disabled>Confirmar e salvar análise</button></div>
+        </form>
+      </article>
+      <div>
+        <article class="panel">
+          <span class="section-kicker">RECOMENDAÇÃO</span><h2>Infraestrutura sugerida</h2>
+          <div id="size-result" class="onboarding-summary">Informe os volumes e clique em <strong>Analisar capacidade</strong>.</div>
+          <p class="form-help">Estimativas preliminares: não representam SLA nem preço fechado. Para grande escala, exigem teste de carga.</p>
+        </article>
+        <article class="panel">
+          <span class="section-kicker">LIBERAÇÃO AUTOMÁTICA</span><h2>Requisitos antes do deploy</h2>
+          <div id="provision-readiness" class="onboarding-summary" role="status">Selecione uma empresa para consultar.</div>
+          <div class="form-actions"><button id="refresh-readiness" class="button outline" type="button">Atualizar situação</button><button id="queue-deployment" class="button primary" type="button" disabled>Iniciar implantação da empresa</button></div>
+          <p class="form-help">Uma URL só será entregue depois de o ambiente responder com HTTPS e confirmar a empresa correta. Nenhum recurso é criado pelo simples preenchimento dos campos.</p>
+        </article>
+        <article class="panel">
+          <span class="section-kicker">PAGAMENTO</span><h2>Conferir cobrança Asaas</h2>
+          <label>Fatura da empresa<select id="payment-invoice"><option value="">Selecione uma empresa</option></select></label>
+          <label>ID do pagamento no Asaas<input id="payment-asaas-id" placeholder="pay_..." autocomplete="off"></label>
+          <div class="form-actions">
+            <button id="payment-create" type="button" class="button primary">Gerar cobrança no Asaas</button>
+            <button id="payment-verify" type="button" class="button outline">Confirmar pagamento recebido</button>
+          </div>
+          <div id="payment-checkout" class="onboarding-summary" hidden></div>
+          <p class="form-help">A conferência é feita pelo servidor junto ao Asaas. Não é suficiente mudar o status da fatura manualmente.</p>
+        </article>
+        <article class="panel"><span class="section-kicker">ACOMPANHAMENTO</span><h2>Implantações da empresa</h2><div id="deployment-history" class="onboarding-summary" aria-live="polite">Nenhum ambiente selecionado.</div></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-migration" class="tab-panel" aria-label="Central de importação">
+    <article class="panel">
+      <div class="panel-head wrap"><div><span class="section-kicker">DADOS POR EMPRESA</span><h2>Trazer dados de outro sistema</h2>
+      <p>O cadastro dos clientes pertence à própria empresa. O arquivo nunca passa pelo banco financeiro da Gestão Software.</p></div></div>
+      <div class="stack-form" style="max-width:690px">
+        <label for="migration-company">Qual empresa vai receber os dados?</label>
+        <select id="migration-company" aria-describedby="migration-help"><option value="">Escolha a empresa</option></select>
+        <p class="form-help" id="migration-help">Selecione uma empresa cadastrada. Você pode voltar aqui quando quiser.</p>
+        <div id="migration-state" class="onboarding-next-action" role="status" aria-live="polite">Aguardando escolha da empresa.</div>
+        <a id="migration-open" class="button primary" href="#" target="_blank" rel="noopener noreferrer" hidden>Abrir importação segura ↗</a>
+      </div>
+      <div class="onboarding-next-action" style="margin-top:18px"><strong>Fluxo simples e seguro:</strong> exportar CSV → conferir documentos e duplicados → autorizar → importar → consultar clientes no painel da empresa. Usuários e senhas não são transferidos automaticamente.</div>
+    </article>
+  </section>
+
+  <section id="tab-finance" class="tab-panel">
+    <div class="finance-summary-grid">
+      <article class="metric-card"><span>Faturado na competência</span><strong id="finance-billed">R$ 0,00</strong><small>Pago + em aberto</small></article>
+      <article class="metric-card"><span>Recebido</span><strong id="finance-gross">R$ 0,00</strong><small>Receita bruta</small></article>
+      <article class="metric-card"><span>Despesas operacionais</span><strong id="finance-expenses">R$ 0,00</strong><small>Despesas cadastradas</small></article>
+      <article class="metric-card"><span>Infraestrutura</span><strong id="finance-infra">R$ 0,00</strong><small>Custo mensal das VPS ativas</small></article>
+      <article class="metric-card emphasis"><span>Líquido operacional</span><strong id="finance-net">R$ 0,00</strong><small>Base da distribuição societária</small></article>
+    </div>
+
+    <div class="overview-grid finance-layout">
+      <article class="panel">
+        <div class="panel-head"><div><span class="section-kicker">SÓCIOS</span><h2>Distribuição do resultado</h2></div></div>
+        <div id="partner-finance" class="partner-grid"></div>
+        <form id="partner-form" class="inline-form partner-form">
+          <label>Pedro Henrique (%)<input id="pedro-share" type="number" min="0" max="100" step="0.01" required></label>
+          <label>Carlos Lima (%)<input id="carlos-share" type="number" min="0" max="100" step="0.01" required></label>
+          <button class="button primary" type="submit">Salvar divisão</button>
+        </form>
+        <small class="form-help">A soma precisa ser exatamente 100%. Valores positivos ou negativos do líquido são rateados pela participação.</small>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head"><div><span class="section-kicker">DESPESAS</span><h2>Nova despesa operacional</h2></div></div>
+        <form id="expense-form" class="stack-form">
+          <input id="expense-id" type="hidden">
+          <div class="form-grid two"><label>Competência<input id="expense-month" type="month" required></label><label>Categoria<input id="expense-category" maxlength="80" placeholder="Ex.: Contabilidade" required></label></div>
+          <label>Descrição<input id="expense-description" maxlength="240" required></label>
+          <div class="form-grid two"><label>Valor<input id="expense-amount" type="number" min="0" step="0.01" required></label><label>Observação<input id="expense-notes" maxlength="600"></label></div>
+          <div class="form-actions"><button class="button primary" type="submit">Salvar despesa</button><button id="cancel-expense" class="button outline" type="button" hidden>Cancelar edição</button></div>
+        </form>
+      </article>
+    </div>
+
+    <article class="panel">
+      <div class="panel-head"><div><span class="section-kicker">CUSTOS</span><h2>Despesas da competência</h2></div><span class="muted">Custos das VPS são somados automaticamente e não precisam ser lançados aqui.</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Observação</th><th></th></tr></thead><tbody id="expenses-body"></tbody></table></div>
+    </article>
+  </section>
+
+  <section id="tab-vps" class="tab-panel">
+    <article class="panel">
+      <div class="panel-head wrap"><div><span class="section-kicker">CAPACIDADE</span><h2>VPS e infraestrutura</h2><p>O alerta considera ocupação de empresas e os percentuais informados de CPU, RAM e armazenamento.</p></div><button id="new-vps" class="button primary" type="button">+ Cadastrar VPS</button></div>
+      <div id="vps-alert" class="capacity-banner"></div>
+      <div id="vps-grid" class="vps-grid"></div>
+    </article>
+  </section>
+
+  <section id="tab-calculator" class="tab-panel" hidden>
+    <div class="calculator-layout">
+      <article class="panel calculator-form-panel">
+        <div class="panel-head wrap">
+          <div><span class="section-kicker">USO INTERNO · SÓCIOS</span><h2>Calculadora de planos</h2><p>Simule uma proposta usando capacidade, módulos, prazo, AWS e processamento financeiro.</p></div>
+          <span class="badge warn">Carlos Lima e Pedro Henrique</span>
+        </div>
+
+        <form id="plan-calculator-form" class="stack-form">
+          <div class="form-grid two">
+            <label>Nome da empresa / oportunidade<input id="calc-company-name" maxlength="120" placeholder="Ex.: Grupo Exemplo"></label>
+            <label>Prazo do contrato<select id="calc-term"><option value="MONTHLY">Mensal</option><option value="SEMIANNUAL">Semestral · 8% de desconto</option><option value="ANNUAL">Anual · 15% de desconto</option></select></label>
+          </div>
+
+          <div class="form-grid three">
+            <label>Usuários / colaboradores<input id="calc-users" type="number" min="1" step="1" value="250" required></label>
+            <label>Novas vendas por mês<input id="calc-sales" type="number" min="0" step="1" value="7500" required></label>
+            <label>Pagamentos confirmados/mês<input id="calc-payments" type="number" min="0" step="1" value="7500" required></label>
+          </div>
+
+          <fieldset class="module-fieldset calculator-modules">
+            <legend>Módulos contratados</legend>
+            <div class="module-grid">
+              <label class="calc-module-option"><input type="checkbox" data-calc-module="SITE_PRINCIPAL" checked><span><strong>Site Principal</strong><small>Site institucional white-label e acesso aos portais.</small></span></label>
+              <label class="calc-module-option"><input type="checkbox" data-calc-module="COTA" checked><span><strong>Cota</strong><small>Cotações, FIPE, planos e regras comerciais.</small></span></label>
+              <label class="calc-module-option"><input type="checkbox" data-calc-module="VISTORIA_EVENTOS" checked><span><strong>Vistoria e Eventos</strong><small>Vistorias, fotos, documentos, checklists e dossiês.</small></span></label>
+              <label class="calc-module-option"><input type="checkbox" data-calc-module="GESTAO_FINANCEIRA_COMERCIAL" checked><span><strong>Comercial e Financeiro</strong><small>Associados, veículos, Asaas, comissões e saques.</small></span></label>
+              <label class="calc-module-option"><input type="checkbox" data-calc-module="APONTAMENTO_DIGITAL" checked><span><strong>Apontamento Digital</strong><small>Jornada, intervalos, pausas, selfies e banco de horas.</small></span></label>
+            </div>
+          </fieldset>
+
+          <details class="calculator-advanced" open>
+            <summary>Custos diretos e margem</summary>
+            <div class="form-grid three">
+              <label>Tarifa Asaas no boleto/Pix<input id="calc-asaas-cost" type="number" min="0" step="0.01" value="2.00"></label>
+              <label>Valor médio da cobrança<input id="calc-average-payment" type="number" min="0" step="0.01" value="100.00"></label>
+              <label>Saques de consultores/mês<input id="calc-withdrawals" type="number" min="0" step="1" value="0"></label>
+              <label>Tarifa Asaas por saque<input id="calc-withdrawal-cost" type="number" min="0" step="0.01" value="2.00"></label>
+              <label>Outros custos diretos mensais<input id="calc-other-costs" type="number" min="0" step="0.01" value="0"></label>
+              <label>Margem bruta alvo (%)<input id="calc-target-margin" type="number" min="10" max="90" step="1" value="55"></label>
+              <label>Infraestrutura<select id="calc-infra-profile"><option value="AUTO">Automática pelo porte</option><option value="SHARED">Cloud compartilhada</option><option value="RESERVED">Recursos reservados</option><option value="DEDICATED">AWS dedicada</option><option value="HYBRID">AWS + DR físico</option></select></label>
+              <label>Custo AWS estimado<input id="calc-aws-cost" type="number" min="0" step="100"></label>
+            </div>
+            <div class="margin-explanation"><strong>Margem bruta alvo</strong><span>É a porcentagem da mensalidade que deve sobrar depois dos custos diretos da operação, como AWS e outros custos informados. Não é lucro líquido: impostos, salários, comercial e despesas administrativas vêm depois.</span></div>
+            <div class="asaas-explanation"><strong>Asaas é repassado</strong><span>As tarifas de boleto/Pix e saque não reduzem a margem da Gestão Software. A tarifa é adicionada à cobrança do associado ou descontada do valor solicitado no saque.</span></div>
+          </details>
+
+          <div id="calc-validation" class="form-message" aria-live="polite"></div>
+          <div class="form-actions"><button id="calc-reset" class="button outline" type="button">Restaurar referência</button></div>
+        </form>
+      </article>
+
+      <div class="calculator-results">
+        <article class="calculator-plan-card">
+          <span class="section-kicker">PLANO INDICADO</span>
+          <div class="calculator-plan-title"><h2 id="calc-plan-name">Business</h2><span id="calc-plan-status" class="badge ok">Dentro da capacidade</span></div>
+          <p id="calc-plan-capacity">Até 250 usuários e 7.500 vendas/mês.</p>
+          <div class="calculator-price"><span>Preço recomendado ao cliente</span><strong id="calc-recommended-price">R$ 0,00</strong><small id="calc-price-note">por mês</small></div>
+        </article>
+
+        <div class="calculator-kpis">
+          <article class="metric-card"><span>Licença base</span><strong id="calc-license-price">R$ 0,00</strong><small>Após módulos e prazo</small></article>
+          <article class="metric-card"><span>Taxas Asaas repassadas</span><strong id="calc-processing-revenue">R$ 0,00</strong><small>Não entram na margem da Gestão</small></article>
+          <article class="metric-card"><span>Custo direto mensal</span><strong id="calc-total-cost">R$ 0,00</strong><small>AWS + outros custos diretos</small></article>
+          <article class="metric-card emphasis"><span>Resultado bruto estimado</span><strong id="calc-gross-profit">R$ 0,00</strong><small id="calc-margin-label">Margem 0%</small></article>
+        </div>
+
+        <article id="calc-margin-alert" class="capacity-banner ok"></article>
+
+        <article class="panel calculator-breakdown">
+          <div class="panel-head"><div><span class="section-kicker">FORMAÇÃO DO PREÇO</span><h2>Resumo interno</h2></div></div>
+          <div class="calculator-breakdown-grid">
+            <div><span>Preço de tabela do plano</span><strong id="calc-list-price">R$ 0,00</strong></div>
+            <div><span>Desconto de fidelidade</span><strong id="calc-discount">0%</strong></div>
+            <div><span>Custo AWS estimado</span><strong id="calc-aws-result">R$ 0,00</strong></div>
+            <div><span>Asaas repassado em cobranças</span><strong id="calc-asaas-result">R$ 0,00</strong></div>
+            <div><span>Asaas repassado em saques</span><strong id="calc-withdrawal-fees-result">R$ 0,00</strong></div><div><span>Custo direto por usuário</span><strong id="calc-cost-per-user">R$ 0,00</strong></div>
+            <div><span>Preço por usuário</span><strong id="calc-price-per-user">R$ 0,00</strong></div>
+            <div><span>Total do período contratado</span><strong id="calc-contract-total">R$ 0,00</strong></div>
+            <div><span>Margem bruta</span><strong id="calc-margin">0%</strong></div>
+            <div><span>Exemplo de cobrança com taxa</span><strong id="calc-payment-example">R$ 0,00</strong></div>
+            <div><span>Exemplo de saque líquido</span><strong id="calc-withdrawal-example">R$ 98,00</strong></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head"><div><span class="section-kicker">SÓCIOS</span><h2>Resultado estimado da oportunidade</h2></div></div>
+          <div id="calc-partners" class="partner-grid"></div>
+          <small class="form-help">Estimativa baseada no resultado bruto desta oportunidade e nos percentuais societários cadastrados. Não substitui o fechamento financeiro mensal.</small>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="password-dialog" class="platform-dialog" data-static>
+  <form id="password-form" class="dialog-card" method="dialog">
+    <span class="section-kicker">PRIMEIRO ACESSO</span><h2>Crie sua nova senha</h2>
+    <p>Por segurança, a senha padrão precisa ser alterada antes de acessar a gestão Multiempresas.</p>
+    <label>Senha atual<input id="password-current" type="password" autocomplete="current-password" required></label>
+    <label>Nova senha<input id="password-new" type="password" minlength="8" autocomplete="new-password" required></label>
+    <label>Confirmar nova senha<input id="password-confirm" type="password" minlength="8" autocomplete="new-password" required></label>
+    <div id="password-message" class="form-message"></div>
+    <button class="button primary full" type="submit">Alterar senha e entrar</button>
+  </form>
+</dialog>
+
+<dialog id="company-dialog" class="platform-dialog wide-dialog">
+  <form id="company-form" class="dialog-card" method="dialog">
+    <div class="dialog-head"><div><span class="section-kicker">EMPRESA-CLIENTE</span><h2 id="company-dialog-title">Nova empresa</h2></div><button class="icon-close" type="button" data-close-dialog="company-dialog">×</button></div>
+    <input id="company-id" type="hidden">
+    <div class="form-grid two"><label>Grupo empresarial<input id="company-group" maxlength="160" placeholder="Ex.: Grupo Sampaio"></label><label>Nome da empresa / fantasia<input id="company-trade" maxlength="180" required></label></div>
+    <div class="form-grid two"><label>Razão social<input id="company-legal" maxlength="200" required></label><label>CPF/CNPJ<input id="company-document" maxlength="20"></label></div>
+    <div class="form-grid three"><label>Responsável<input id="company-contact" maxlength="160"></label><label>E-mail<input id="company-email" type="email" maxlength="180"></label><label>Telefone<input id="company-phone" maxlength="40"></label></div>
+    <div class="form-grid four"><label>Status<select id="company-status"><option value="ACTIVE">Ativa</option><option value="TRIAL">Teste</option><option value="SUSPENDED">Suspensa</option><option value="CANCELLED">Cancelada</option></select></label><label>Plano<select id="company-plan"><option value="CUSTOM">Personalizado</option></select></label><label>Prazo<select id="company-contract-term"><option value="MONTHLY">Mensal</option><option value="SEMIANNUAL">Semestral</option><option value="ANNUAL">Anual</option></select></label><label>Forma de pagamento<select id="company-payment-method"><option value="PIX_AUTOMATICO">Pix Automático</option><option value="DEBITO_AUTOMATICO">Débito Automático</option><option value="BOLETO">Boleto</option></select></label></div>
+    <div class="form-grid four"><label>Mensalidade calculada<input id="company-monthly" type="number" min="0" step="0.01" value="0" required></label><label>Dia do vencimento<input id="company-due-day" type="number" min="1" max="28" value="10"></label><label>Início do contrato<input id="company-start" type="date" required></label><label>Fim do contrato<input id="company-end" type="date"></label></div>
+    <small id="company-price-help" class="form-help">O plano define a categoria comercial. Informe em “Mensalidade calculada” o preço final aprovado para esta empresa.</small>
+    <fieldset class="module-fieldset"><legend>Módulos contratados</legend><div id="company-modules" class="module-grid"></div></fieldset>
+    <fieldset class="module-fieldset"><legend>Identidade visual white-label</legend>
+      <div class="form-grid two"><label>Nome exibido no sistema<input id="company-platform-display" maxlength="180" placeholder="Ex.: Novo Horizonte"></label><label>Texto abaixo da marca<input id="company-platform-legal" maxlength="180" value="Gestão Software LTDA"></label></div>
+      <div class="form-grid two"><label>Enviar logo da empresa<input id="company-logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"><small id="company-logo-current" class="form-help">Nenhuma logo enviada.</small></label><label>PDF da identidade visual<input id="company-identity-file" type="file" accept="application/pdf"><small id="company-identity-current" class="form-help">Nenhum PDF enviado.</small></label></div>
+      <div class="form-grid two"><label>URL alternativa da logo<input id="company-logo-url" maxlength="1000" placeholder="Opcional: https://..."></label><label>Favicon / URL<input id="company-favicon-url" maxlength="1000" placeholder="Opcional"></label></div>
+      <div class="brand-palette-toolbar"><strong>Cores da empresa</strong><button class="button outline small" id="brand-nh-preset" type="button">Aplicar paleta oficial Novo Horizonte</button></div>
+      <div class="form-grid three brand-color-editor">
+        <label>Cor principal (azul)<input id="company-primary-color" type="color" value="#070c40"><input id="company-primary-hex" type="text" maxlength="7" pattern="#[0-9A-Fa-f]{6}" value="#070c40" aria-label="Código HEX da cor principal"></label>
+        <label>Cor secundária (amarelo)<input id="company-secondary-color" type="color" value="#f0f000"><input id="company-secondary-hex" type="text" maxlength="7" pattern="#[0-9A-Fa-f]{6}" value="#f0f000" aria-label="Código HEX da cor secundária"></label>
+        <label>Cor de apoio (branco)<input id="company-accent-color" type="color" value="#ffffff"><input id="company-accent-hex" type="text" maxlength="7" pattern="#[0-9A-Fa-f]{6}" value="#ffffff" aria-label="Código HEX da cor de apoio"></label>
+      </div>
+      <label style="margin-top:12px">Subdomínio de integração da empresa (white-label)
+        <input id="company-tenant-host" placeholder="nh.gestaosoftware.com.br" maxlength="240" autocomplete="off">
+      </label>
+      <p class="form-help">Informe <code>nh.gestaosoftware.com.br</code> para vincular as configurações desta empresa ao NH local. O vínculo pode ser alterado depois em Hospedagem. Sem esse campo, as cores não são enviadas ao NH.</p>
+      <div class="form-grid two"><label>Título do site<input id="company-site-title" maxlength="180" placeholder="Ex.: Novo Horizonte"></label><label>Rota padrão após login<input id="company-default-landing" maxlength="80" placeholder="/colaborador/"></label></div>
+      <div class="form-grid two"><label>Slogan da empresa<input id="company-tagline" maxlength="220" placeholder="Ex.: Sua proteção na palma da mão."></label><label>Subtítulo de login<input id="company-login-subtitle" maxlength="220" placeholder="Ex.: Plataforma operada pela Gestão Software LTDA"></label></div>
+    </fieldset>
+    <div class="contract-create-note"><h3>Contrato</h3><p>Ao cadastrar a empresa, o sistema cria automaticamente um contrato com o plano, módulos, mensalidade e forma de pagamento. O contrato fica aguardando assinatura da empresa-cliente e assinatura de Carlos Lima ou Pedro Henrique.</p></div>
+    <label>Observações<textarea id="company-notes" rows="3"></textarea></label>
+    <div id="company-form-message" class="form-message"></div>
+    <div class="form-actions end"><button class="button outline" type="button" data-close-dialog="company-dialog">Cancelar</button><button class="button primary" type="submit">Salvar empresa</button></div>
+  </form>
+</dialog>
+
+<dialog id="company-detail-dialog" class="platform-dialog extra-wide-dialog">
+  <div class="dialog-card">
+    <div class="dialog-head"><div><span class="section-kicker">EMPRESA-CLIENTE</span><h2 id="detail-company-name">Empresa</h2><p id="detail-company-subtitle"></p></div><button class="icon-close" type="button" data-close-dialog="company-detail-dialog">×</button></div>
+    <div id="detail-company-content"></div>
+  </div>
+</dialog>
+
+<dialog id="hosting-dialog" class="platform-dialog wide-dialog">
+  <form id="hosting-form" class="dialog-card" method="dialog">
+    <div class="dialog-head"><div><span class="section-kicker">HOSPEDAGEM</span><h2 id="hosting-title">Programa de hospedagem</h2></div><button class="icon-close" type="button" data-close-dialog="hosting-dialog">×</button></div>
+    <input id="hosting-company-id" type="hidden">
+    <label>VPS vinculada<select id="hosting-vps"><option value="">Sem VPS vinculada</option></select></label>
+    <div class="form-grid three"><label>Ambiente / instância<input id="hosting-environment" placeholder="Ex.: producao-nh"></label><label>Domínio principal<input id="hosting-domain" placeholder="app.empresa.com.br"></label><label>Subdomínio Gestão Software<input id="hosting-subdomain" placeholder="empresa.gestaosoftware.com.br"></label></div>
+    <div class="form-grid three"><label>Tipo de apontamento DNS<select id="hosting-dns-mode"><option value="SUBDOMAIN">Subdomínio Gestão Software</option><option value="CUSTOM_DOMAIN">Domínio próprio do cliente</option><option value="CLIENT_DOMAIN_WITH_MODULES">Cliente já possui domínio e recebe apenas os módulos</option></select></label><label>URL da aplicação<input id="hosting-app-url" type="url"></label><label>URL da API<input id="hosting-api-url" type="url"></label></div>
+    <div class="form-grid two"><label>Banco de dados<input id="hosting-database"></label><label>Método de deploy<input id="hosting-deployment-method" placeholder="Docker Compose / Render / ..."></label></div>
+    <label>Caminho / diretório de deploy<input id="hosting-path"></label>
+    <label>Observações de hospedagem<textarea id="hosting-notes" rows="3"></textarea></label>
+    <div id="hosting-message" class="form-message"></div>
+    <div class="form-actions end"><button class="button outline" type="button" data-close-dialog="hosting-dialog">Cancelar</button><button class="button primary" type="submit">Salvar hospedagem</button></div>
+  </form>
+</dialog>
+
+<dialog id="vps-dialog" class="platform-dialog wide-dialog">
+  <form id="vps-form" class="dialog-card" method="dialog">
+    <div class="dialog-head"><div><span class="section-kicker">INFRAESTRUTURA</span><h2 id="vps-dialog-title">Nova VPS</h2></div><button class="icon-close" type="button" data-close-dialog="vps-dialog">×</button></div>
+    <input id="vps-id" type="hidden">
+    <div class="form-grid two"><label>Nome da VPS<input id="vps-name" required placeholder="Ex.: VPS Produção 01"></label><label>Provedor<input id="vps-provider" required placeholder="Ex.: Hostinger"></label></div>
+    <div class="form-grid three"><label>Plano<input id="vps-plan"></label><label>Hostname<input id="vps-hostname"></label><label>IP<input id="vps-ip"></label></div>
+    <div class="form-grid four"><label>Custo mensal<input id="vps-cost" type="number" min="0" step="0.01" value="0"></label><label>Máx. empresas<input id="vps-max-companies" type="number" min="1" value="10"></label><label>CPU (cores)<input id="vps-cpu-cores" type="number" min="0" step="0.1"></label><label>RAM (GB)<input id="vps-ram-gb" type="number" min="0" step="0.1"></label></div>
+    <div class="form-grid four"><label>Armazenamento (GB)<input id="vps-storage-gb" type="number" min="0" step="0.1"></label><label>CPU usada (%)<input id="vps-cpu-use" type="number" min="0" max="100" step="0.1"></label><label>RAM usada (%)<input id="vps-ram-use" type="number" min="0" max="100" step="0.1"></label><label>Disco usado (%)<input id="vps-storage-use" type="number" min="0" max="100" step="0.1"></label></div>
+    <div class="form-grid two"><label>Renovação<input id="vps-renewal" type="date"></label><label class="checkbox-label"><input id="vps-active" type="checkbox" checked> VPS ativa</label></div>
+    <label>Observações<textarea id="vps-notes" rows="3"></textarea></label>
+    <div id="vps-form-message" class="form-message"></div>
+    <div class="form-actions end"><button class="button outline" type="button" data-close-dialog="vps-dialog">Cancelar</button><button class="button primary" type="submit">Salvar VPS</button></div>
+  </form>
+</dialog>
+
+<footer class="platform-footer"><span>Gestão Software • Control Plane</span><span>Gestão Software LTDA</span></footer>
+</body>
+</html>

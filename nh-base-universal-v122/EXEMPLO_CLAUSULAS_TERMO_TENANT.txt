@@ -1,0 +1,12 @@
+CLÁUSULAS JURÍDICAS POR EMPRESA — CONFIGURAÇÃO OBRIGATÓRIA
+
+Variável de ambiente do backend tenant: TENANT_RESPONSIBILITY_TERM_CLAUSES
+Formato: cláusula 1||cláusula 2||cláusula 3 (separador literal ||).
+O valor deve ser aprovado pela área jurídica da empresa e pode conter até 20 cláusulas.
+NUNCA colar o regulamento, CNPJ, nomes, preços ou cláusulas de outro cliente.
+
+Exemplo de formato (NÃO É TEXTO JURÍDICO PARA USO REAL):
+[TEXTO JURÍDICO APROVADO PELA EMPRESA]||[SEGUNDA CLÁUSULA APROVADA]
+
+Sem a variável configurada, o PDF do termo retorna erro claro e o status de
+prontidão da empresa permanecerá FALSE. Não alterar a trava manualmente.

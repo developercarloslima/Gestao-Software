@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070c40">
+  <title>Aceite do Termo de Ciência de Peças | Empresa Cliente</title>
+  <link rel="icon" href="/assets/identidade-pendente.svg">
+  <link rel="stylesheet" href="/shared/portal.css?v=20261013-v83-114">
+  <link rel="stylesheet" href="/shared/brand-system.css?v=20261013-v83-114">
+  <link rel="stylesheet" href="/aceite-termo/aceite-termo.css?v=20261013-v83-114">
+  <link rel="stylesheet" href="/shared/responsive.css?v=20261013-v83-114">
+  <script defer src="/shared/config.js?v=20261013-v83-114"></script>
+  <script defer src="/ciencia-pecas/ciencia-pecas.js?v=20261015-v83-125"></script>
+</head>
+<body>
+<header class="portal-header"><a class="portal-brand" href="/"><img src="/assets/identidade-pendente.svg" alt="Empresa Cliente"><span><strong>Empresa Cliente</strong><small>Termo de Ciência de Peças</small></span></a></header>
+<main class="accept-shell">
+  <section class="accept-hero">
+    <span class="eyebrow">ACEITE DIGITAL EXCLUSIVO DO TERMO</span>
+    <h1>Termo de Ciência sobre Prazo de Peças</h1>
+    <p>Revise somente este documento e confirme o aceite por WebAuthn. A confirmação é vinculada criptograficamente a este termo e ao domínio da empresa responsável.</p>
+  </section>
+  <section id="loading" class="card"><p>Carregando o Termo de Ciência de Peças...</p></section>
+  <section id="accept-card" class="card accept-card" hidden>
+    <div class="accept-brand-line"></div>
+    <div class="accept-summary">
+      <div><span>Associado</span><strong id="associate">—</strong></div>
+      <div><span>Veículo</span><strong id="vehicle">—</strong></div>
+      <div><span>Documento</span><strong>Termo de Ciência de Peças</strong></div>
+      <div><span>Situação</span><strong id="accept-status">—</strong></div>
+    </div>
+    <div class="accept-info">
+      <h2>O que você está aceitando</h2>
+      <p>Este documento informa que dificuldades reais para localizar ou receber peças podem gerar prazos superiores a 90 dias. O aceite <strong>não prorroga automaticamente prazos, nem representa renúncia a direitos</strong>; é independente do termo de avarias e do aceite do dossiê.</p>
+      <div id="damage-details" class="accept-proof" style="margin-top:12px"></div>
+    </div>
+    <div class="accept-actions">
+      <button id="download-term" class="outline" type="button">Baixar e revisar o termo</button>
+      <button id="confirm-acceptance" class="primary" type="button">Confirmar aceite via WebAuthn</button>
+    </div>
+    <div id="ios-help" class="ios-help" hidden><strong>iPhone: abra este link no Safari.</strong><p>Links abertos dentro de WhatsApp, Instagram ou outros navegadores internos podem impedir o WebAuthn.</p></div>
+    <p id="accept-message" class="accept-message" aria-live="polite"></p>
+    <div id="accept-proof" class="accept-proof" hidden></div>
+  </section>
+</main>
+<script defer src="/shared/developer-footer.js?v=20261013-v83-114"></script>
+</body>
+</html>

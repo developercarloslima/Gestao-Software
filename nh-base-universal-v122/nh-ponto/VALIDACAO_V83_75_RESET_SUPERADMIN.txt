@@ -1,0 +1,16 @@
+VALIDAÇÃO V83.75 — RESET DE SENHA E BIOMETRIA PELO SUPER ADM
+
+[OK] Rotas exclusivas de SUPER_ADMIN no backend.
+[OK] Reset de senha usa senha temporária aleatória.
+[OK] mustChangePassword=true após reset.
+[OK] passwordChangedAt e onboardingCompletedAt são limpos no reset de senha.
+[OK] Challenges WebAuthn pendentes são limpos no reset de senha.
+[OK] Reset biométrico remove passkeys/WebAuthn e challenges.
+[OK] Reset biométrico remove referências e submissões faciais quando há Employee.
+[OK] Status facial retorna a NOT_ENROLLED e bloqueios biométricos são zerados.
+[OK] Selfies históricas dos Punches não são removidas.
+[OK] Usuários inativos também aparecem no painel global.
+[OK] Auditoria registrada para ambos os resets.
+[OK] Cache da PWA alterado para V83.75.
+[OK] Sintaxe TS/TSX modificada validada por transpileModule.
+[INFO] Build completo não executado neste ambiente porque as dependências npm não estavam disponíveis e npm install excedeu o limite de execução. O Dockerfile de produção instala as dependências e compila a partir do source durante o deploy.

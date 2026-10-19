@@ -1,0 +1,24 @@
+VALIDAÇÃO V83.82 — BANCO DE HORAS
+
+[OK] Schema possui marco bankPolicyV2At para preservar histórico.
+[OK] Ajustes de banco possuem MANUAL/COMPENSATION.
+[OK] Compensações possuem PLANNED/APPLIED/CANCELLED.
+[OK] Saída manual +10 min gera +10 min de crédito no banco.
+[OK] Entrada antecipada efetivamente trabalhada participa do crédito.
+[OK] Trecho de saída automática posterior ao horário previsto não gera crédito.
+[OK] Déficit é calculado por minuto real na política V83.82.
+[OK] Déficit não consome saldo sem decisão do ADM.
+[OK] ADMIN/SUPER_ADMIN podem usar saldo para abonar déficit.
+[OK] Compensação futura reserva saldo.
+[OK] Reserva futura aplica somente o déficit real ao fechar a jornada.
+[OK] Sobra da reserva é liberada automaticamente.
+[OK] Uso em justificativa de falta disponível.
+[OK] Dias anteriores ao marco V83.82 permanecem na política histórica.
+[OK] Banco existente continua compondo o saldo.
+[OK] Cache PWA alterado para V83.82.
+[OK] /health alterado para 0.8.18-v83.82.
+[OK] Verificação sintática estrutural dos TS/TSX alterados sem erros de parser.
+[OK] sw.js passou em node --check.
+
+Observação: npm install não concluiu dentro do tempo do ambiente de empacotamento.
+O build integral deve ser executado na VPS antes da publicação, como já é feito no fluxo de deploy.

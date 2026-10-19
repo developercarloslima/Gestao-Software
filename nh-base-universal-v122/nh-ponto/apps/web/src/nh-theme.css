@@ -1,0 +1,632 @@
+:root{
+  --nh-navy:#070c40;
+  --nh-navy-2:#0d1455;
+  --nh-navy-3:#151e67;
+  --nh-yellow:#f0f000;
+  --nh-white:#ffffff;
+  --nh-white-soft:#f4f6ff;
+  --nh-muted:#c5cbea;
+  --nh-border:rgba(240,240,0,.34);
+  --nh-danger:#ff8795;
+  --nh-success:#74dfb6;
+}
+
+/*
+ * Apontamento Digital — identidade Empresa Cliente
+ * Cores oficiais do manual da marca:
+ * Azul Profundo #070C40 (principal)
+ * Amarelo Vibrante #F0F000 (secundária / destaque)
+ * Branco #FFFFFF (terciária / apoio)
+ */
+html,body,#root{min-height:100%;background:var(--nh-navy)!important}
+body{
+  color:var(--nh-white)!important;
+  font-family:"Helvetica Now Display","Helvetica Neue",Arial,sans-serif!important;
+  background:
+    radial-gradient(circle at 14% 7%,rgba(240,240,0,.10),transparent 23%),
+    radial-gradient(circle at 88% 12%,rgba(240,240,0,.055),transparent 24%),
+    linear-gradient(145deg,#070c40 0%,#090f49 48%,#05092f 100%)!important;
+}
+h1,h2,h3,h4,.eyebrow,.primary,.secondary-action,.sidebar nav button{
+  font-family:"League Spartan","Helvetica Now Display","Arial Black",Arial,sans-serif;
+}
+button,input,select,textarea{font-family:inherit}
+
+.login-shell,.app-shell,.onboarding-shell{background:transparent!important}
+
+/* LOGIN — azul e amarelo dominantes; branco apenas como apoio */
+.login-shell{position:relative}
+.brand-panel{align-self:center}
+.brand-panel h1{color:var(--nh-yellow)!important;text-shadow:0 2px 0 rgba(0,0,0,.18)}
+.brand-panel p{color:var(--nh-white)!important;opacity:.92}
+.brand-panel .nh-ponto-logo-login{
+  width:min(560px,96%);
+  height:auto;
+  max-height:none;
+  object-fit:contain;
+  object-position:left center;
+  background:var(--nh-navy)!important;
+  padding:0!important;
+  border-radius:24px;
+  border:1px solid rgba(240,240,0,.30);
+  box-shadow:0 18px 48px rgba(0,0,0,.28);
+}
+.trust-row span{
+  background:rgba(13,20,85,.88)!important;
+  border:1px solid rgba(240,240,0,.62)!important;
+  color:var(--nh-white)!important;
+}
+
+.login-card,.card,.metric,.onboarding-card{
+  background:linear-gradient(180deg,rgba(13,20,85,.98),rgba(7,12,64,.98))!important;
+  color:var(--nh-white)!important;
+  border:1px solid var(--nh-border)!important;
+  box-shadow:0 22px 58px rgba(0,0,0,.30)!important;
+}
+.login-card{border-top:4px solid var(--nh-yellow)!important}
+.login-card h2,.card h2,.card h3,.onboarding-card h1,.onboarding-card h2{color:var(--nh-white)!important}
+.login-card .eyebrow,.onboarding-card>.eyebrow,.content header .eyebrow,.card .eyebrow{color:var(--nh-yellow)!important}
+.login-card label,.stack label,.form-grid label,.onboarding-step label{color:var(--nh-white)!important}
+.login-card .optional{color:var(--nh-muted)!important}
+.login-card input,.stack input,.stack select,.stack textarea,.form-grid input,.form-grid select,.onboarding-step input{
+  background:var(--nh-white)!important;
+  color:var(--nh-navy)!important;
+  border:1px solid #cfd4e4!important;
+}
+.login-card input:focus,.stack input:focus,.stack select:focus,.form-grid input:focus,.form-grid select:focus,.onboarding-step input:focus{
+  border-color:var(--nh-yellow)!important;
+  box-shadow:0 0 0 3px rgba(240,240,0,.18)!important;
+  outline:none!important;
+}
+.login-card small{color:var(--nh-muted)!important}
+.login-biometric-divider{color:var(--nh-muted)!important}
+.login-biometric-divider:before,.login-biometric-divider:after{background:rgba(255,255,255,.22)!important}
+
+/* BOTÕES */
+.primary,.login-card .primary,.approval-row button,.success-button{
+  background:var(--nh-yellow)!important;
+  color:var(--nh-navy)!important;
+  border:1px solid var(--nh-yellow)!important;
+  box-shadow:0 5px 0 #030722!important;
+}
+.primary:hover,.login-card .primary:hover,.approval-row button:hover{filter:brightness(.96)}
+.secondary-action,.ghost,.card-head>button,.subnav button,.period-list button,.day-pills button,.punch-actions button{
+  background:var(--nh-navy-3)!important;
+  color:var(--nh-white)!important;
+  border:1px solid rgba(240,240,0,.38)!important;
+}
+.secondary-action:hover,.ghost:hover,.subnav button.active,.period-list button.active,.day-pills button.active,.punch-actions button:hover{
+  border-color:var(--nh-yellow)!important;
+  background:var(--nh-yellow)!important;
+  color:var(--nh-navy)!important;
+}
+
+/* PRIMEIRO ACESSO */
+.onboarding-shell{
+  background:
+    radial-gradient(circle at 50% 0,rgba(240,240,0,.11),transparent 31%),
+    var(--nh-navy)!important;
+}
+.onboarding-card{
+  width:min(900px,100%)!important;
+  border-top:4px solid var(--nh-yellow)!important;
+}
+.nh-ponto-logo-onboarding{
+  width:min(430px,82%)!important;
+  height:auto!important;
+  max-height:none!important;
+  object-fit:contain!important;
+  object-position:left center!important;
+  margin:0 0 22px!important;
+  background:var(--nh-navy)!important;
+  border-radius:20px;
+  border:1px solid rgba(240,240,0,.26);
+}
+.onboarding-progress>div,.quick-progress>div{
+  background:var(--nh-navy-3)!important;
+  border-color:rgba(255,255,255,.18)!important;
+  color:var(--nh-muted)!important;
+}
+.onboarding-progress>div b,.quick-progress>div b{background:#202a70!important;color:#fff!important}
+.onboarding-progress>div.current,.quick-progress>div.current{border-color:var(--nh-yellow)!important;color:var(--nh-white)!important}
+.onboarding-progress>div.current b,.quick-progress>div.current b{background:var(--nh-yellow)!important;color:var(--nh-navy)!important}
+.onboarding-progress>div.done,.quick-progress>div.done{border-color:#70d6b3!important;color:#bcf3df!important}
+.onboarding-progress>div.done b,.quick-progress>div.done b{background:#70d6b3!important;color:var(--nh-navy)!important}
+.onboarding-step{border-color:rgba(255,255,255,.20)!important}
+.notice-copy{
+  background:var(--nh-navy-3)!important;
+  border:1px solid rgba(240,240,0,.24)!important;
+  color:var(--nh-white)!important;
+}
+
+/* ÁREA AUTENTICADA */
+.app-shell{background:var(--nh-navy)!important}
+.sidebar{
+  background:#050a36!important;
+  border-color:rgba(240,240,0,.22)!important;
+  box-shadow:10px 0 28px rgba(0,0,0,.16);
+}
+.sidebar-brand b{color:var(--nh-yellow)!important}
+.sidebar-brand span,.sidebar-user span{color:#c9d0ec!important}
+.sidebar nav button{color:#f0f2ff!important}
+.sidebar nav button.active,.sidebar nav button:hover{background:var(--nh-yellow)!important;color:var(--nh-navy)!important}
+.sidebar-user{border-color:rgba(255,255,255,.17)!important}
+.sidebar-user .avatar{background:var(--nh-yellow)!important;color:var(--nh-navy)!important}
+.sidebar-user button{color:#fff!important}
+.nh-ponto-logo-sidebar{
+  width:58px!important;
+  height:58px!important;
+  border-radius:14px!important;
+  background:var(--nh-navy)!important;
+  padding:0!important;
+  border:1px solid rgba(240,240,0,.28);
+}
+.content{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 88% 0,rgba(240,240,0,.055),transparent 24%),
+    linear-gradient(180deg,rgba(255,255,255,.018),rgba(255,255,255,0))!important;
+}
+.content header h1{color:var(--nh-white)!important}
+.content header .eyebrow{color:var(--nh-yellow)!important}
+.live-badge{background:var(--nh-navy-3)!important;border-color:rgba(240,240,0,.42)!important;color:#fff!important}
+.live-badge i{background:var(--nh-yellow)!important;box-shadow:0 0 12px rgba(240,240,0,.75)!important}
+
+/* CARTÕES E COMPONENTES INTERNOS */
+.card,.metric{border-top:3px solid rgba(240,240,0,.72)!important}
+.card .eyebrow,.metric span{color:var(--nh-yellow)!important}
+.card .muted,.muted{color:var(--nh-muted)!important}
+.queue-chip,.score-pill,.status{
+  background:var(--nh-navy-3)!important;
+  border-color:rgba(240,240,0,.34)!important;
+  color:var(--nh-white)!important;
+}
+.fact-row,.request-item,.approval-row,th,td{border-color:rgba(255,255,255,.15)!important}
+.fact-row span,.request-item span,.approval-row span,.request-item small,.approval-row small,th{color:var(--nh-muted)!important}
+td{color:var(--nh-white)!important}
+.hash-box,.assistant-note{
+  background:#091047!important;
+  border-color:rgba(240,240,0,.22)!important;
+  color:var(--nh-white)!important;
+}
+.hash-box span{color:var(--nh-muted)!important}
+.hash-box code{color:#fff!important}
+.timeline-dot{background:var(--nh-yellow)!important;box-shadow:0 0 12px rgba(240,240,0,.65)!important}
+.proof-ring{background:conic-gradient(var(--nh-yellow) var(--score),#293276 0)!important}
+.proof-ring:after{background:var(--nh-navy-2)!important}
+.proof-ring strong{color:#fff!important}
+.assistant-card{background:linear-gradient(160deg,#151e67,#0d1455)!important}
+.assistant-card p{color:#fff!important}
+.positive{color:var(--nh-success)!important}.negative{color:var(--nh-danger)!important}
+
+.error-box{background:#5c1a2a!important;border-color:#ff9cac!important;color:#fff!important}
+.success-box{background:#145a49!important;border-color:#7ae1bd!important;color:#fff!important}
+.warning-box{background:#4b470c!important;border-color:var(--nh-yellow)!important;color:#fff!important}
+.status-popup-backdrop{background:rgba(3,7,34,.84)!important}
+.status-popup{background:var(--nh-navy-2)!important;color:#fff!important;border:1px solid var(--nh-yellow)!important}
+.status-popup h2,.status-popup p,.status-popup li{color:#fff!important}
+.async-processing-card,.face-analysis-banner{
+  background:#171f63!important;
+  border-color:var(--nh-yellow)!important;
+  color:#fff!important;
+}
+.face-analysis-banner b{color:var(--nh-yellow)!important}.face-analysis-banner span{color:#fff!important}
+.face-login-video-wrap{border-color:rgba(240,240,0,.40)!important;background:#030722!important}
+
+/* LOGOS */
+.nh-ponto-logo{display:block;object-fit:contain}
+.nh-ponto-footer{text-align:center;color:#d9def5;font-size:10.5px;font-weight:400;line-height:1.45;padding:18px 10px 4px;opacity:.58;overflow-wrap:anywhere}
+.nh-ponto-footer a{color:inherit;text-decoration:none;font-weight:600}
+.nh-ponto-footer a:hover,.nh-ponto-footer a:focus-visible{text-decoration:underline;opacity:1}
+.app-footer{margin-top:28px;border-top:1px solid rgba(240,240,0,.20)}
+
+@media(max-width:900px){
+  .brand-panel .nh-ponto-logo-login{width:min(460px,94%)}
+  .nh-ponto-logo-onboarding{width:min(360px,90%)!important}
+  .sidebar-brand{padding-bottom:14px}
+  .sidebar nav{grid-template-columns:repeat(3,minmax(150px,1fr))}
+  .content{padding:18px}
+}
+@media(max-width:600px){
+  .brand-panel .nh-ponto-logo-login{width:100%;border-radius:18px}
+  .login-shell{padding:20px!important}
+  .login-card,.onboarding-card{border-radius:20px!important}
+  .nh-ponto-logo-onboarding{width:100%!important;border-radius:16px}
+}
+
+/* v0.4.9 — responsividade total, saída mobile, trava por turno e valores de jornada */
+html,body,#root{width:100%;max-width:100%;overflow-x:hidden}
+.app-shell,.sidebar,.content,.card,.grid-two,.hero-card{min-width:0}
+.sidebar-brand-copy{min-width:0;overflow:hidden}.sidebar-brand-copy b,.sidebar-brand-copy span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mobile-logout{display:none;border:1px solid var(--nh-yellow);background:transparent;color:#fff;border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer}
+.punch-actions button:disabled{cursor:not-allowed;opacity:.48;filter:saturate(.5)}
+.punch-actions button.punch-used,.punch-actions button.punch-used:hover{background:#17215b!important;border-color:#70d6b3!important;color:#bff4df!important;opacity:.72}
+.turn-lock-note{margin:0 auto 14px;max-width:560px;font-size:12px;line-height:1.45;color:#cfd5ed;text-align:center}
+.payroll-reference-card{margin-bottom:18px}.payroll-reference-strip{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}.payroll-reference-strip b,.payroll-reference-strip span{padding:8px 11px;border:1px solid rgba(240,240,0,.3);border-radius:999px;background:#11185a;color:#fff;font-size:12px}.payroll-reference-strip b{color:var(--nh-yellow)}
+.metric small{display:block;margin-top:8px;color:#c4cae3;font-size:11px;line-height:1.35}.compensation-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.compensation-grid>div{padding:14px;border:1px solid rgba(255,255,255,.14);background:#11185a;border-radius:14px}.compensation-grid span,.compensation-grid b{display:block}.compensation-grid span{font-size:11px;color:#c4cae3;margin-bottom:7px}.compensation-grid b{font-size:18px}.payroll-table{min-width:1180px}
+
+@media(max-width:900px){
+  .app-shell{display:block!important;width:100%}
+  .sidebar{width:100%!important;height:auto!important;position:static!important;padding:12px!important;border-right:0!important;overflow:hidden}
+  .sidebar-brand{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;gap:10px!important;padding:2px 2px 12px!important}
+  .nh-ponto-logo-sidebar{width:50px!important;height:50px!important}
+  .mobile-logout{display:inline-flex;align-items:center;justify-content:center}
+  .sidebar nav{width:100%;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;overflow:visible!important}
+  .sidebar nav button{min-width:0!important;width:100%;padding:10px 8px!important;white-space:normal!important;text-align:center!important;line-height:1.25;overflow-wrap:anywhere}
+  .sidebar-user{display:none!important}
+  .content{width:100%!important;max-width:100%!important;padding:18px!important;overflow:hidden}
+  .content header{flex-wrap:wrap;gap:12px;align-items:flex-start}
+  .content header h1{font-size:28px!important}
+  .grid-two,.management-grid{grid-template-columns:1fr!important}
+  .card,.hero-card{width:100%;max-width:100%}
+  .metrics,.metrics-7{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .compensation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .table-wrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+
+@media(max-width:600px){
+  .sidebar nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .content{padding:12px!important}
+  .content header{margin-bottom:16px}
+  .content header h1{font-size:24px!important;letter-spacing:-.5px!important}
+  .live-badge{padding:7px 9px!important;font-size:10px!important}
+  .card,.hero-card{padding:16px!important;border-radius:18px!important}
+  .clock{font-size:44px!important;letter-spacing:-1.5px!important}
+  .punch-actions,.six-actions{grid-template-columns:1fr!important;width:100%!important;max-width:none!important;gap:9px!important;margin:20px 0 14px!important}
+  .punch-actions button{min-height:50px;width:100%}
+  .metrics,.metrics-7,.compensation-grid{grid-template-columns:1fr!important}
+  .metric strong{font-size:25px!important}
+  .onboarding-shell{padding:10px!important;align-items:start!important}
+  .onboarding-card{width:100%!important;padding:16px!important;border-radius:18px!important;margin:0!important}
+  .onboarding-card h1{font-size:25px!important;letter-spacing:-.5px!important}
+  .onboarding-progress{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;margin:18px 0!important}
+  .onboarding-progress>div{padding:9px!important;min-width:0}.onboarding-progress>div span{font-size:11px}
+  .onboarding-step .primary{width:100%!important;min-width:0!important}
+  .quick-face-grid{grid-template-columns:1fr!important}.quick-camera{min-height:42vh!important}.quick-thumbs.single-thumb{grid-template-columns:1fr!important}
+  .bio-actions,.status-popup .inline-actions{display:grid!important;width:100%!important}.bio-actions button,.status-popup .inline-actions button{width:100%!important}
+  .status-popup-backdrop{padding:10px!important}.status-popup{padding:18px!important;border-radius:18px!important}
+  .form-grid,.split{grid-template-columns:1fr!important}
+  .payroll-actions{display:grid!important;width:100%;gap:8px}.payroll-actions input,.payroll-actions button{width:100%}
+  .payroll-reference-strip{align-items:stretch}.payroll-reference-strip b,.payroll-reference-strip span{text-align:center}
+  .request-item,.approval-row{align-items:flex-start;flex-direction:column}
+}
+
+@media(min-width:901px) and (max-width:1180px){
+  .app-shell{grid-template-columns:220px minmax(0,1fr)!important}.content{padding:24px!important}.clock{font-size:58px!important}
+}
+
+/* v0.5.1 — salário sob gestão do RH + espelho financeiro com cálculo até o segundo */
+.salary-rule-preview{padding:14px;border:1px solid rgba(240,240,0,.34);border-radius:16px;background:#0e1552}
+.salary-rate-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:10px 0}
+.salary-rate-grid>div{min-width:0;padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:#11185a}
+.salary-rate-grid span,.salary-rate-grid b{display:block}.salary-rate-grid span{color:#c4cae3;font-size:10px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}.salary-rate-grid b{font-size:15px;overflow-wrap:anywhere}
+.payroll-values-table{min-width:1780px}
+.payroll-values-table td small{display:block;margin-top:6px;line-height:1.3}
+.timesheet-sheet{scroll-margin-top:18px}.timesheet-rates{grid-template-columns:repeat(4,minmax(0,1fr));margin:14px 0}.timesheet-days{min-width:1160px}.formula-box{margin:12px 0 16px;padding:12px 14px;border-radius:12px;background:#11185a;border:1px solid rgba(240,240,0,.25);color:#e9ecfb;font-size:12px;line-height:1.5}
+
+@media(max-width:900px){
+ .salary-rate-grid,.timesheet-rates{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+ .salary-rate-grid,.timesheet-rates{grid-template-columns:1fr}
+}
+
+@media print{
+ /* Regras detalhadas do espelho documental ficam no bloco V83.51 ao final do arquivo. */
+ body{background:#fff!important;color:#111!important}
+ .no-print{display:none!important}
+}
+
+/* V83.11 - conferência de marcações antes de aprovar justificativas */
+.adjustment-review-block{border-bottom:1px solid rgba(255,255,255,.12);padding-bottom:10px}
+.adjustment-review-block:last-child{border-bottom:0}
+.adjustment-actions{flex-wrap:wrap;justify-content:flex-end}
+.adjustment-punch-preview{margin:0 0 14px;padding:14px;border:1px solid rgba(240,240,0,.45);border-radius:14px;background:rgba(6,12,64,.62);text-align:left}
+.adjustment-preview-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:8px}
+.adjustment-preview-head small,.adjustment-preview-head span{display:block;color:#c8d0ef;font-size:12px;margin-top:3px}
+.compact-table th,.compact-table td{padding:8px 9px;font-size:12px}
+.highlight-row{outline:1px solid #f0f000;background:rgba(240,240,0,.08)}
+.recent-punches{margin-top:12px}.recent-punches summary{cursor:pointer;font-weight:800;padding:8px 0}
+@media(max-width:700px){.adjustment-preview-head{display:grid}.adjustment-actions{justify-content:flex-start}.adjustment-actions button{flex:1 1 140px}.adjustment-punch-preview{padding:10px}}
+
+/* V83.27 — tema multiempresa controlado pelo SuperAdm */
+body{
+  background:
+    radial-gradient(circle at 14% 7%,color-mix(in srgb,var(--nh-yellow) 10%,transparent),transparent 23%),
+    radial-gradient(circle at 88% 12%,color-mix(in srgb,var(--nh-yellow) 6%,transparent),transparent 24%),
+    linear-gradient(145deg,var(--nh-navy) 0%,var(--nh-navy-2) 48%,color-mix(in srgb,var(--nh-navy) 88%,#000) 100%)!important;
+}
+.app-shell{background:var(--nh-navy)!important}.sidebar{background:color-mix(in srgb,var(--nh-navy) 92%,#000)!important}.content{background:radial-gradient(circle at 88% 0,color-mix(in srgb,var(--nh-yellow) 6%,transparent),transparent 24%),linear-gradient(180deg,rgba(255,255,255,.018),rgba(255,255,255,0))!important}
+.login-card,.card,.metric,.onboarding-card{background:linear-gradient(180deg,var(--nh-navy-2),var(--nh-navy))!important}.hash-box,.assistant-note{background:color-mix(in srgb,var(--nh-navy) 92%,#fff 8%)!important}.assistant-card{background:linear-gradient(160deg,var(--nh-navy-3),var(--nh-navy-2))!important}.status-popup{background:var(--nh-navy-2)!important}.async-processing-card,.face-analysis-banner{background:var(--nh-navy-3)!important}.live-badge,.queue-chip,.score-pill,.status{background:var(--nh-navy-3)!important}
+
+.super-shell{min-height:100dvh;background:linear-gradient(145deg,#050926,#091048);color:#fff;padding:clamp(14px,2vw,28px)}
+.super-header{max-width:1500px;margin:0 auto 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 4px}.super-header h1{margin:4px 0 6px;font-size:clamp(2rem,5vw,3.8rem);color:#f0f000}.super-header p{margin:0;color:#cbd3ef}.super-content{width:min(1500px,100%);margin:0 auto;display:grid;gap:22px}.super-create{display:grid;grid-template-columns:minmax(240px,.8fr) minmax(0,1.4fr);gap:24px;align-items:start}.super-create .form-grid{margin:0}.super-credentials{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:14px 16px;border:1px solid #6ee7b7;background:#103b35;border-radius:14px}.super-credentials b{width:100%;color:#a7f3d0}.super-credentials strong{color:#f0f000}.super-credentials small{width:100%;color:#d7efe8}
+.super-companies>.card-head{margin-bottom:12px}.super-company-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:18px}.super-company-card{display:grid;gap:15px;min-width:0}.company-preview{min-height:126px;border:2px solid;border-radius:18px;padding:16px;display:flex;align-items:center;gap:16px;overflow:hidden}.company-preview img{width:88px;height:88px;object-fit:contain;border-radius:14px;background:transparent}.company-preview>div:last-child{display:grid;gap:4px;min-width:0}.company-preview b{font-size:clamp(1.15rem,2vw,1.45rem);overflow-wrap:anywhere}.company-preview span{font-size:.82rem;opacity:.82;overflow-wrap:anywhere}.company-logo-placeholder{flex:0 0 80px;width:80px;height:80px;border-radius:18px;display:grid;place-items:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);font-size:1.5rem;font-weight:950}.company-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.company-facts span{display:grid;gap:4px;padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:var(--nh-muted);font-size:.75rem}.company-facts b{color:#fff;font-size:.9rem;overflow-wrap:anywhere}.theme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.theme-color{display:grid;gap:6px;color:#dbe1f5;font-size:.78rem;font-weight:800}.theme-color>div{display:grid;grid-template-columns:48px 1fr;gap:7px}.theme-color input[type=color]{width:48px;height:42px;padding:3px;border-radius:9px;background:#fff}.theme-color input:not([type=color]){width:100%;min-width:0;height:42px}.brand-imports{display:grid;grid-template-columns:1fr 1fr;gap:10px}.upload-button{min-height:46px;display:flex;align-items:center;justify-content:center;padding:11px 12px;border-radius:12px;background:#f0f000;color:#070c40;font-weight:900;text-align:center;cursor:pointer}.upload-button.secondary{background:#172365;color:#fff;border:1px solid rgba(240,240,0,.5)}.upload-button input{display:none}.brand-note{font-size:.78rem;line-height:1.5;margin:0}
+@media(max-width:900px){.super-create{grid-template-columns:1fr}.super-header{align-items:center}.company-facts{grid-template-columns:1fr 1fr}.brand-imports{grid-template-columns:1fr}}
+@media(max-width:560px){.super-shell{padding:9px}.super-header{padding:8px 2px 14px}.super-header h1{font-size:2rem}.super-header p{font-size:.82rem}.super-create{padding:15px}.super-company-grid{grid-template-columns:1fr}.company-preview{min-height:110px;padding:12px;gap:12px}.company-preview img,.company-logo-placeholder{width:66px;height:66px;flex-basis:66px}.company-facts{grid-template-columns:1fr}.theme-grid{grid-template-columns:1fr}.theme-color>div{grid-template-columns:44px 1fr}.super-credentials{align-items:flex-start;flex-direction:column}.super-credentials b,.super-credentials small{width:auto}}
+
+/* V83.35 — cabeçalho do login no mesmo padrão da Área do Colaborador */
+.ponto-login-header{
+  min-height:72px;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px max(18px,calc((100vw - 1180px)/2));
+  background:var(--nh-navy,#070c40);
+  color:#fff;
+  border-bottom:4px solid var(--nh-yellow,#f0f000);
+  box-shadow:0 8px 26px rgba(7,12,64,.24);
+  position:relative;
+  z-index:20;
+}
+.ponto-login-brand{width:min(1180px,100%);display:flex;align-items:center;gap:12px;text-align:left}
+.ponto-login-brand img{width:48px;height:48px;object-fit:contain;flex:0 0 auto}
+.ponto-login-brand span{display:block;min-width:0}
+.ponto-login-brand strong{display:block;color:#fff;font-size:17px;line-height:1.15}
+.ponto-login-brand small{display:block;color:var(--nh-yellow,#f0f000);font-weight:800;font-size:12px;margin-top:3px}
+.ponto-login-header + .login-shell{min-height:calc(100vh - 72px)}
+@media(max-width:680px){
+  .ponto-login-header{min-height:64px;padding:8px 14px;border-bottom-width:3px}
+  .ponto-login-brand img{width:42px;height:42px}
+  .ponto-login-brand strong{font-size:15px}
+  .ponto-login-brand small{font-size:11px}
+  .ponto-login-header + .login-shell{min-height:calc(100dvh - 64px)}
+}
+
+/* V83.36 — hierarquia multiempresa e seletor de empresa */
+.header-actions,.super-header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.company-switcher{display:grid;gap:4px;min-width:min(280px,100%);font-size:.72rem;font-weight:900;color:var(--nh-muted)}.company-switcher select,.management-context select{min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#0d174a;color:#fff;padding:0 12px;font-weight:800}.super-header-actions button{white-space:nowrap}.super-management{display:grid;gap:18px}.management-context{display:flex;align-items:center;justify-content:space-between;gap:18px}.management-context>div{min-width:0}.management-context select{min-width:260px}.super-admin-permissions{display:grid;gap:18px}.tenant-permission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}.permission-check{display:flex!important;align-items:center;gap:9px!important;min-height:42px;padding:9px 11px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.035);font-weight:800}.permission-check input{width:18px!important;height:18px!important;margin:0!important;flex:0 0 auto}.admin-access-list{display:grid;gap:10px}.admin-access-card{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(300px,2fr) auto;gap:14px;align-items:center;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.025)}.admin-access-card>div:first-child{display:grid;gap:3px}.admin-access-card small{color:var(--nh-muted);overflow-wrap:anywhere}
+@media(max-width:900px){.management-context{align-items:stretch;flex-direction:column}.management-context select{width:100%;min-width:0}.admin-access-card{grid-template-columns:1fr}.header-actions{width:100%;justify-content:stretch}.company-switcher{width:100%}.company-switcher select{width:100%}.super-header-actions{justify-content:flex-start;width:100%}}
+@media(max-width:560px){.super-header-actions{display:grid;grid-template-columns:1fr}.super-header-actions button{width:100%}.tenant-permission-grid{grid-template-columns:1fr}.admin-access-card{padding:11px}.company-switcher{font-size:.68rem}}
+.first-access-backdrop{min-height:100dvh;position:fixed;inset:0;z-index:9999;background:rgba(3,7,28,.78);backdrop-filter:blur(8px);display:grid;place-items:center;padding:clamp(12px,4vw,32px);overflow:auto}.first-access-modal{width:min(620px,100%);max-height:calc(100dvh - 24px);overflow:auto;box-shadow:0 26px 80px rgba(0,0,0,.5);border:1px solid rgba(240,240,0,.28)}
+
+@media(max-width:520px){
+  .nh-ponto-footer{font-size:9.8px;line-height:1.5;padding:14px 8px 4px;opacity:.54}
+}
+
+/* V83.42 — responsividade sem quebra + atalhos no login */
+.ponto-login-header{padding-left:clamp(12px,3vw,32px);padding-right:clamp(12px,3vw,32px)}
+.ponto-login-header-inner{width:min(1180px,100%);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:clamp(12px,2.5vw,28px);min-width:0}
+.ponto-login-brand{width:auto!important;flex:1 1 auto;min-width:0}
+.ponto-login-brand span{overflow:hidden}
+.ponto-login-brand strong,.ponto-login-brand small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ponto-login-nav{display:grid;grid-template-columns:repeat(2,minmax(138px,1fr));gap:9px;flex:0 1 360px;min-width:0}
+.ponto-login-nav a{min-height:42px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(240,240,0,.58);border-radius:11px;padding:9px 12px;color:#fff;background:rgba(255,255,255,.055);text-decoration:none;font-size:12px;font-weight:900;line-height:1;white-space:nowrap;transition:.18s ease}
+.ponto-login-nav a:hover,.ponto-login-nav a:focus-visible{background:var(--nh-yellow,#f0f000);color:var(--nh-navy,#070c40);border-color:var(--nh-yellow,#f0f000);outline:none;transform:translateY(-1px)}
+.ponto-login-header + .login-shell{width:min(1180px,100%);grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);gap:clamp(24px,5vw,72px);padding:clamp(22px,4vw,48px);min-width:0}
+.login-shell>*{min-width:0}
+.brand-panel{min-width:0}
+.brand-panel h1{font-size:clamp(38px,6vw,64px);letter-spacing:clamp(-3px,-.28vw,-1.5px);overflow-wrap:anywhere}
+.brand-panel p{font-size:clamp(16px,2vw,22px);max-width:100%}
+.login-card{width:100%;min-width:0;overflow:hidden;padding:clamp(20px,3vw,34px)}
+.login-card label,.login-card input{min-width:0;max-width:100%}
+.trust-row span{max-width:100%;overflow-wrap:anywhere}
+
+/* Super Adm: alinhamento consistente em desktop, tablet e mobile */
+.super-shell,.super-content,.super-content>*,.super-create,.super-admin-permissions,.super-companies,.super-company-grid,.super-company-card,.admin-access-list,.admin-access-card{min-width:0;max-width:100%}
+.super-header{align-items:center;flex-wrap:wrap}
+.super-header>div:first-child{flex:1 1 420px;min-width:0}
+.super-header>div:first-child h1,.super-header>div:first-child p{overflow-wrap:anywhere}
+.super-header-actions{display:grid!important;grid-template-columns:repeat(4,minmax(132px,1fr));gap:9px;width:min(720px,100%);flex:1 1 620px;justify-content:stretch!important}
+.super-header-actions button{width:100%;min-width:0;min-height:44px;display:flex;align-items:center;justify-content:center;padding:10px 12px!important;font-size:12px;line-height:1.15;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis}
+.super-create,.super-admin-permissions,.super-company-card{overflow:hidden}
+.super-create .form-grid,.super-admin-permissions .form-grid{min-width:0}
+.super-create .form-grid>*,.super-admin-permissions .form-grid>*{min-width:0}
+.super-create input,.super-create select,.super-admin-permissions input,.super-admin-permissions select{min-width:0;max-width:100%}
+.tenant-permission-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr))!important;min-width:0}
+.permission-check{min-width:0!important;max-width:100%;overflow:hidden}
+.permission-check span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-access-card{grid-template-columns:minmax(0,.85fr) minmax(0,2fr) minmax(150px,.55fr)!important}
+.admin-access-card>div{min-width:0}
+.admin-access-card>button{width:100%;min-width:0;white-space:nowrap}
+.company-preview{min-width:0}
+.company-preview>div:last-child{overflow:hidden}
+.company-preview b,.company-preview span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brand-imports>*{min-width:0}
+.upload-button{white-space:normal;overflow-wrap:anywhere}
+
+@media(max-width:1050px){
+  .ponto-login-header + .login-shell{grid-template-columns:1fr;max-width:760px;gap:22px}
+  .brand-panel{text-align:center}
+  .brand-panel .nh-ponto-logo-login{margin-left:auto;margin-right:auto}
+  .brand-panel p{margin-left:auto;margin-right:auto}
+  .trust-row{justify-content:center}
+  .super-header>div:first-child{flex-basis:100%}
+  .super-header-actions{width:100%;flex-basis:100%;grid-template-columns:repeat(4,minmax(0,1fr))}
+  .admin-access-card{grid-template-columns:1fr!important;align-items:stretch!important}
+  .admin-access-card>button{max-width:none}
+}
+@media(max-width:760px){
+  .ponto-login-header{min-height:auto!important;padding:10px 12px!important}
+  .ponto-login-header-inner{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+  .ponto-login-brand{width:100%!important;justify-content:center;text-align:left}
+  .ponto-login-brand span{max-width:calc(100vw - 88px)}
+  .ponto-login-nav{width:100%;max-width:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .ponto-login-nav a{min-width:0;min-height:40px;padding:8px 7px;font-size:clamp(10.5px,3.2vw,12px)}
+  .ponto-login-header + .login-shell{min-height:auto!important;padding:18px 14px 26px!important}
+  .brand-panel h1{font-size:clamp(34px,10vw,46px);margin-top:12px}
+  .brand-panel p{font-size:15px;line-height:1.45}
+  .trust-row{margin-top:18px}
+  .trust-row span{font-size:10.5px;padding:7px 9px}
+  .super-header{padding:10px 2px 14px!important;gap:13px!important}
+  .super-header-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .super-header-actions button{font-size:11px;min-height:42px;padding:9px 7px!important}
+  .super-content{gap:14px!important}
+  .super-content .card{padding:16px!important;border-radius:17px}
+  .super-create{gap:16px!important}
+  .super-create .form-grid,.super-admin-permissions .form-grid{grid-template-columns:1fr!important}
+  .tenant-permission-grid{grid-template-columns:1fr!important}
+  .permission-check span{white-space:normal;overflow-wrap:anywhere}
+  .super-company-grid{gap:13px!important}
+  .company-preview b,.company-preview span{white-space:normal;overflow-wrap:anywhere}
+  .brand-imports{grid-template-columns:1fr!important}
+}
+@media(max-width:380px){
+  .ponto-login-nav{grid-template-columns:1fr 1fr}
+  .ponto-login-nav a{font-size:10px;padding:8px 5px}
+  .super-header-actions{grid-template-columns:1fr!important}
+  .login-card{padding:18px 14px}
+}
+
+/* V83.43 — locais editáveis pelo Super Adm, ações mobile inline e cards sem quebra */
+.worksites-layout{align-items:start}
+.worksite-item{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;align-items:center!important}
+.worksite-copy{display:grid;gap:4px;min-width:0}
+.worksite-copy b,.worksite-copy span,.worksite-copy small{min-width:0;overflow-wrap:anywhere}
+.worksite-item>.status{grid-column:2;grid-row:1;justify-self:end;white-space:nowrap!important}
+.worksite-actions{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0}
+.worksite-actions button{flex:1 1 0;min-width:0;white-space:nowrap;padding-left:10px!important;padding-right:10px!important}
+.worksite-form-actions{display:flex;gap:8px;flex-wrap:nowrap}.worksite-form-actions>*{flex:1 1 0;min-width:0}
+.status{white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important}
+.table-wrap td .status{display:inline-flex;align-items:center;justify-content:center;max-width:none}
+
+.company-card-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.company-card-actions button{min-width:0;white-space:nowrap}
+.super-modal-backdrop{position:fixed;inset:0;z-index:1200;background:rgba(3,7,34,.86);display:grid;place-items:center;padding:18px;overflow:auto}
+.super-modal{width:min(760px,100%);max-height:calc(100dvh - 36px);overflow:auto;margin:auto}.super-users-modal{width:min(980px,100%)}
+.super-user-list{display:grid;gap:10px;margin-top:14px}.super-user-card{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:13px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.025);min-width:0}.super-user-card>div:first-child{display:grid;gap:3px;min-width:0}.super-user-card b,.super-user-card span,.super-user-card small{min-width:0;overflow-wrap:anywhere}.super-user-badges{display:flex;gap:6px;flex-wrap:nowrap}.super-user-card>button{white-space:nowrap}
+.super-user-edit{padding:14px;border:1px solid rgba(240,240,0,.24);border-radius:14px;background:rgba(240,240,0,.035);margin:12px 0}
+
+@media(max-width:760px){
+  .worksite-item{grid-template-columns:minmax(0,1fr) auto!important;flex-direction:initial!important;padding:12px!important}
+  .worksite-actions{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;width:100%;gap:6px}
+  .worksite-actions button{width:auto!important;min-height:40px;padding:8px 7px!important;font-size:11px}
+  .company-card-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .company-card-actions button{font-size:11px;padding:9px 7px!important}
+  .super-modal-backdrop{padding:8px}.super-modal{max-height:calc(100dvh - 16px);padding:15px!important}
+  .super-user-card{grid-template-columns:1fr;align-items:stretch}.super-user-badges{justify-content:flex-start;overflow-x:auto;padding-bottom:2px}.super-user-card>button{width:100%}
+  .table-wrap table td .status{white-space:nowrap!important;font-size:10px!important;padding:6px 8px!important}
+}
+@media(max-width:390px){
+  .worksite-actions{gap:4px}.worksite-actions button{font-size:10px;padding:8px 4px!important}
+  .company-card-actions{gap:6px}.company-card-actions button{font-size:10px}
+}
+.team-table{min-width:1640px}.team-table td,.team-table th{vertical-align:middle}.team-table td .status{white-space:nowrap!important}.team-table td .inline-actions{display:flex;flex-wrap:nowrap;gap:6px}.team-table td .inline-actions button{white-space:nowrap}
+@media(max-width:760px){.team-table-wrap{overflow-x:auto!important;scrollbar-width:thin}.team-table{min-width:1580px}.team-table td,.team-table th{padding:9px 8px!important}.team-table td .status{font-size:10px!important;letter-spacing:0!important}.team-table td .inline-actions{min-width:max-content}}
+
+/* V83.51 — espelho de ponto em padrão documental profissional */
+.timesheet-preview-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}.timesheet-preview-toolbar h2{margin:4px 0}.timesheet-document{--report-primary:#070c40;--report-accent:#f0f000;--report-surface:#fff;--report-on-primary:#fff;background:#fff;color:#172033;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.28);font-family:Arial,Helvetica,sans-serif}.timesheet-document *{box-sizing:border-box}.timesheet-brand-header{min-height:142px;background:var(--report-primary);color:var(--report-on-primary);display:grid;grid-template-columns:104px minmax(0,1fr) 245px;gap:20px;align-items:center;padding:24px 30px;border-bottom:5px solid var(--report-accent)}.timesheet-brand-logo{width:88px;height:88px;display:grid;place-items:center;overflow:hidden}.timesheet-brand-logo img{max-width:88px;max-height:88px;object-fit:contain}.timesheet-brand-logo span{width:78px;height:78px;border:2px solid var(--report-accent);border-radius:50%;display:grid;place-items:center;color:var(--report-accent);font-size:24px;font-weight:950}.timesheet-brand-title{display:grid;gap:5px;min-width:0}.timesheet-brand-title strong{font-size:30px;line-height:1;color:var(--report-on-primary);letter-spacing:.015em;text-transform:uppercase;overflow-wrap:anywhere}.timesheet-brand-title span{color:var(--report-accent);font-size:14px;font-weight:900;text-transform:uppercase}.timesheet-brand-title small{color:var(--report-on-primary);font-size:12px;letter-spacing:.08em}.timesheet-document-meta{display:grid;align-content:center;gap:2px;padding-left:18px;border-left:1px solid rgba(255,255,255,.25)}.timesheet-document-meta span{font-size:9px;font-weight:900;color:var(--report-accent);letter-spacing:.07em}.timesheet-document-meta b{font-size:12px;color:var(--report-on-primary);margin-bottom:7px}.timesheet-report-intro{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:24px;align-items:center;padding:28px 30px 14px}.timesheet-report-intro h1{margin:0 0 6px;color:var(--report-primary);font-size:25px;line-height:1.08}.timesheet-report-intro p{margin:0;color:#667085;font-size:12px;line-height:1.45}.timesheet-status-box{background:var(--report-accent);color:var(--report-primary);font-weight:950;text-align:center;padding:20px 12px;font-size:13px;letter-spacing:.02em}.timesheet-report-section{padding:14px 30px 8px}.timesheet-report-section h3{position:relative;margin:0 0 12px;padding-left:12px;color:var(--report-primary);font-size:16px;line-height:1.1}.timesheet-report-section h3:before{content:"";position:absolute;left:0;top:1px;bottom:1px;width:3px;background:var(--report-accent)}.timesheet-info-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid #e2e6ef}.timesheet-info-grid>div{min-height:58px;padding:10px 12px;border-right:1px solid #e2e6ef;border-bottom:1px solid #e2e6ef}.timesheet-info-grid>div:nth-child(4n){border-right:0}.timesheet-info-grid>div.wide{grid-column:span 2}.timesheet-info-grid span,.timesheet-info-grid b,.timesheet-info-grid small{display:block}.timesheet-info-grid span{font-size:9px;color:var(--report-primary);font-weight:900;text-transform:uppercase;margin-bottom:6px}.timesheet-info-grid b{font-size:12px;color:#252d3d;line-height:1.3}.timesheet-info-grid small{font-size:9px;color:#667085;margin-top:3px;line-height:1.3}.timesheet-summary-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid #dfe4ed}.timesheet-summary-strip>div{padding:12px 10px;min-height:64px;border-right:1px solid #dfe4ed;background:#f7f8fb}.timesheet-summary-strip>div:last-child{border-right:0}.timesheet-summary-strip span,.timesheet-summary-strip b{display:block}.timesheet-summary-strip span{font-size:9px;color:#667085;text-transform:uppercase;font-weight:800;margin-bottom:6px}.timesheet-summary-strip b{font-size:15px;color:var(--report-primary)}.timesheet-pay-highlight{display:grid;grid-template-columns:minmax(0,1fr) 255px;border:1px solid #dfe4ed}.timesheet-pay-highlight>div{padding:14px 18px;background:#f6f7fb;display:flex;align-items:center;justify-content:space-between;gap:18px}.timesheet-pay-highlight>div.accent{background:var(--report-accent);color:var(--report-primary)}.timesheet-pay-highlight strong{font-size:11px;text-transform:uppercase}.timesheet-pay-highlight span{font-size:22px;font-weight:950}.timesheet-financial-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid #e2e6ef;border-top:0}.timesheet-financial-grid>div{padding:10px 12px;border-right:1px solid #e2e6ef;border-bottom:1px solid #e2e6ef}.timesheet-financial-grid>div:nth-child(3n){border-right:0}.timesheet-financial-grid span,.timesheet-financial-grid b{display:block}.timesheet-financial-grid span{font-size:9px;color:#667085;text-transform:uppercase;margin-bottom:5px}.timesheet-financial-grid b{font-size:12px;color:#222b3a}.timesheet-report-note{font-size:9.5px;line-height:1.5;color:#667085;margin:8px 0 0}.timesheet-daily-section{padding-bottom:12px}.timesheet-report-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9.5px;color:#242b38}.timesheet-report-table thead{display:table-header-group}.timesheet-report-table th{background:var(--report-primary);color:#fff;padding:8px 6px;text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.015em}.timesheet-report-table td{padding:7px 6px;border:1px solid #dfe4ed;vertical-align:top;line-height:1.25}.timesheet-report-table td:first-child,.timesheet-report-table th:first-child{width:12%}.timesheet-report-table td:last-child,.timesheet-report-table th:last-child{width:25%}.timesheet-report-table tbody tr:nth-child(even) td{background:#fafbfc}.timesheet-report-table td small{display:block;margin-top:2px;color:#7c8494;font-size:8px}.timesheet-warning-text{font-size:8.5px;color:#4b5565}.timesheet-report-table tfoot{display:table-row-group}.timesheet-report-table tfoot th{background:#f1f3f7;color:var(--report-primary);border:1px solid #d6dce6;font-size:9px}.timesheet-declaration p{margin:0;color:#555f70;font-size:10px;line-height:1.5}.timesheet-signatures{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:24px}.timesheet-signatures>div{border:1px solid #dfe4ed;border-radius:8px;padding:10px 12px;min-height:104px}.timesheet-signatures span,.timesheet-signatures b,.timesheet-signatures small{display:block}.timesheet-signatures span{font-size:8.5px;color:var(--report-primary);font-weight:900}.timesheet-signatures i{display:block;height:38px;border-bottom:1px solid #9aa4b3;margin:3px 0 8px}.timesheet-signatures b{font-size:10px;color:#242b38}.timesheet-signatures small{font-size:8.5px;color:#667085;margin-top:2px}.timesheet-report-footer{margin:18px 30px 24px;padding-top:9px;border-top:3px solid var(--report-accent);display:flex;justify-content:space-between;gap:20px;color:#667085;font-size:8.5px}.timesheet-report-footer>div{display:grid;gap:2px}.timesheet-report-footer>div:last-child{text-align:right}.timesheet-report-footer b{color:var(--report-primary);font-size:9px}.timesheet-report-footer span{color:#667085}.timesheet-financial-section,.timesheet-info-grid,.timesheet-summary-strip,.timesheet-pay-highlight,.timesheet-signatures{break-inside:avoid;page-break-inside:avoid}.timesheet-report-table tr{break-inside:avoid;page-break-inside:avoid}
+
+@media(max-width:900px){.timesheet-preview-toolbar{display:grid}.timesheet-brand-header{grid-template-columns:72px 1fr;padding:18px}.timesheet-brand-logo{width:64px;height:64px}.timesheet-brand-logo img{max-width:64px;max-height:64px}.timesheet-brand-logo span{width:58px;height:58px;font-size:18px}.timesheet-brand-title strong{font-size:22px}.timesheet-document-meta{grid-column:1/-1;border-left:0;border-top:1px solid rgba(255,255,255,.2);padding:10px 0 0;grid-template-columns:auto 1fr auto 1fr;gap:6px 10px}.timesheet-report-intro{grid-template-columns:1fr;padding:20px 18px 10px}.timesheet-report-section{padding-left:18px;padding-right:18px}.timesheet-info-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.timesheet-info-grid>div:nth-child(4n){border-right:1px solid #e2e6ef}.timesheet-info-grid>div:nth-child(2n){border-right:0}.timesheet-summary-strip{grid-template-columns:repeat(3,minmax(0,1fr))}.timesheet-summary-strip>div:nth-child(3n){border-right:0}.timesheet-summary-strip>div:nth-child(-n+3){border-bottom:1px solid #dfe4ed}.timesheet-pay-highlight{grid-template-columns:1fr}.timesheet-financial-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.timesheet-financial-grid>div:nth-child(3n){border-right:1px solid #e2e6ef}.timesheet-financial-grid>div:nth-child(2n){border-right:0}.timesheet-signatures{grid-template-columns:1fr}.timesheet-report-footer{margin-left:18px;margin-right:18px}.timesheet-report-table{min-width:980px}.timesheet-daily-section{overflow-x:auto}}
+
+@media print{
+ @page{size:A4 portrait;margin:9mm 8mm 11mm}
+ html,body{background:#fff!important}
+ body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .sidebar,.content>header,.content>.face-analysis-banner,.content>.passkey-enrollment-banner,.content>.subnav,.content>.card:not(.timesheet-sheet),.app-footer,.no-print{display:none!important}
+ .app-shell,.content{display:block!important;background:#fff!important;padding:0!important;margin:0!important;min-height:0!important}
+ .timesheet-sheet{display:block!important;position:static!important;border:0!important;box-shadow:none!important;background:#fff!important;color:#172033!important;padding:0!important;margin:0!important;border-radius:0!important;max-width:none!important;width:100%!important}
+ .timesheet-document{box-shadow:none!important;border-radius:0!important;width:100%!important;overflow:visible!important;background:#fff!important;color:#172033!important}
+ .timesheet-document *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .timesheet-brand-header{min-height:30mm;grid-template-columns:22mm minmax(0,1fr) 48mm;gap:4mm;padding:5mm 6mm;border-bottom-width:1.2mm}.timesheet-brand-logo{width:18mm;height:18mm}.timesheet-brand-logo img{max-width:18mm;max-height:18mm}.timesheet-brand-logo span{width:17mm;height:17mm;font-size:14pt}.timesheet-brand-title strong{font-size:21pt}.timesheet-brand-title span{font-size:9pt}.timesheet-brand-title small{font-size:7.5pt}.timesheet-document-meta{padding-left:4mm}.timesheet-document-meta span{font-size:6.5pt}.timesheet-document-meta b{font-size:7.5pt;margin-bottom:1.5mm}.timesheet-report-intro{grid-template-columns:minmax(0,1fr) 42mm;gap:5mm;padding:5mm 6mm 3mm}.timesheet-report-intro h1{font-size:16pt}.timesheet-report-intro p{font-size:7.5pt}.timesheet-status-box{padding:5mm 2mm;font-size:8pt}.timesheet-report-section{padding:3mm 6mm 1.8mm}.timesheet-report-section h3{font-size:10.5pt;margin-bottom:2.5mm}.timesheet-info-grid>div{min-height:12mm;padding:2mm 2.4mm}.timesheet-info-grid span{font-size:6.2pt;margin-bottom:1mm}.timesheet-info-grid b{font-size:7.4pt}.timesheet-info-grid small{font-size:6.2pt}.timesheet-summary-strip>div{min-height:13mm;padding:2.4mm 2mm}.timesheet-summary-strip span{font-size:6.2pt}.timesheet-summary-strip b{font-size:9pt}.timesheet-pay-highlight>div{padding:2.7mm 3.5mm}.timesheet-pay-highlight strong{font-size:7pt}.timesheet-pay-highlight span{font-size:13pt}.timesheet-financial-grid>div{padding:2mm 2.4mm}.timesheet-financial-grid span{font-size:6.1pt}.timesheet-financial-grid b{font-size:7.3pt}.timesheet-report-note{font-size:6.2pt;margin-top:1.5mm}.timesheet-report-table{font-size:6.4pt;table-layout:fixed;min-width:0!important}.timesheet-report-table th{padding:1.8mm 1.2mm;font-size:5.8pt}.timesheet-report-table td{padding:1.6mm 1.2mm;line-height:1.18}.timesheet-report-table td small{font-size:5.5pt}.timesheet-warning-text{font-size:5.6pt}.timesheet-report-table tfoot th{font-size:6pt}.timesheet-declaration p{font-size:6.6pt}.timesheet-signatures{gap:5mm;margin-top:5mm}.timesheet-signatures>div{min-height:22mm;padding:2.5mm}.timesheet-signatures span{font-size:5.8pt}.timesheet-signatures i{height:8mm;margin:.8mm 0 1.5mm}.timesheet-signatures b{font-size:6.6pt}.timesheet-signatures small{font-size:5.8pt}.timesheet-report-footer{margin:4mm 6mm 0;padding-top:2mm;border-top-width:.7mm;font-size:5.7pt}.timesheet-report-footer b{font-size:6pt}.timesheet-daily-section{overflow:visible!important}.timesheet-report-table thead{display:table-header-group}.timesheet-report-table tfoot{display:table-row-group}.timesheet-report-table tr{page-break-inside:avoid;break-inside:avoid}
+}
+
+/* V83.55 — exclusão assistida de unidades + aprovação diária consolidada */
+.inline-feedback{margin:10px 0 0;font-size:.86rem;line-height:1.45}
+.modal-backdrop{position:fixed;inset:0;z-index:1400;background:rgba(3,7,34,.82);display:grid;place-items:center;padding:18px;overflow:auto}
+.worksite-delete-modal,.journey-review-modal{width:min(980px,100%);max-height:calc(100dvh - 36px);overflow:auto;margin:auto}
+.worksite-linked-list{display:grid;gap:10px;margin:18px 0}
+.worksite-linked-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.9fr);gap:14px;align-items:end;padding:14px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.03)}
+.worksite-linked-row b,.worksite-linked-row small{display:block}.worksite-linked-row small{margin-top:4px;color:var(--nh-muted)}
+.worksite-delete-actions{justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+.journey-review-list{display:grid;gap:10px}
+.journey-review-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;align-items:center;padding:14px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.025)}
+.journey-review-row b,.journey-review-row small,.journey-review-row span{display:block}.journey-review-row small,.journey-review-row>div>span{margin-top:4px;color:var(--nh-muted)}
+.status.pending{background:rgba(255,255,255,.1)!important;color:#fff!important;border:1px solid rgba(255,255,255,.22)!important}
+.journey-review-modal-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.journey-review-summary{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:12px 0 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.journey-evidence-list{display:grid;gap:14px;margin:18px 0}
+.journey-evidence-item{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:16px;padding:14px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.025)}
+.journey-evidence-copy>div:first-child{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px}.journey-evidence-copy>div:first-child span{color:var(--nh-muted);font-size:.84rem}
+.journey-evidence-copy dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0}.journey-evidence-copy dl>div{padding:9px;border:1px solid rgba(255,255,255,.1);border-radius:10px}.journey-evidence-copy dl>div.wide{grid-column:1/-1}.journey-evidence-copy dt{font-size:.72rem;color:var(--nh-muted);margin-bottom:4px}.journey-evidence-copy dd{margin:0;font-weight:800;overflow-wrap:anywhere}
+.journey-selfie-box{display:grid;gap:8px;align-content:start}.journey-selfie-box img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#050a31}
+.journey-review-note{display:grid;gap:6px;margin-top:14px}.journey-review-note textarea{min-height:90px}.journey-review-note small{color:var(--nh-muted)}
+.journey-decision-actions{justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+@media(max-width:760px){.modal-backdrop{padding:8px}.worksite-delete-modal,.journey-review-modal{max-height:calc(100dvh - 16px);padding:14px!important}.worksite-linked-row,.journey-review-row,.journey-evidence-item{grid-template-columns:1fr}.journey-review-modal-head{display:grid}.journey-evidence-copy dl{grid-template-columns:1fr}.journey-evidence-copy dl>div.wide{grid-column:auto}.journey-selfie-box img{max-height:360px;object-fit:contain}.worksite-delete-actions,.journey-decision-actions{display:grid;grid-template-columns:1fr}.worksite-delete-actions button,.journey-decision-actions button{width:100%}}
+
+/* V83.58 — espelho oficial sem apuração financeira, texto institucional azul NH */
+.timesheet-document{--report-text:#070c40;color:var(--report-text)}
+.timesheet-report-intro p,
+.timesheet-info-grid b,
+.timesheet-info-grid small,
+.timesheet-summary-strip span,
+.timesheet-report-table,
+.timesheet-report-table td,
+.timesheet-report-table td small,
+.timesheet-warning-text,
+.timesheet-declaration p,
+.timesheet-signatures b,
+.timesheet-signatures small,
+.timesheet-report-footer,
+.timesheet-report-footer span{color:var(--report-text)!important}
+.timesheet-report-table tbody tr:nth-child(even) td{background:#f7f8fc}
+.my-timesheet-actions{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-top:16px}.my-timesheet-actions label{display:grid;gap:6px;font-size:.78rem;font-weight:800}.my-timesheet-actions input{min-width:180px}
+@media(max-width:640px){.my-timesheet-actions{display:grid;grid-template-columns:1fr}.my-timesheet-actions input,.my-timesheet-actions button{width:100%}}
+@media print{
+ .timesheet-document,.timesheet-sheet{color:#070c40!important}
+ .timesheet-report-intro p,.timesheet-info-grid b,.timesheet-info-grid small,.timesheet-summary-strip span,.timesheet-report-table,.timesheet-report-table td,.timesheet-report-table td small,.timesheet-warning-text,.timesheet-declaration p,.timesheet-signatures b,.timesheet-signatures small,.timesheet-report-footer,.timesheet-report-footer span{color:#070c40!important}
+}
+
+
+/* V83.59 — espelho de ponto com tipografia ampliada e títulos azul NH */
+.timesheet-report-section h3{
+  color:#070c40!important;
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:.01em;
+}
+.timesheet-report-section h3:before{background:var(--report-accent)}
+.timesheet-info-grid span{font-size:10px}
+.timesheet-info-grid b{font-size:13px}
+.timesheet-info-grid small{font-size:10px}
+.timesheet-summary-strip span{font-size:10px}
+.timesheet-summary-strip b{font-size:16px}
+.timesheet-report-table{font-size:10.5px}
+.timesheet-report-table th{font-size:9.5px}
+.timesheet-report-table td{font-size:10.5px;line-height:1.32}
+.timesheet-report-table td small{font-size:9px}
+.timesheet-warning-text{font-size:9.2px}
+.timesheet-report-table tfoot th{font-size:10px}
+.timesheet-declaration p{font-size:11px}
+.timesheet-signatures span{font-size:9.5px}
+.timesheet-signatures b{font-size:11px}
+.timesheet-signatures small{font-size:9.5px}
+.timesheet-report-footer{font-size:9.2px}
+.timesheet-report-footer b{font-size:9.8px}
+
+@media print{
+  .timesheet-report-section h3{
+    color:#070c40!important;
+    font-size:12pt!important;
+    font-weight:900!important;
+    margin-bottom:2.8mm!important;
+  }
+  .timesheet-report-intro p{font-size:8.5pt!important;line-height:1.42!important}
+  .timesheet-document-meta span{font-size:7pt!important}
+  .timesheet-document-meta b{font-size:8.2pt!important}
+  .timesheet-info-grid>div{min-height:13mm!important;padding:2.3mm 2.6mm!important}
+  .timesheet-info-grid span{font-size:7pt!important;margin-bottom:1.1mm!important}
+  .timesheet-info-grid b{font-size:8.5pt!important;line-height:1.28!important}
+  .timesheet-info-grid small{font-size:7pt!important;line-height:1.28!important}
+  .timesheet-summary-strip>div{min-height:14mm!important;padding:2.7mm 2.2mm!important}
+  .timesheet-summary-strip span{font-size:7pt!important}
+  .timesheet-summary-strip b{font-size:10pt!important}
+  .timesheet-report-table{font-size:7.2pt!important;line-height:1.22!important}
+  .timesheet-report-table th{font-size:6.6pt!important;padding:1.9mm 1.25mm!important}
+  .timesheet-report-table td{font-size:7.2pt!important;padding:1.8mm 1.25mm!important;line-height:1.22!important}
+  .timesheet-report-table td small{font-size:6.3pt!important}
+  .timesheet-warning-text{font-size:6.4pt!important;line-height:1.25!important}
+  .timesheet-report-table tfoot th{font-size:6.8pt!important}
+  .timesheet-declaration p{font-size:7.5pt!important;line-height:1.42!important}
+  .timesheet-signatures span{font-size:6.5pt!important}
+  .timesheet-signatures b{font-size:7.4pt!important}
+  .timesheet-signatures small{font-size:6.5pt!important}
+  .timesheet-report-footer{font-size:6.5pt!important}
+  .timesheet-report-footer b{font-size:7pt!important}
+}
+
+/* V83.78 — aceite mensal WebAuthn no espelho */
+.timesheet-acceptance-line{display:block;margin-top:6px;font-weight:700;color:var(--nh-primary,#070C40)}
+@media print{.timesheet-acceptance-line{display:none!important}}
+
+/* V83.79 — CRUD de administradores e identificação do proprietário do Grupo Sampaio */
+.admin-crud-card{display:grid;gap:16px}.admin-crud-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.admin-crud-head small{display:block;margin-top:5px;color:#6b7891}.admin-edit-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.admin-edit-grid label{display:grid;gap:6px;font-size:12px;color:#6b7891}.admin-edit-grid input{width:100%;padding:11px 12px;border:1px solid #d7deeb;border-radius:10px;background:#fff;color:#111827}.admin-crud-actions{flex-wrap:wrap}.super-only-user-note{display:block!important;margin-top:5px;color:#6b5b00!important;font-weight:700}@media(max-width:760px){.admin-edit-grid{grid-template-columns:1fr}.admin-crud-actions>*{width:100%}}

@@ -1,0 +1,68 @@
+services:
+  database:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Defina POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Defina POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD}
+    volumes:
+      - gestao_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: jdbc:postgresql://database:5432/${POSTGRES_DB}
+      DATABASE_USERNAME: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:?Defina AUTH_TOKEN_SECRET}
+      AUTH_TOKEN_HOURS: ${AUTH_TOKEN_HOURS:-12}
+      GESTAO_ASAAS_API_KEY: ${GESTAO_ASAAS_API_KEY:-}
+      GESTAO_ASAAS_BASE_URL: ${GESTAO_ASAAS_BASE_URL:-https://api-sandbox.asaas.com/v3}
+      GESTAO_ASAAS_WEBHOOK_SECRET: ${GESTAO_ASAAS_WEBHOOK_SECRET:-}
+      PROVISIONER_WORKER_TOKEN: ${PROVISIONER_WORKER_TOKEN:-}
+      AUTO_PROVISION_ENABLED: ${AUTO_PROVISION_ENABLED:-false}
+      PROVISIONING_HOST_SUFFIX: ${PROVISIONING_HOST_SUFFIX:-gestaosoftware.com.br}
+      TENANT_TEMPLATE_CERTIFIED: ${TENANT_TEMPLATE_CERTIFIED:-false}
+      CLOUD_ROUTING_ENABLED: ${CLOUD_ROUTING_ENABLED:-false}
+      CLOUD_ORCHESTRATOR_ENABLED: ${CLOUD_ORCHESTRATOR_ENABLED:-false}
+      CLOUD_DNS_PROVIDER: ${CLOUD_DNS_PROVIDER:-MANUAL}
+      CLOUDFLARE_DNS_TOKEN: ${CLOUDFLARE_DNS_TOKEN:-}
+      CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID:-}
+      ALLOWED_ORIGINS: https://${DOMAIN},https://${WWW_DOMAIN}
+    depends_on:
+      database:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Defina DOMAIN}
+      WWW_DOMAIN: ${WWW_DOMAIN:?Defina WWW_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  gestao_db:
+  caddy_data:
+  caddy_config:

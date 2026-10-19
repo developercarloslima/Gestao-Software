@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070c40">
+  <title>Aceite do Termo de Responsabilidade | Empresa Cliente</title>
+  <link rel="icon" href="/assets/identidade-pendente.svg">
+  <link rel="stylesheet" href="/shared/portal.css?v=20261008-v83-106">
+  <link rel="stylesheet" href="/shared/brand-system.css?v=20261008-v83-106">
+  <link rel="stylesheet" href="/aceite-termo/aceite-termo.css?v=20261008-v83-106">
+  <link rel="stylesheet" href="/shared/responsive.css?v=20261008-v83-106">
+  <script defer src="/shared/config.js?v=20261008-v83-106"></script>
+  <script defer src="/aceite-termo/aceite-termo.js?v=20261008-v83-106"></script>
+</head>
+<body>
+<header class="portal-header"><a class="portal-brand" href="/"><img src="/assets/identidade-pendente.svg" alt="Empresa Cliente"><span><strong>Empresa Cliente</strong><small>Termo de Responsabilidade</small></span></a></header>
+<main class="accept-shell">
+  <section class="accept-hero">
+    <span class="eyebrow">ACEITE DIGITAL EXCLUSIVO DO TERMO</span>
+    <h1>Termo de Responsabilidade por avaria pré-existente</h1>
+    <p>Revise somente este documento e confirme o aceite via WebAuthn. O sistema validará criptograficamente o domínio e a confirmação do usuário.</p>
+  </section>
+  <section id="loading" class="card"><p>Carregando o Termo de Responsabilidade...</p></section>
+  <section id="accept-card" class="card accept-card" hidden>
+    <div class="accept-brand-line"></div>
+    <div class="accept-summary">
+      <div><span>Associado</span><strong id="associate">—</strong></div>
+      <div><span>Veículo</span><strong id="vehicle">—</strong></div>
+      <div><span>Documento</span><strong>Termo de Responsabilidade</strong></div>
+      <div><span>Situação</span><strong id="accept-status">—</strong></div>
+    </div>
+    <div class="accept-info">
+      <h2>O que você está aceitando</h2>
+      <p>Este aceite corresponde <strong>somente ao Termo de Responsabilidade das avarias pré-existentes</strong>. Ele é independente do aceite do dossiê da vistoria e não altera eventual aceite digital realizado anteriormente.</p>
+      <div id="damage-details" class="accept-proof" style="margin-top:12px"></div>
+    </div>
+    <div class="accept-actions">
+      <button id="download-term" class="outline" type="button">Baixar e revisar o termo</button>
+      <button id="confirm-acceptance" class="primary" type="button">Confirmar aceite via WebAuthn</button>
+    </div>
+    <div id="ios-help" class="ios-help" hidden><strong>iPhone: abra este link no Safari.</strong><p>Links abertos dentro de WhatsApp, Instagram ou outros navegadores internos podem impedir o WebAuthn.</p></div>
+    <p id="accept-message" class="accept-message" aria-live="polite"></p>
+    <div id="accept-proof" class="accept-proof" hidden></div>
+  </section>
+</main>
+<script defer src="/shared/developer-footer.js?v=20261008-v83-106"></script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+name: Testar template universal
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  java-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: Compilação Maven com testes (somente o template universal)
+        run: mvn -B -Ptenant -f backend/pom.xml clean verify
+      - name: Garantir que não foram empacotadas migrações da NH
+        run: |
+          set -euo pipefail
+          JAR=$(find backend/target -maxdepth 1 -name '*.jar' ! -name '*.original' | head -1)
+          test -n "$JAR"
+          unzip -Z1 "$JAR" | grep -q 'BOOT-INF/classes/db/tenant/V1__universal_structure.sql'
+          ! unzip -Z1 "$JAR" | grep -q 'BOOT-INF/classes/db/migration/'
+
+  ponto-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Garantir migrations Prisma versionadas revisadas
+        run: |
+          test -n "$(find nh-ponto/prisma/migrations -name migration.sql -type f -print -quit 2>/dev/null)" || {
+            echo "SEM BASELINE PRISMA: execute gerar-baseline-prisma.yml, revise e incorpore o artefato."
+            exit 1
+          }
+      - name: Instalar dependências e compilar
+        working-directory: nh-ponto
+        run: |
+          npm install --ignore-scripts=false
+          npx prisma generate
+          npm run build
+  flyway-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: tenant
+          POSTGRES_PASSWORD: tenant_ci_password
+          POSTGRES_DB: tenant_main
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U tenant -d tenant_main"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      SPRING_PROFILES_ACTIVE: tenant
+      GS_TENANT_MODE: 'true'
+      TENANT_REQUIRES_COMMERCIAL_CATALOG: 'false'
+      TENANT_REQUIRES_PAYMENT_INTEGRATION: 'false'
+      AUTH_TOKEN_SECRET: test-ci-unique-jwt-secret-32-plus-characters
+      IMPORT_AES_KEY_BASE64: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=' # Apenas CI descartável; 32 bytes
+      TENANT_DISPLAY_NAME: Empresa CI
+      GESTAO_COMPANY_ID: 11111111-2222-4333-8444-555555555555
+      GESTAO_TENANT_HOST: ci.exemplo.com.br
+      PUBLIC_WEB_URL: https://ci.exemplo.com.br
+      DATABASE_URL: jdbc:postgresql://localhost:5432/tenant_main
+      DATABASE_USERNAME: tenant
+      DATABASE_PASSWORD: tenant_ci_password
+      ADMIN_USERNAME: admin@ci.exemplo.com.br
+      ADMIN_PASSWORD: ci-Tenant-Secret-Password-2026
+      INITIAL_PORTAL_PASSWORD: ci-Associate-Secret-Password-2026
+      DEMO_ASSOCIATE_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: Instalar cliente PostgreSQL para verificar ausência de catálogos
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client
+      - name: Inicializar Spring + executar migrações Flyway em banco isolado
+        shell: bash
+        run: |
+          set -euo pipefail
+          mvn -B -Ptenant -f backend/pom.xml -DskipTests spring-boot:run > flyway-run.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          ok=0
+          for i in $(seq 1 75); do
+            if curl --fail --silent http://localhost:8080/api/health > /dev/null; then ok=1; break; fi
+            if ! kill -0 "$PID" 2>/dev/null; then break; fi
+            sleep 2
+          done
+          tail -n 200 flyway-run.log
+          test "$ok" -eq 1 || { echo 'FAIL: API não iniciou após migrações'; exit 1; }
+          grep -Eq 'Successfully (validated|applied)|Migrating schema' flyway-run.log || { echo 'FAIL: sem confirmação Flyway'; exit 1; }
+          ! grep -Eq 'Novo Horizonte|SAMVIDA' flyway-run.log || { echo 'FAIL: possível referência de cliente legado no boot'; exit 1; }
+          curl -fsS http://localhost:8080/api/health/tenant > health-tenant.json
+          python3 -c 'import json; r=json.load(open("health-tenant.json")); assert r["status"]=="UP" and r["readyForCustomers"] is False'
+          PGPASSWORD=tenant_ci_password psql -h localhost -U tenant -d tenant_main -Atc 'SELECT COUNT(*) FROM plans' | grep -qx 0
+          PGPASSWORD=tenant_ci_password psql -h localhost -U tenant -d tenant_main -Atc "SELECT COUNT(*) FROM tenant_customer_import_batches" | grep -qx 0
+          PGPASSWORD=tenant_ci_password psql -h localhost -U tenant -d tenant_main -Atc "SELECT COUNT(*) FROM tenant_customer_import_links" | grep -qx 0
+          PGPASSWORD=tenant_ci_password psql -h localhost -U tenant -d tenant_main -Atc "SELECT COUNT(*) FROM flyway_schema_history WHERE version IN ('1','2','3','4','5','6','7','8','9','10','11') AND success=true" | grep -qx 11
+          PGPASSWORD=tenant_ci_password psql -h localhost -U tenant -d tenant_main -Atc 'SELECT COUNT(*) FROM fipe_dataset_imports' | grep -qx 0
+          PGPASSWORD=tenant_ci_password psql -h localhost -U tenant -d tenant_main -Atc 'SELECT COUNT(*) FROM fipe_dataset_prices' | grep -qx 0
+          PGPASSWORD=tenant_ci_password psql -h localhost -U tenant -d tenant_main -Atc 'SELECT COUNT(*) FROM consultant_commission_rules' | grep -qx 0
+          echo 'Migração PostgreSQL e inicialização real testadas em DB descartável.'
+  interface-responsive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preparar navegador para teste de telas
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Testar 390, 768 e 1366 px, modal e erros JS
+        run: python ci/test_ux.py
+  certification-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Auditoria bloqueante
+        run: python3 ci/auditar_template.py --root . --tenant-runtime --json auditoria.json
+      - name: Testes de estrutura e segurança
+        run: |
+          node --version
+          python ci/test_release_static.py
+          python ci/test_merge_v119.py
+          node --test web/tests/*.test.cjs

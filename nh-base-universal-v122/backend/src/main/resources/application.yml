@@ -1,0 +1,129 @@
+spring:
+  application:
+    name: nh-cotacao-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/nh_cotacao}
+    username: ${DATABASE_USERNAME:nh}
+    password: ${DATABASE_PASSWORD:nh123}
+  servlet:
+    multipart:
+      max-file-size: 450MB
+      max-request-size: 450MB
+      # Blocos retomáveis do Retrato NH ficam pequenos; grave multipart em disco cedo
+      # para não duplicar vários MB no heap durante instabilidades/retries do mobile.
+      file-size-threshold: 512KB
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        default_batch_fetch_size: 50
+        jdbc:
+          time_zone: America/Maceio
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+    out-of-order: false
+    # Aceita somente as lacunas historicas verificadas pelo LegacyFlywayHistoryGuard.
+    # V87/V88 originais existem no historico do banco, mas seus SQLs originais nao
+    # foram incluidos nos ZIPs posteriores. V79-V84 surgiram depois de V86.
+    ignore-migration-patterns:
+      - "*:missing"
+      - "*:ignored"
+
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  compression:
+    enabled: true
+    mime-types: application/json,application/pdf,text/html,text/css,application/javascript
+  error:
+    include-message: never
+    include-stacktrace: never
+
+app:
+  demo-associate:
+    enabled: ${DEMO_ASSOCIATE_ENABLED:false}
+  public-api-url: ${PUBLIC_API_URL:${RENDER_EXTERNAL_URL:http://localhost:8080}}
+  public-web-url: ${PUBLIC_WEB_URL:https://aforma-demo.vercel.app}
+  team-whatsapp-number: ${TEAM_WHATSAPP_NUMBER:}
+  team-email: ${TEAM_EMAIL:}
+  auth:
+    token-secret: ${AUTH_TOKEN_SECRET:troque-esta-chave-local-com-pelo-menos-32-caracteres}
+    token-hours: ${AUTH_TOKEN_HOURS:12}
+    consultant-username: ${CONSULTANT_USERNAME:consultor}
+    consultant-password: ${CONSULTANT_PASSWORD:}
+    analyst-username: ${ANALYST_USERNAME:analista}
+    analyst-password: ${ANALYST_PASSWORD:}
+    admin-username: ${ADMIN_USERNAME:admin@nh.local}
+    admin-password: ${ADMIN_PASSWORD:}
+    developer-username: ${DEVELOPER_USERNAME:}
+    developer-password: ${DEVELOPER_PASSWORD:}
+    tow-username: ${TOW_USERNAME:guincho}
+    tow-password: ${TOW_PASSWORD:}
+    workshop-username: ${WORKSHOP_USERNAME:oficina}
+    workshop-password: ${WORKSHOP_PASSWORD:}
+    event-username: ${EVENT_USERNAME:eventos}
+    event-password: ${EVENT_PASSWORD:}
+    buyer-username: ${BUYER_USERNAME:financeiro}
+    buyer-password: ${BUYER_PASSWORD:}
+  admin:
+    bulk-delete-password: ${ADMIN_BULK_DELETE_PASSWORD:}
+  asaas:
+    enabled: ${ASAAS_ENABLED:false}
+    base-url: ${ASAAS_BASE_URL:https://api-sandbox.asaas.com/v3}
+    api-key: ${ASAAS_API_KEY:}
+    webhook-token: ${ASAAS_WEBHOOK_TOKEN:}
+    user-agent: ${ASAAS_USER_AGENT:NH-Gestao/1.0}
+    payment-fee: ${ASAAS_PAYMENT_FEE:2.00}
+    withdrawal-fee: ${ASAAS_WITHDRAWAL_FEE:2.00}
+  nh-ponto:
+    internal-url: ${NH_PONTO_INTERNAL_URL:http://ponto-api:3333}
+    internal-token: ${NH_PONTO_INTERNAL_TOKEN:}
+  face-auth:
+    internal-url: ${FACE_API_INTERNAL_URL:http://face-api:8000}
+    api-key: ${FACE_API_KEY:${NH_PONTO_INTERNAL_TOKEN:}}
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000,https://aforma-demo.vercel.app,https://*.vercel.app}
+  gestao-control:
+    base-url: ${GESTAO_CONTROL_URL:http://localhost:3100}
+    public-url: ${GESTAO_CONTROL_PUBLIC_URL:}
+    tenant-host: ${GESTAO_TENANT_HOST:}
+    cache-seconds: ${GESTAO_CONTROL_CACHE_SECONDS:60}
+  plan-comparison:
+    valid-hours: ${PLAN_COMPARISON_VALID_HOURS:120}
+  whatsapp-cloud:
+    enabled: ${WHATSAPP_CLOUD_ENABLED:false}
+    api-version: ${WHATSAPP_CLOUD_API_VERSION:v23.0}
+    phone-number-id: ${WHATSAPP_CLOUD_PHONE_NUMBER_ID:}
+    access-token: ${WHATSAPP_CLOUD_ACCESS_TOKEN:}
+    completion-template-name: ${WHATSAPP_COMPLETION_TEMPLATE_NAME:}
+    language-code: ${WHATSAPP_TEMPLATE_LANGUAGE:pt_BR}
+  inspection-report:
+    supervision-responsible-name: ${INSPECTION_SUPERVISION_RESPONSIBLE_NAME:}
+  inspection-storage:
+    cleanup-cron: ${INSPECTION_CLEANUP_CRON:0 15 * * * *}
+  expired-quote-cleanup:
+    cleanup-cron: ${EXPIRED_QUOTE_CLEANUP_CRON:0 */15 * * * *}
+  google-drive:
+    enabled: ${GOOGLE_DRIVE_ENABLED:false}
+    credentials-base64: ${GOOGLE_DRIVE_CREDENTIALS_BASE64:}
+    credentials-json: ${GOOGLE_DRIVE_CREDENTIALS_JSON:}
+    credentials-path: ${GOOGLE_APPLICATION_CREDENTIALS:}
+    oauth-client-id: ${GOOGLE_DRIVE_OAUTH_CLIENT_ID:}
+    oauth-client-secret: ${GOOGLE_DRIVE_OAUTH_CLIENT_SECRET:}
+    oauth-refresh-token: ${GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN:}
+    root-folder-id: ${GOOGLE_DRIVE_ROOT_FOLDER_ID:}
+    public-links: ${GOOGLE_DRIVE_PUBLIC_LINKS:false}
+    team-emails: ${GOOGLE_DRIVE_TEAM_EMAILS:}
+
+
+  tenant:
+    mode: ${GS_TENANT_MODE:false}
+    catalog-certified: ${TENANT_CATALOG_CERTIFIED:false}
+    display-name: ${TENANT_DISPLAY_NAME:}
+    company-id: ${GESTAO_COMPANY_ID:}
+    require-commercial-catalog: ${TENANT_REQUIRES_COMMERCIAL_CATALOG:true}
+    require-payment-integration: ${TENANT_REQUIRES_PAYMENT_INTEGRATION:false}
+    require-ponto-setup: ${TENANT_REQUIRES_PONTO_SETUP:false}

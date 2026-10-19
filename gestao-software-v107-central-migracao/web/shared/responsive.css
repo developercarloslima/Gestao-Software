@@ -1,0 +1,3698 @@
+/* =========================================================
+   NH PROTEÇÃO VEICULAR — CAMADA RESPONSIVA GLOBAL
+   Compatibilidade: celulares pequenos, tablets, notebooks,
+   desktops, ultrawide, modo paisagem e dispositivos com notch.
+   ========================================================= */
+
+:root {
+  --responsive-gutter: clamp(14px, 3vw, 32px);
+  --responsive-content: 1180px;
+  --responsive-content-wide: 1440px;
+  --responsive-radius: clamp(14px, 2vw, 24px);
+}
+
+html {
+  width: 100%;
+  min-width: 0;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+}
+
+body {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+body,
+main,
+section,
+article,
+header,
+footer,
+nav,
+form,
+fieldset,
+div {
+  min-width: 0;
+}
+
+img,
+picture,
+video,
+canvas,
+svg,
+iframe {
+  max-inline-size: 100%;
+}
+
+img,
+video,
+canvas,
+svg {
+  height: auto;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+p,
+li,
+label,
+small,
+strong,
+span,
+a,
+button,
+th,
+td,
+code,
+pre {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+pre,
+code,
+.public-link,
+#public-link,
+.table-code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.container {
+  width: min(var(--responsive-content), calc(100% - var(--responsive-gutter) - var(--responsive-gutter)));
+  margin-inline: auto;
+}
+
+.shell {
+  width: min(var(--responsive-content), calc(100% - var(--responsive-gutter) - var(--responsive-gutter)));
+  margin-inline: auto;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Evita zoom automático do iOS ao focar formulários. */
+@media (max-width: 820px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+@media (pointer: coarse) {
+  button,
+  .button,
+  .primary-button,
+  .secondary-button,
+  .header-cta,
+  .header-collaborator,
+  .menu-toggle,
+  .small-button,
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+  }
+
+  a,
+  button,
+  label,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+}
+
+/* =========================================================
+   SITE INSTITUCIONAL
+   ========================================================= */
+
+.site-header {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.nav-wrapper,
+.brand,
+.brand-name,
+.main-menu,
+.hero-content,
+.hero-copy,
+.hero-actions,
+.contact-panel,
+.app-card,
+.footer-compact,
+.footer-compact-top,
+.footer-compact-item {
+  min-width: 0;
+}
+
+.brand-symbol {
+  flex: 0 0 auto;
+}
+
+.brand-name {
+  overflow: hidden;
+}
+
+.brand-name strong,
+.brand-name small {
+  display: block;
+  max-width: 100%;
+}
+
+.hero-copy h1 {
+  font-size: clamp(2rem, 6vw, 4.9rem);
+  text-wrap: balance;
+}
+
+.hero-copy p,
+.section-description,
+.contact-copy p,
+.app-copy p {
+  max-width: 70ch;
+}
+
+.hero-actions > *,
+.contact-actions > *,
+.boleto-page-actions > *,
+.proposal-actions > *,
+.review-actions > *,
+.modal-actions > * {
+  min-width: 0;
+}
+
+.benefits-grid,
+.benefits-grid-expanded {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.benefit-card,
+.office-card,
+.step-card {
+  min-width: 0;
+}
+
+.benefit-card h3,
+.office-card h3,
+.step-card h3 {
+  text-wrap: balance;
+}
+
+.app-card,
+.contact-panel {
+  align-items: center;
+}
+
+.phone-mockup,
+.app-phone-image {
+  max-width: 100%;
+}
+
+.store-buttons,
+.store-badges {
+  flex-wrap: wrap;
+}
+
+.store-badge-link {
+  max-width: min(190px, 100%);
+}
+
+.contact-form,
+.cotacao-form,
+.boleto-form {
+  min-width: 0;
+}
+
+.cotacao-modal,
+.modal-backdrop {
+  padding-top: max(14px, env(safe-area-inset-top, 0px));
+  padding-right: max(14px, env(safe-area-inset-right, 0px));
+  padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(14px, env(safe-area-inset-left, 0px));
+}
+
+.cotacao-modal__box,
+.inspection-modal {
+  width: min(720px, 100%);
+  max-height: calc(100dvh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.floating-social {
+  right: max(14px, env(safe-area-inset-right, 0px));
+  bottom: max(14px, env(safe-area-inset-bottom, 0px));
+}
+
+.boleto-page-card,
+.boleto-flow-card,
+.boleto-result-header,
+.boleto-result-header--inline,
+.boleto-list,
+.boleto-list > * {
+  min-width: 0;
+}
+
+.boleto-result-header--inline {
+  flex-wrap: wrap;
+}
+
+.boleto-page-actions {
+  flex-wrap: wrap;
+}
+
+/* =========================================================
+   PORTAIS: COLABORADOR, ADMIN, ANÁLISE E RETRATO NH
+   ========================================================= */
+
+.portal-header {
+  padding-top: max(10px, env(safe-area-inset-top, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+}
+
+.portal-brand,
+.portal-brand span,
+.header-actions,
+.section-head,
+.actions,
+.row-actions,
+.dialog-head,
+.signature-heading,
+.camera-panel-head,
+.camera-controls,
+.communication-actions {
+  min-width: 0;
+}
+
+.portal-brand span {
+  overflow: hidden;
+}
+
+.portal-brand strong,
+.portal-brand small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.hero-panel h1,
+.card h1,
+.card h2,
+.card h3,
+.dialog-card h2,
+.communication-card h2 {
+  text-wrap: balance;
+}
+
+.form-grid > *,
+.filter-grid > *,
+.detail-grid > *,
+.kpi-grid > *,
+.overview-grid > *,
+.tool-grid > *,
+.upload-grid > * {
+  min-width: 0;
+}
+
+.actions > a,
+.actions > button,
+.row-actions > a,
+.row-actions > button {
+  max-width: 100%;
+}
+
+.table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+.table-wrap table {
+  max-width: none;
+}
+
+.table-wrap table th,
+.table-wrap table thead th,
+table.responsive-table th,
+table.responsive-table thead th {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+}
+
+.table-wrap::after {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 1px;
+}
+
+.admin-tabs {
+  max-width: 100%;
+}
+
+.admin-dialog {
+  max-width: calc(100% - 24px);
+  max-height: calc(100dvh - 24px);
+}
+
+.dialog-card {
+  overscroll-behavior: contain;
+}
+
+#public-link,
+.public-link,
+.result-link,
+.table-code {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.inspection-guide-grid img {
+  max-height: min(78dvh, 1200px);
+  object-fit: contain;
+}
+
+.signature-block canvas {
+  max-width: 100%;
+  min-height: 110px;
+}
+
+.camera-modal {
+  padding-top: max(12px, env(safe-area-inset-top, 0px));
+  padding-right: max(12px, env(safe-area-inset-right, 0px));
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(12px, env(safe-area-inset-left, 0px));
+}
+
+.camera-panel {
+  max-height: calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.camera-live-frame video {
+  max-width: 100%;
+}
+
+/* =========================================================
+   COTAÇÃO E VISTORIA DO FLUXO DE VENDA
+   ========================================================= */
+
+.topbar,
+.hero,
+.content-card,
+.comparison-section,
+.proposal-card,
+.inspection-modal,
+.selection-summary,
+.accept-box {
+  min-width: 0;
+}
+
+.topbar {
+  padding-top: max(12px, env(safe-area-inset-top, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+}
+
+.hero {
+  width: min(1120px, calc(100% - var(--responsive-gutter) - var(--responsive-gutter)));
+}
+
+.content-card,
+.comparison-section,
+.proposal-card {
+  width: min(1120px, calc(100% - var(--responsive-gutter) - var(--responsive-gutter)));
+}
+
+.plan-cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.optional-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.comparison-table {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.comparison-row,
+.comparison-header {
+  min-width: 720px;
+}
+
+.quote-details,
+.inspection-review-grid,
+.guideline-grid {
+  min-width: 0;
+}
+
+.capture-preview,
+.review-photo {
+  width: 100%;
+  object-fit: cover;
+}
+
+/* =========================================================
+   NOTEBOOKS E TABLETS GRANDES
+   ========================================================= */
+
+@media (max-width: 1180px) {
+  .nav-wrapper {
+    width: min(100%, calc(100% - var(--responsive-gutter) - var(--responsive-gutter)));
+  }
+
+  .main-menu {
+    max-height: calc(100dvh - 78px - env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .header-phone,
+  .header-cta,
+  .header-collaborator {
+    flex: 0 0 auto;
+  }
+
+  .benefits-grid,
+  .benefits-grid-expanded {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .tool-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .benefits-grid,
+  .benefits-grid-expanded {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .app-card,
+  .contact-panel {
+    grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+  }
+
+  .footer-compact-top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer-compact-address {
+    grid-column: 1 / -1;
+  }
+
+  .plan-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .overview-grid,
+  .detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   TABLETS E CELULARES
+   ========================================================= */
+
+@media (max-width: 820px) {
+  :root {
+    --responsive-gutter: clamp(12px, 4vw, 22px);
+  }
+
+  html {
+    scroll-padding-top: 72px;
+  }
+
+  .portal-header {
+    min-height: 64px;
+    gap: 10px;
+  }
+
+  .portal-brand img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .header-actions {
+    gap: 7px;
+  }
+
+  .header-actions a,
+  .header-actions button {
+    padding: 9px 11px;
+  }
+
+  .shell {
+    margin-top: 20px;
+    margin-bottom: max(42px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .login-wrap {
+    width: min(calc(100% - var(--responsive-gutter) - var(--responsive-gutter)), 480px);
+    margin-top: 26px;
+    margin-bottom: max(36px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .hero-panel,
+  .card,
+  .dialog-card,
+  .tool-card,
+  .communication-card {
+    border-radius: var(--responsive-radius);
+  }
+
+  .hero-panel h1 {
+    font-size: clamp(1.8rem, 8vw, 2.65rem);
+  }
+
+  .form-grid,
+  .filter-grid,
+  .detail-grid,
+  .kpi-grid,
+  .overview-grid,
+  .upload-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .span-2 {
+    grid-column: auto;
+  }
+
+  .settings-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .section-head {
+    align-items: stretch;
+  }
+
+  .section-head > *,
+  .section-head input,
+  .section-head select,
+  .section-head [style*="max-width"] {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .admin-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    padding-bottom: 8px;
+  }
+
+  .admin-tabs button {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+
+  .table-wrap {
+    margin-inline: -2px;
+  }
+
+  .table-wrap table {
+    min-width: 680px;
+  }
+
+  .camera-upload-item .camera-action {
+    width: 100%;
+  }
+
+  .inspection-guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .topbar .brand {
+    flex: 1 1 180px;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .hero-logo {
+    width: min(230px, 70vw);
+    margin-inline: auto;
+  }
+
+  .form-grid {
+    gap: 14px;
+  }
+
+  .vehicle-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .optional-list,
+  .plan-cards,
+  .inspection-review-grid,
+  .guideline-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .selection-summary,
+  .quote-details {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .site-header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .nav-wrapper {
+    gap: 8px;
+  }
+
+  .brand-symbol {
+    width: 48px;
+    height: 48px;
+  }
+
+  .brand-name strong {
+    font-size: clamp(.8rem, 4vw, 1rem);
+  }
+
+  .brand-name small {
+    font-size: clamp(.58rem, 3vw, .72rem);
+  }
+
+  .menu-toggle {
+    flex: 0 0 46px;
+    width: 46px;
+    height: 46px;
+  }
+
+  .hero-section {
+    min-height: auto;
+  }
+
+  .hero-content {
+    min-height: auto;
+    padding-top: clamp(42px, 10vw, 70px);
+    padding-bottom: clamp(42px, 10vw, 70px);
+  }
+
+  .hero-copy {
+    width: 100%;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(2rem, 11vw, 3.25rem);
+    line-height: .98;
+  }
+
+  .hero-copy p {
+    font-size: clamp(.98rem, 4.4vw, 1.12rem);
+  }
+
+  .hero-actions,
+  .contact-actions,
+  .boleto-page-actions,
+  .proposal-actions,
+  .review-actions,
+  .modal-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .hero-actions > *,
+  .contact-actions > *,
+  .boleto-page-actions > *,
+  .proposal-actions > *,
+  .review-actions > *,
+  .modal-actions > * {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .benefits-grid,
+  .benefits-grid-expanded {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .benefit-card {
+    padding: clamp(13px, 4vw, 20px);
+  }
+
+  .benefit-card .icon-circle {
+    width: clamp(62px, 20vw, 88px);
+    height: clamp(62px, 20vw, 88px);
+  }
+
+  .benefit-card h3 {
+    font-size: clamp(.82rem, 3.8vw, 1rem);
+  }
+
+  .steps-grid,
+  .app-card,
+  .contact-panel,
+  .footer-compact-top {
+    grid-template-columns: 1fr;
+  }
+
+  .phone-mockup {
+    width: min(300px, 84vw);
+    margin-inline: auto;
+  }
+
+  .app-copy,
+  .contact-copy {
+    text-align: left;
+  }
+
+  .store-buttons,
+  .store-badges {
+    justify-content: flex-start;
+  }
+
+  .footer-compact-address {
+    grid-column: auto;
+  }
+
+  .footer-compact-item {
+    width: 100%;
+  }
+
+  .cotacao-modal,
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .cotacao-modal__box,
+  .inspection-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px));
+    border-radius: 22px 22px 0 0;
+    padding-bottom: max(18px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .cotacao-modal__header,
+  .modal-actions {
+    position: relative;
+  }
+
+  .boleto-page-card,
+  .boleto-flow-card {
+    grid-template-columns: 1fr;
+  }
+
+  .boleto-page-icon {
+    margin-inline: auto;
+  }
+
+  .portal-header {
+    flex-wrap: wrap;
+  }
+
+  .portal-brand {
+    flex: 1 1 auto;
+  }
+
+  .portal-brand span {
+    display: block;
+  }
+
+  .header-actions {
+    flex: 0 1 auto;
+  }
+
+  .header-actions a,
+  .header-actions button {
+    font-size: .82rem;
+  }
+
+  .tool-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions,
+  .communication-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .actions > a,
+  .actions > button,
+  .communication-actions > a,
+  .communication-actions > button {
+    width: 100%;
+  }
+
+  .row-actions {
+    min-width: 0;
+  }
+
+  .admin-dialog,
+  .admin-dialog.wide-dialog {
+    width: 100%;
+    max-width: 100%;
+    max-height: 100dvh;
+    margin: auto 0 0;
+  }
+
+  .admin-dialog[open] {
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .dialog-card,
+  .communication-card {
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px));
+    border-radius: 22px 22px 0 0;
+    padding: 20px var(--responsive-gutter) max(20px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .dialog-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin-inline: calc(0px - var(--responsive-gutter));
+    margin-bottom: -20px;
+    padding: 12px var(--responsive-gutter) max(12px, env(safe-area-inset-bottom, 0px));
+    background: rgba(255,255,255,.96);
+    border-top: 1px solid var(--line);
+    backdrop-filter: blur(8px);
+  }
+
+  .signature-heading {
+    flex-direction: column;
+  }
+
+  .signature-heading button {
+    width: 100%;
+  }
+
+  .camera-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .camera-panel {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px));
+    border-radius: 22px 22px 0 0;
+    padding: 16px var(--responsive-gutter) max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .camera-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .camera-controls button {
+    width: 100%;
+  }
+
+  .content-card,
+  .comparison-section,
+  .proposal-card,
+  .hero {
+    border-radius: var(--responsive-radius);
+  }
+
+  .comparison-table {
+    margin-inline: -4px;
+    padding-inline: 4px;
+  }
+
+  .comparison-row,
+  .comparison-header {
+    min-width: 660px;
+  }
+}
+
+/* =========================================================
+   CELULARES PEQUENOS
+   ========================================================= */
+
+@media (max-width: 480px) {
+  :root {
+    --responsive-gutter: 14px;
+  }
+
+  .section-padding {
+    padding-top: clamp(42px, 13vw, 62px);
+    padding-bottom: clamp(42px, 13vw, 62px);
+  }
+
+  .section-heading h2,
+  .section-heading > h2,
+  .contact-copy h2,
+  .app-copy h2 {
+    font-size: clamp(1.75rem, 9vw, 2.45rem);
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(1.92rem, 10.7vw, 2.75rem);
+  }
+
+  .brand-name {
+    max-width: min(48vw, 170px);
+  }
+
+  .benefits-grid,
+  .benefits-grid-expanded {
+    gap: 10px;
+  }
+
+  .benefit-card {
+    min-height: 0;
+  }
+
+  .office-card,
+  .step-card,
+  .content-card,
+  .card,
+  .tool-card,
+  .login-card {
+    padding: 16px;
+  }
+
+  .hero-panel {
+    padding: 22px 17px;
+  }
+
+  .hero-panel p {
+    font-size: .95rem;
+  }
+
+  .portal-brand img {
+    width: 38px;
+    height: 38px;
+  }
+
+  .portal-brand strong {
+    font-size: .92rem;
+  }
+
+  .portal-brand small {
+    font-size: .7rem;
+  }
+
+  .header-actions a,
+  .header-actions button {
+    padding: 8px 9px;
+    font-size: .76rem;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .step {
+    width: 100%;
+    text-align: center;
+  }
+
+  .guidelines,
+  .registration-fields,
+  .upload-item {
+    padding: 14px;
+  }
+
+  .signature-block canvas {
+    min-height: 96px;
+    aspect-ratio: 2.6 / 1;
+  }
+
+  .camera-panel-head h2,
+  .dialog-head h2 {
+    font-size: 1.35rem;
+  }
+
+  .camera-close,
+  .dialog-close {
+    flex: 0 0 42px;
+  }
+
+  .topbar {
+    align-items: stretch;
+  }
+
+  .topbar .brand {
+    flex-basis: 100%;
+  }
+
+  .secure-pill {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .hero,
+  .content-card,
+  .comparison-section,
+  .proposal-card {
+    width: calc(100% - 28px);
+    padding: 17px;
+  }
+
+  .hero-copy h1,
+  .content-card h2,
+  .proposal-card h2 {
+    text-wrap: balance;
+  }
+
+  .vehicle-options,
+  .binary-options,
+  .cotacao-binary-options {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .vehicle-option,
+  .binary-option,
+  .cotacao-binary-option {
+    min-width: 0;
+    padding-inline: 8px;
+    font-size: .88rem;
+  }
+
+  .selection-summary {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 350px) {
+  :root {
+    --responsive-gutter: 10px;
+  }
+
+  .brand-name {
+    max-width: 132px;
+  }
+
+  .brand-symbol {
+    width: 43px;
+    height: 43px;
+  }
+
+  .menu-toggle {
+    width: 43px;
+    height: 43px;
+    flex-basis: 43px;
+  }
+
+  .hero-copy h1 {
+    font-size: 1.82rem;
+  }
+
+  .benefits-grid,
+  .benefits-grid-expanded {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .benefit-card {
+    padding: 11px 8px;
+  }
+
+  .benefit-card .icon-circle {
+    width: 58px;
+    height: 58px;
+  }
+
+  .portal-brand span {
+    display: none;
+  }
+
+  .header-actions {
+    margin-left: auto;
+  }
+
+  .vehicle-options,
+  .binary-options,
+  .cotacao-binary-options {
+    grid-template-columns: 1fr;
+  }
+
+  .hero,
+  .content-card,
+  .comparison-section,
+  .proposal-card {
+    width: calc(100% - 20px);
+    padding: 14px;
+  }
+}
+
+@media (max-width: 290px) {
+  .benefits-grid,
+  .benefits-grid-expanded,
+  .vehicle-options,
+  .binary-options,
+  .cotacao-binary-options {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-name {
+    display: none;
+  }
+}
+
+/* =========================================================
+   TELAS GRANDES E ULTRAWIDE
+   ========================================================= */
+
+@media (min-width: 1600px) {
+  :root {
+    --responsive-content: var(--responsive-content-wide);
+  }
+
+  .hero-content,
+  .nav-wrapper,
+  .footer-compact,
+  .contact-panel,
+  .app-card {
+    max-width: var(--responsive-content-wide);
+  }
+
+  .hero-copy {
+    max-width: 900px;
+  }
+
+  .benefits-grid,
+  .benefits-grid-expanded {
+    gap: 22px;
+  }
+
+  .tool-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .shell:not([style*="max-width"]) {
+    max-width: var(--responsive-content-wide);
+  }
+
+  .hero,
+  .content-card,
+  .comparison-section,
+  .proposal-card {
+    width: min(1280px, calc(100% - 64px));
+  }
+}
+
+@media (min-width: 2200px) {
+  :root {
+    --responsive-content-wide: 1560px;
+  }
+
+  body {
+    font-size: 17px;
+  }
+
+  .site-header,
+  .portal-header {
+    min-height: 82px;
+  }
+}
+
+/* =========================================================
+   MODO PAISAGEM COM POUCA ALTURA
+   ========================================================= */
+
+@media (orientation: landscape) and (max-height: 640px) {
+  .hero-content {
+    min-height: auto;
+    padding-top: 32px;
+    padding-bottom: 32px;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(2rem, 7vh, 3.2rem);
+  }
+
+  .cotacao-modal__box,
+  .inspection-modal,
+  .dialog-card,
+  .camera-panel {
+    max-height: calc(100dvh - 12px);
+  }
+
+  .camera-modal,
+  .cotacao-modal,
+  .modal-backdrop {
+    align-items: stretch;
+  }
+
+  .camera-panel,
+  .cotacao-modal__box,
+  .inspection-modal,
+  .dialog-card {
+    border-radius: 16px;
+  }
+
+  .camera-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(220px, .65fr);
+    grid-template-areas:
+      "head head"
+      "video instruction"
+      "video controls";
+    gap: 10px 14px;
+  }
+
+  .camera-panel-head { grid-area: head; margin-bottom: 0; }
+  .camera-live-frame { grid-area: video; aspect-ratio: 16 / 9; }
+  .camera-instruction { grid-area: instruction; margin: 0; }
+  .camera-controls { grid-area: controls; align-self: end; margin: 0; }
+}
+
+/* Impressão: evita componentes quebrados entre páginas. */
+@media print {
+  .site-header,
+  .portal-header,
+  .floating-social,
+  .menu-toggle,
+  .header-actions,
+  .admin-tabs,
+  .actions,
+  .camera-modal,
+  .cotacao-modal,
+  .modal-backdrop {
+    display: none !important;
+  }
+
+  body {
+    overflow: visible;
+    background: #fff;
+  }
+
+  .container,
+  .shell,
+  .content-card,
+  .card {
+    width: 100%;
+    max-width: none;
+    box-shadow: none;
+  }
+
+  .card,
+  .tool-card,
+  .table-wrap,
+  .content-card {
+    break-inside: avoid;
+  }
+}
+
+/* Correção final: botão flutuante do Instagram com tamanho compacto. */
+.floating-social {
+  position: fixed !important;
+  top: auto !important;
+  left: auto !important;
+  right: max(14px, env(safe-area-inset-right, 0px)) !important;
+  bottom: max(14px, env(safe-area-inset-bottom, 0px)) !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  transform: none !important;
+}
+
+.floating-social a {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 14px !important;
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+}
+
+.floating-social a:hover {
+  transform: none !important;
+}
+
+@media (max-width: 600px) {
+  .floating-social,
+  .floating-social a {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    max-width: 44px !important;
+    max-height: 44px !important;
+    border-radius: 13px !important;
+  }
+
+  .floating-social {
+    right: max(10px, env(safe-area-inset-right, 0px)) !important;
+    bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .floating-social a {
+    font-size: 1.12rem !important;
+  }
+}
+
+/* =========================================================
+   RESPONSIVIDADE UNIVERSAL V2 — PAINÉIS E FLUXOS OPERACIONAIS
+   ========================================================= */
+
+:where(input, select, textarea, button, .button) {
+  min-inline-size: 0;
+}
+
+:where(input, select, textarea) {
+  max-inline-size: 100%;
+}
+
+input[type="file"] {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+select {
+  width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+option {
+  max-width: 100%;
+}
+
+fieldset {
+  max-width: 100%;
+  min-inline-size: 0;
+}
+
+iframe,
+embed,
+object {
+  width: 100%;
+  max-width: 100%;
+}
+
+.admin-tabs,
+.steps,
+.hero-steps {
+  scroll-padding-inline: var(--responsive-gutter);
+}
+
+.dialog-card,
+.inspection-modal,
+.cotacao-modal__box,
+.camera-panel {
+  scrollbar-width: thin;
+}
+
+.inspection-media-body,
+.inspection-media-card,
+.document-upload-card,
+.additional-file-row,
+.communication-summary,
+.detail-grid > div {
+  min-width: 0;
+}
+
+.inspection-media-body :where(strong, small, a),
+.document-upload-card :where(strong, small),
+.additional-file-row :where(strong, small),
+.communication-summary :where(strong, span, small),
+.detail-grid :where(strong, span) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Converte tabelas operacionais em cartões legíveis no celular. */
+@media (max-width: 920px) {
+  .table-wrap:has(table.responsive-table) {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    scrollbar-gutter: auto;
+  }
+
+  .table-wrap:has(table.responsive-table)::after {
+    display: none;
+  }
+
+  table.responsive-table {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  table.responsive-table thead {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  table.responsive-table tbody {
+    display: grid;
+    width: 100%;
+    gap: 13px;
+  }
+
+  table.responsive-table tbody tr {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 7px 22px rgba(7, 12, 64, .06);
+  }
+
+  table.responsive-table tbody tr[hidden] {
+    display: none !important;
+  }
+
+  table.responsive-table tbody td {
+    display: grid;
+    grid-template-columns: minmax(88px, 36%) minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    padding: 11px 13px;
+    border: 0;
+    border-bottom: 1px solid #eaedf3;
+    text-align: left;
+    white-space: normal;
+  }
+
+  table.responsive-table tbody td:last-child {
+    border-bottom: 0;
+  }
+
+  table.responsive-table tbody td::before {
+    content: attr(data-label);
+    min-width: 0;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1.3;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+  }
+
+  table.responsive-table tbody td[data-full-row="true"] {
+    display: block;
+    padding: 22px 15px;
+    text-align: center;
+  }
+
+  table.responsive-table tbody td[data-full-row="true"]::before {
+    display: none;
+  }
+
+  table.responsive-table tbody td > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  table.responsive-table tbody td :where(input, select, textarea) {
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  table.responsive-table .catalog-name {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  table.responsive-table .row-actions,
+  table.responsive-table .inline-edit,
+  table.responsive-table .status-with-action {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+  }
+
+  table.responsive-table .row-actions > *,
+  table.responsive-table .inline-edit > *,
+  table.responsive-table .status-with-action > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    white-space: normal;
+  }
+
+  .admin-tabs {
+    margin-inline: calc(0px - var(--responsive-gutter));
+    padding-inline: var(--responsive-gutter);
+  }
+
+  .kpi strong {
+    font-size: clamp(1.65rem, 10vw, 2.2rem);
+  }
+
+  .inspection-media-section {
+    padding: 14px;
+  }
+
+  .inspection-media-preview,
+  .inspection-media-preview img,
+  .inspection-media-preview video {
+    min-height: 0;
+    height: auto;
+    max-height: 62dvh;
+  }
+
+  .inspection-media-placeholder {
+    min-height: 150px;
+    display: grid;
+    place-items: center;
+  }
+
+  .inspection-media-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .inspection-media-actions > * {
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .capture-guide-figure img,
+  .inspection-guide-grid img {
+    max-height: 58dvh;
+  }
+}
+
+@media (max-width: 430px) {
+  .portal-header {
+    padding-right: max(10px, env(safe-area-inset-right, 0px));
+    padding-left: max(10px, env(safe-area-inset-left, 0px));
+  }
+
+  .portal-brand {
+    gap: 8px;
+  }
+
+  .portal-brand span {
+    max-width: min(48vw, 165px);
+  }
+
+  .header-actions {
+    gap: 5px;
+  }
+
+  .header-actions a,
+  .header-actions button {
+    min-height: 40px;
+    padding: 8px 9px;
+  }
+
+  .dialog-head,
+  .camera-panel-head,
+  .inspection-media-head {
+    gap: 10px;
+  }
+
+  .dialog-close,
+  .camera-close,
+  .modal-close {
+    flex: 0 0 42px;
+  }
+
+  .capture-preview,
+  .camera-live-frame {
+    min-height: 200px;
+  }
+
+  .review-photo {
+    grid-template-columns: 86px minmax(0, 1fr);
+  }
+
+  .review-photo img {
+    width: 86px;
+    height: 82px;
+  }
+}
+
+@media (max-width: 350px) {
+  :root {
+    --responsive-gutter: 10px;
+  }
+
+  .portal-brand span {
+    display: none;
+  }
+
+  .portal-header {
+    flex-wrap: nowrap;
+  }
+
+  .header-actions {
+    margin-left: auto;
+  }
+
+  .header-actions a,
+  .header-actions button {
+    font-size: .72rem;
+  }
+
+  .hero-panel,
+  .card,
+  .tool-card,
+  .login-card,
+  .dialog-card,
+  .communication-card,
+  .inspection-modal,
+  .camera-panel {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  table.responsive-table tbody td {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  table.responsive-table tbody td::before {
+    font-size: 9px;
+  }
+
+  .benefits-grid,
+  .benefits-grid-expanded {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablets em modo retrato: duas colunas sem comprimir o conteúdo. */
+@media (min-width: 701px) and (max-width: 900px) {
+  .kpi-grid,
+  .overview-grid,
+  .detail-grid,
+  .inspection-media-grid,
+  .document-upload-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .table-wrap {
+    box-shadow: inset -14px 0 18px -20px rgba(7, 12, 64, .55);
+  }
+}
+
+/* Celulares em paisagem: preserva controles e permite rolagem interna. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .portal-header,
+  .topbar {
+    min-height: 56px;
+  }
+
+  .dialog-card,
+  .inspection-modal,
+  .cotacao-modal__box,
+  .camera-panel {
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .dialog-actions,
+  .camera-controls,
+  .modal-actions {
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* =========================================================
+   HEADER INSTITUCIONAL — faixa intermediária (tablet/notebook)
+   Evita sobreposição, scroll horizontal e menus espremidos.
+   ========================================================= */
+@media (min-width: 761px) and (max-width: 1500px) {
+  .site-header {
+    overflow-x: clip;
+  }
+
+  .nav-wrapper {
+    min-height: 82px;
+    gap: 12px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+
+  .brand {
+    order: 1;
+    margin-right: auto;
+    gap: 10px;
+  }
+
+  .brand-symbol {
+    width: 58px;
+  }
+
+  .brand-name strong {
+    font-size: clamp(1.05rem, 1.7vw, 1.22rem);
+    line-height: .92;
+  }
+
+  .brand-name small {
+    font-size: clamp(.56rem, .9vw, .66rem);
+    line-height: 1;
+  }
+
+  .header-phone {
+    order: 2;
+    min-height: 46px;
+    padding-inline: 16px;
+    font-size: .76rem;
+    white-space: nowrap;
+  }
+
+  .header-phone span {
+    white-space: nowrap;
+  }
+
+  .main-menu {
+    display: none !important;
+  }
+
+  .main-menu.open {
+    position: fixed !important;
+    inset: 84px 20px auto 20px !important;
+    width: auto !important;
+    max-width: calc(100vw - 40px) !important;
+    max-height: calc(100dvh - 110px) !important;
+    overflow-y: auto !important;
+    display: grid !important;
+    gap: 8px !important;
+    padding: 16px !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 18px !important;
+    background: rgba(7, 12, 64, 0.98) !important;
+    box-shadow: 0 24px 60px rgba(7, 12, 64, 0.24) !important;
+    overscroll-behavior: contain;
+    z-index: 120;
+  }
+
+  .main-menu.open a {
+    padding: 12px 10px;
+  }
+
+  .main-menu.open a::after {
+    display: none;
+  }
+
+  .header-cta {
+    order: 3;
+    min-height: 46px;
+    padding-inline: 16px;
+    font-size: .78rem;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .header-collaborator {
+    display: none !important;
+  }
+
+  .menu-toggle {
+    order: 4;
+    display: grid !important;
+    flex: 0 0 46px;
+    width: 46px;
+    height: 46px;
+    align-content: center;
+    justify-content: center;
+  }
+
+  .menu-toggle.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .menu-toggle.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+}
+
+@media (min-width: 761px) and (max-width: 980px) {
+  .nav-wrapper {
+    gap: 10px;
+  }
+
+  .brand-symbol {
+    width: 52px;
+  }
+
+  .brand-name strong {
+    font-size: 1rem;
+  }
+
+  .brand-name small {
+    font-size: .56rem;
+  }
+
+  .header-phone {
+    min-height: 44px;
+    padding-inline: 12px;
+    font-size: .7rem;
+  }
+
+  .header-cta {
+    min-height: 44px;
+    padding-inline: 14px;
+    font-size: .74rem;
+  }
+}
+
+
+/* =========================================================
+   PAINEL DO CONSULTOR — tabelas viram cartões mais cedo
+   para evitar grade espremida em larguras intermediárias.
+   ========================================================= */
+@media (max-width: 1400px) {
+  #activity-dashboard .section-head {
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  #activity-dashboard .section-head > div {
+    min-width: 0;
+  }
+
+  #activity-dashboard #refresh-dashboard {
+    align-self: flex-start;
+  }
+
+  #activity-dashboard .consultant-dashboard-wrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    scrollbar-gutter: auto;
+  }
+
+  #activity-dashboard .consultant-dashboard-wrap::after {
+    display: none;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table thead {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table tbody {
+    display: grid;
+    width: 100%;
+    gap: 16px;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table tbody tr {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(7, 12, 64, .06);
+  }
+
+  #activity-dashboard table.consultant-dashboard-table tbody tr[hidden] {
+    display: none !important;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table tbody td {
+    display: grid;
+    grid-template-columns: minmax(120px, 30%) minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 0;
+    border-bottom: 1px solid #eaedf3;
+    text-align: left;
+    white-space: normal;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table tbody td:last-child {
+    border-bottom: 0;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table tbody td::before {
+    content: attr(data-label);
+    min-width: 0;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1.3;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table tbody td[data-full-row="true"] {
+    display: block;
+    padding: 22px 15px;
+    text-align: center;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table tbody td[data-full-row="true"]::before {
+    display: none;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table tbody td > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table .row-actions,
+  #activity-dashboard table.consultant-dashboard-table .inline-edit,
+  #activity-dashboard table.consultant-dashboard-table .status-with-action {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table .row-actions > *,
+  #activity-dashboard table.consultant-dashboard-table .inline-edit > *,
+  #activity-dashboard table.consultant-dashboard-table .status-with-action > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    text-align: center;
+  }
+
+  #activity-dashboard table.consultant-dashboard-table .table-code {
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 980px) {
+  #activity-dashboard .section-head {
+    flex-direction: column;
+  }
+
+  #activity-dashboard #refresh-dashboard {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  #activity-dashboard table.consultant-dashboard-table tbody td {
+    grid-template-columns: minmax(92px, 38%) minmax(0, 1fr);
+    padding: 11px 12px;
+  }
+}
+
+/* =========================================================
+   TABELAS — SCROLL HORIZONTAL FIXO LOGO ABAIXO DO CABEÇALHO
+   A barra é sincronizada com a rolagem real da tabela e evita
+   a necessidade de descer até o fim para navegar nas colunas.
+   ========================================================= */
+.table-wrap.has-head-scrollbar {
+  scrollbar-width: none;
+}
+
+.table-wrap.has-head-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.table-scrollbar-row > .table-scrollbar-cell {
+  position: sticky;
+  top: var(--table-primary-header-height, 42px);
+  z-index: 8;
+  padding: 0 !important;
+  border-bottom: 1px solid var(--line, #e2e6ef);
+  background: #fff;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.table-head-scrollbar {
+  position: sticky;
+  left: 0;
+  display: block;
+  height: 16px;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: auto;
+  scrollbar-color: #070c40 #eef0f7;
+  background: #fff;
+  overscroll-behavior-inline: contain;
+}
+
+.table-head-scrollbar::-webkit-scrollbar {
+  height: 12px;
+}
+
+.table-head-scrollbar::-webkit-scrollbar-track {
+  background: #eef0f7;
+  border-radius: 999px;
+}
+
+.table-head-scrollbar::-webkit-scrollbar-thumb {
+  background: #070c40;
+  border: 2px solid #eef0f7;
+  border-radius: 999px;
+}
+
+.table-head-scrollbar-inner {
+  height: 1px;
+  pointer-events: none;
+}
+
+.table-scrollbar-row [hidden] {
+  display: none !important;
+}
+
+@media (max-width: 920px) {
+  .table-scrollbar-row {
+    display: none !important;
+  }
+
+  .table-wrap.has-head-scrollbar {
+    scrollbar-width: auto;
+  }
+}
+
+
+/* =========================================================
+   AJUSTES FINAIS DE RESPONSIVIDADE GLOBAL
+   Corrige estouro de botões, textos e cartões em mobile,
+   tablet, mini mobile e desktops compactos.
+   ========================================================= */
+
+button,
+.button,
+.small-button,
+.primary,
+.secondary,
+.outline,
+.danger {
+  max-width: 100%;
+}
+
+.row-actions > *,
+.status-with-action > *,
+.actions > * {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .portal-header {
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .section-head,
+  .analysis-queue-title,
+  .inspection-media-head,
+  .dialog-head,
+  .signature-heading {
+    min-width: 0;
+  }
+
+  .detail-grid,
+  .overview-grid,
+  .kpi-grid,
+  .communication-summary,
+  .quote-edit-locked-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .small-button,
+  .button.small-button,
+  button.small-button,
+  .actions .button,
+  .actions button,
+  .row-actions > .button,
+  .row-actions > button,
+  .status-with-action > .button,
+  .status-with-action > button,
+  .inspection-links .button,
+  .inspection-links button {
+    width: 100%;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    text-align: center;
+    line-height: 1.22;
+    padding-top: 11px;
+    padding-bottom: 11px;
+  }
+
+  .row-actions,
+  .status-with-action,
+  .actions,
+  #inspection-links,
+  .communication-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+    gap: 8px;
+    width: 100%;
+  }
+
+  table.responsive-table tbody td,
+  #activity-dashboard table.consultant-dashboard-table tbody td {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  table.responsive-table tbody td::before,
+  #activity-dashboard table.consultant-dashboard-table tbody td::before {
+    margin-bottom: 2px;
+  }
+
+  .badge,
+  #activity-dashboard .badge,
+  .analysis-queue-count {
+    width: fit-content;
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.18;
+  }
+
+  .inspection-media-grid,
+  .upload-grid,
+  .tool-grid,
+  .form-grid,
+  .filter-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .card,
+  .tool-card,
+  .dialog-card,
+  .login-card,
+  .communication-card,
+  .inspection-media-card,
+  .analysis-queue-card {
+    overflow: hidden;
+  }
+
+  .table-code,
+  small,
+  strong,
+  p,
+  span,
+  a {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 420px) {
+  .shell,
+  .container,
+  .login-wrap {
+    width: calc(100% - 20px);
+  }
+
+  .hero-panel,
+  .card,
+  .tool-card,
+  .dialog-card,
+  .communication-card {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .portal-header {
+    min-height: 60px;
+  }
+
+  .portal-brand img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .analysis-queue-title,
+  .section-head {
+    gap: 10px;
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE FINAL V4 — revisão por larguras reais
+   320px+ mobile, tablets, notebooks e desktop amplo.
+   ========================================================= */
+
+/* O link de assistência é duplicado apenas para o menu compacto. */
+.main-menu .assistance-menu-link {
+  display: none;
+}
+
+/* Notebook e desktop compacto: nunca manter navegação completa espremida. */
+@media (min-width: 761px) and (max-width: 1720px) {
+  .site-header {
+    overflow: visible !important;
+  }
+
+  .site-header .nav-wrapper {
+    width: min(1440px, calc(100% - 32px)) !important;
+    min-height: 82px !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 12px !important;
+    margin-inline: auto !important;
+  }
+
+  .site-header .brand {
+    order: 1 !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    margin-right: auto !important;
+  }
+
+  .site-header .brand-symbol {
+    flex: 0 0 auto !important;
+    width: clamp(48px, 4vw, 58px) !important;
+  }
+
+  .site-header .brand-name {
+    min-width: 0 !important;
+  }
+
+  .site-header .brand-name strong,
+  .site-header .brand-name small {
+    white-space: nowrap !important;
+  }
+
+  .site-header .main-menu {
+    display: none !important;
+  }
+
+  .site-header .main-menu.open {
+    position: fixed !important;
+    inset: 86px 18px auto 18px !important;
+    z-index: 9999 !important;
+    display: grid !important;
+    width: auto !important;
+    max-width: calc(100vw - 36px) !important;
+    max-height: calc(100dvh - 106px) !important;
+    overflow-y: auto !important;
+    gap: 4px !important;
+    padding: 14px !important;
+    border: 1px solid rgba(240,240,0,.35) !important;
+    border-radius: 16px !important;
+    background: #070c40 !important;
+    box-shadow: 0 22px 60px rgba(7,12,64,.3) !important;
+  }
+
+  .site-header .main-menu.open a {
+    display: flex !important;
+    width: 100% !important;
+    min-height: 44px !important;
+    align-items: center !important;
+    padding: 10px 12px !important;
+    white-space: normal !important;
+  }
+
+  .site-header .main-menu.open a::after {
+    display: none !important;
+  }
+
+  .site-header .main-menu.open .assistance-menu-link {
+    display: flex !important;
+    color: var(--brand-yellow, #f0f000) !important;
+  }
+
+  .site-header .header-phone {
+    order: 2 !important;
+    flex: 0 0 auto !important;
+    min-height: 44px !important;
+    padding-inline: 14px !important;
+    white-space: nowrap !important;
+  }
+
+  .site-header .header-cta {
+    order: 3 !important;
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    min-height: 44px !important;
+    padding-inline: 15px !important;
+    white-space: nowrap !important;
+  }
+
+  .site-header .header-collaborator {
+    display: none !important;
+  }
+
+  .site-header .menu-toggle {
+    order: 4 !important;
+    display: grid !important;
+    flex: 0 0 46px !important;
+    width: 46px !important;
+    height: 46px !important;
+    padding: 0 !important;
+    place-content: center !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Em tablets, a assistência fica no menu para preservar o cabeçalho. */
+@media (min-width: 761px) and (max-width: 1120px) {
+  .site-header .header-phone {
+    display: none !important;
+  }
+}
+
+/* Cabeçalho dos portais: manter nome em tablet e notebook pequeno. */
+@media (min-width: 481px) and (max-width: 900px) {
+  .portal-header {
+    min-height: 72px !important;
+    flex-wrap: nowrap !important;
+    padding: 10px 14px !important;
+    gap: 12px !important;
+  }
+
+  .portal-brand {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .portal-brand span {
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  .portal-brand strong {
+    font-size: clamp(14px, 2.2vw, 17px) !important;
+    white-space: nowrap !important;
+  }
+
+  .portal-brand small {
+    font-size: clamp(11px, 1.8vw, 13px) !important;
+    white-space: nowrap !important;
+  }
+
+  .header-actions {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .header-actions a,
+  .header-actions button {
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* Mobile: uma linha limpa com logo e ações; evita header alto e desalinhado. */
+@media (max-width: 480px) {
+  .portal-header {
+    min-height: 66px !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    padding: 8px 10px !important;
+    gap: 8px !important;
+  }
+
+  .portal-brand {
+    flex: 0 0 auto !important;
+  }
+
+  .portal-brand span {
+    display: none !important;
+  }
+
+  .portal-brand img {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .header-actions {
+    width: auto !important;
+    margin-left: auto !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+
+  .header-actions a,
+  .header-actions button {
+    min-height: 38px !important;
+    padding: 7px 10px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* Abas administrativas: nenhuma aba fica pela metade ou fora da tela. */
+@media (max-width: 1000px) {
+  .admin-page .admin-tabs {
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 20px 0 !important;
+    padding: 0 !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+
+  .admin-page .admin-tabs button {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    padding: 9px 10px !important;
+    white-space: normal !important;
+    line-height: 1.15 !important;
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-page .admin-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  .admin-page .admin-tabs button {
+    font-size: 12px !important;
+  }
+
+  .admin-page .hero-panel h1,
+  #analysis-view .hero-panel h1,
+  #consultant-view .hero-panel h1 {
+    font-size: clamp(24px, 8.5vw, 34px) !important;
+    line-height: 1.05 !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+}
+
+/* Limite inferior prático para os primeiros smartphones usuais. */
+@media (max-width: 340px) {
+  .shell,
+  .login-wrap,
+  .container {
+    width: calc(100% - 12px) !important;
+  }
+
+  .admin-page .admin-tabs {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Emulação extrema abaixo de 280px: evita qualquer estouro horizontal. */
+@media (max-width: 280px) {
+  .portal-header {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .portal-brand {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .header-actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  .header-actions a,
+  .header-actions button {
+    min-width: 0 !important;
+    padding-inline: 7px !important;
+    font-size: 10px !important;
+  }
+
+  .hero-panel {
+    padding: 14px 12px !important;
+  }
+}
+
+/* =========================================================
+   V46 - RESPONSIVIDADE FINAL DOS PORTAIS
+   Corrige filas longas, filtros e abas da Supervisão/Análise
+   em notebooks, tablets, celulares e zoom do navegador.
+   ========================================================= */
+.analysis-queues,
+.analysis-queues-head,
+.analysis-status-tabs,
+.analysis-queue-card,
+.analysis-queue-title,
+.analysis-filter-actions {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.analysis-queues-head {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 390px);
+  align-items: end !important;
+  gap: 16px;
+}
+
+.analysis-filter-actions {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+  width: 100%;
+}
+
+.analysis-filter-actions input {
+  width: 100%;
+  min-width: 0 !important;
+}
+
+.analysis-status-tabs {
+  width: 100%;
+  min-width: 0;
+}
+
+.analysis-status-tab {
+  min-width: 0 !important;
+  max-width: 100%;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-height: 1.16;
+}
+
+.analysis-status-tab > span {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 1280px) {
+  .analysis-status-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 1000px) {
+  .analysis-queues-head {
+    grid-template-columns: 1fr;
+    align-items: stretch !important;
+  }
+
+  .analysis-filter-actions {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .analysis-filter-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-filter-actions button {
+    width: 100%;
+  }
+
+  .analysis-status-tabs {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+
+  .analysis-status-tab {
+    justify-content: space-between !important;
+    text-align: left !important;
+    min-height: 50px;
+  }
+
+  .analysis-queue-title {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+  }
+
+  .analysis-queue-count {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .portal-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .header-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .header-actions a,
+  .header-actions button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .analysis-queue-title {
+    padding: 14px !important;
+    gap: 10px !important;
+  }
+
+  .analysis-queue-title h2 {
+    font-size: 18px !important;
+  }
+
+  .analysis-queue-title p,
+  .analysis-status-description {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+}
+
+/* =========================================================
+   V74 — RESPONSIVIDADE UNIVERSAL 2026-09-23
+   Camada final: smartphones pequenos/dobráveis, tablets,
+   notebooks, desktop e telas amplas. Deve permanecer no fim.
+   ========================================================= */
+
+:root {
+  --nh-page-gutter: clamp(12px, 2.4vw, 30px);
+  --nh-card-pad: clamp(16px, 2.3vw, 28px);
+  --nh-control-h: 46px;
+}
+
+html, body {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: clip !important;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+img, video, canvas, svg, iframe { max-width: 100%; }
+
+/* ---------- Portais internos: estrutura ---------- */
+.portal-header {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  background: var(--nh-blue, #070c40) !important;
+  border-bottom: 3px solid var(--nh-yellow, #f0f000) !important;
+}
+
+.portal-brand {
+  min-width: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+.portal-brand img {
+  flex: 0 0 auto !important;
+  object-fit: contain !important;
+}
+
+.portal-brand span {
+  min-width: 0 !important;
+  display: block !important;
+}
+
+.portal-brand strong,
+.portal-brand small {
+  display: block !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+.nh-standard-header-actions,
+.portal-header .header-actions {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.nh-standard-header-actions a,
+.nh-standard-header-actions button,
+.portal-header .header-actions a,
+.portal-header .header-actions button {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 42px !important;
+  line-height: 1.12 !important;
+  text-align: center !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+.shell,
+.container,
+.login-wrap,
+.accept-shell {
+  max-width: 100% !important;
+}
+
+.shell {
+  width: min(1180px, calc(100% - (2 * var(--nh-page-gutter)))) !important;
+}
+
+.login-wrap {
+  width: min(480px, calc(100% - (2 * var(--nh-page-gutter)))) !important;
+  margin: clamp(24px, 5vw, 52px) auto max(36px, env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.card,
+.login-card,
+.tool-card,
+.dialog-card,
+.hero-panel,
+.communication-card {
+  max-width: 100% !important;
+}
+
+.login-card {
+  padding: clamp(18px, 4vw, 30px) !important;
+}
+
+.login-card h1 {
+  font-size: clamp(28px, 6.5vw, 38px) !important;
+  line-height: 1.04 !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.login-card p {
+  font-size: clamp(14px, 2.8vw, 16px) !important;
+  line-height: 1.45 !important;
+}
+
+input, select, textarea, button, .button {
+  min-width: 0;
+}
+
+input, select, textarea {
+  max-width: 100% !important;
+}
+
+button, .button {
+  min-height: var(--nh-control-h);
+}
+
+.form-grid,
+.filter-grid,
+.detail-grid,
+.kpi-grid,
+.overview-grid,
+.tool-grid,
+.upload-grid,
+.document-upload-grid {
+  max-width: 100% !important;
+}
+
+/* Evita cards/linhas estourando por nomes, URLs ou protocolos longos. */
+.card, .tool-card, .kpi, .detail-grid > *, .overview-grid > *,
+.office-card, .tow-event-card, .analysis-queue-card,
+.purchase-card, .audit-card, .inspection-media-card {
+  min-width: 0 !important;
+  overflow-wrap: anywhere;
+}
+
+.actions,
+.row-actions,
+.section-head,
+.detail-toolbar,
+.accept-actions,
+.acceptance-actions,
+.office-card-actions,
+.tow-card-actions {
+  max-width: 100%;
+}
+
+.table-wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---------- Desktop amplo: uma linha, como padrão visual pedido ---------- */
+@media (min-width: 1180px) {
+  .portal-header {
+    min-height: 80px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: clamp(16px, 2vw, 30px) !important;
+    padding: 10px max(18px, calc((100vw - 1500px) / 2)) !important;
+  }
+
+  .portal-brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .portal-brand img { width: 48px !important; height: 48px !important; }
+  .portal-brand strong { font-size: clamp(15px, 1.2vw, 18px) !important; }
+  .portal-brand small { font-size: clamp(11px, .9vw, 13px) !important; }
+
+  .nh-standard-header-actions,
+  .portal-header .header-actions {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: clamp(6px, .7vw, 10px) !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .nh-standard-header-actions a,
+  .nh-standard-header-actions button,
+  .portal-header .header-actions a,
+  .portal-header .header-actions button {
+    flex: 0 0 auto !important;
+    padding: 9px clamp(10px, .9vw, 15px) !important;
+    font-size: clamp(12px, .9vw, 15px) !important;
+  }
+}
+
+/* ---------- Notebook e tablet horizontal: marca + menu organizado em grade ---------- */
+@media (min-width: 700px) and (max-width: 1179px) {
+  .portal-header {
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 12px var(--nh-page-gutter) !important;
+  }
+
+  .portal-brand {
+    width: max-content !important;
+    max-width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 9px !important;
+    margin: 0 !important;
+  }
+
+  .portal-brand img { width: 44px !important; height: 44px !important; }
+  .portal-brand strong { font-size: 16px !important; }
+  .portal-brand small { font-size: 12px !important; }
+
+  .nh-standard-header-actions,
+  .portal-header .header-actions {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    overflow: visible !important;
+    justify-content: stretch !important;
+  }
+
+  .nh-standard-header-actions a,
+  .nh-standard-header-actions button,
+  .portal-header .header-actions a,
+  .portal-header .header-actions button {
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 8px 8px !important;
+    font-size: clamp(11px, 1.45vw, 13px) !important;
+    white-space: normal !important;
+  }
+}
+
+/* ---------- Mobile: nada oculto, nada cortado, grade de 2 colunas ---------- */
+@media (max-width: 699px) {
+  :root { --nh-page-gutter: clamp(10px, 3.5vw, 16px); }
+
+  .portal-header {
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: max(10px, env(safe-area-inset-top, 0px)) var(--nh-page-gutter) 10px !important;
+    overflow: visible !important;
+  }
+
+  .portal-brand {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 9px !important;
+    margin: 0 !important;
+  }
+
+  .portal-brand img { width: 42px !important; height: 42px !important; }
+  .portal-brand span { display: block !important; text-align: left !important; }
+  .portal-brand strong { font-size: 15px !important; }
+  .portal-brand small { font-size: 11px !important; }
+
+  .nh-standard-header-actions,
+  .portal-header .header-actions {
+    grid-column: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    overflow: visible !important;
+    justify-content: stretch !important;
+  }
+
+  .nh-standard-header-actions a,
+  .nh-standard-header-actions button,
+  .portal-header .header-actions a,
+  .portal-header .header-actions button {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    padding: 8px 7px !important;
+    font-size: clamp(10.5px, 3vw, 12.5px) !important;
+    white-space: normal !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+
+  .shell {
+    width: calc(100% - (2 * var(--nh-page-gutter))) !important;
+    margin-top: 18px !important;
+  }
+
+  .login-wrap {
+    width: calc(100% - (2 * var(--nh-page-gutter))) !important;
+    margin-top: 22px !important;
+  }
+
+  .login-card,
+  .card,
+  .tool-card,
+  .dialog-card,
+  .hero-panel,
+  .communication-card {
+    padding: clamp(15px, 4.2vw, 20px) !important;
+    border-radius: 16px !important;
+  }
+
+  .login-card h1 { font-size: clamp(27px, 8vw, 36px) !important; }
+
+  .form-grid,
+  .filter-grid,
+  .detail-grid,
+  .kpi-grid,
+  .overview-grid,
+  .tool-grid,
+  .upload-grid,
+  .document-upload-grid,
+  .communication-summary {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .span-2 { grid-column: auto !important; }
+
+  .section-head,
+  .detail-toolbar,
+  .associate-dossier-bar,
+  .purchase-title-row {
+    align-items: stretch !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .section-head > button,
+  .detail-toolbar > button,
+  .section-head .actions,
+  .actions > button,
+  .actions > .button,
+  .actions > a.button,
+  .row-actions > button,
+  .row-actions > .button,
+  .row-actions > a.button {
+    width: 100% !important;
+  }
+
+  input, select, textarea {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+
+  button, .button { min-height: 44px !important; }
+
+  .hero-panel h1,
+  .card h1,
+  .dialog-card h2,
+  .communication-card h2 {
+    max-width: 100% !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+
+  dialog,
+  .admin-dialog,
+  .office-dialog,
+  .tow-dialog,
+  .communication-dialog,
+  .acceptance-dialog {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+    margin: auto !important;
+  }
+
+  .dialog-card {
+    width: 100% !important;
+    max-height: calc(100dvh - 20px) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+
+  .table-wrap { border-radius: 12px !important; }
+  .table-wrap table { min-width: 680px; }
+
+  .admin-tabs,
+  .analysis-status-tabs,
+  .office-queue-tabs {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Mini celulares e dobráveis estreitos. */
+@media (max-width: 330px) {
+  :root { --nh-page-gutter: 8px; }
+
+  .portal-header .header-actions,
+  .nh-standard-header-actions {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .portal-brand strong { font-size: 14px !important; }
+  .portal-brand small { font-size: 10px !important; }
+  .portal-brand img { width: 38px !important; height: 38px !important; }
+
+  .login-card,
+  .card,
+  .tool-card,
+  .dialog-card,
+  .hero-panel { padding: 14px !important; }
+
+  .login-card h1 { font-size: 27px !important; }
+}
+
+/* ---------- Guincho / Oficina / Checklist ---------- */
+@media (max-width: 820px) {
+  .tow-kpis,
+  .tow-meta,
+  .tow-create-photo-grid,
+  .office-meta,
+  .office-grid,
+  .office-upload-form,
+  .office-row,
+  .purchase-grid,
+  .checklist-summary-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .tow-create-photo-choice,
+  .tow-create-photo-choice.span-2,
+  .office-row .item-title,
+  .office-row textarea,
+  .office-row .office-item-evidence {
+    grid-column: auto !important;
+  }
+
+  .tow-file-actions,
+  .office-file-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .tow-file-button,
+  .office-file-button { width: 100% !important; text-align: center !important; }
+
+  .workshop-checklist-head .actions,
+  .acceptance-actions,
+  .workshop-complete-card .actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* ---------- Página de aceite ---------- */
+.accept-shell {
+  width: min(980px, calc(100% - (2 * var(--nh-page-gutter)))) !important;
+}
+
+@media (max-width: 700px) {
+  .accept-shell { margin: 18px auto 42px !important; }
+  .accept-hero { padding: 20px 18px !important; border-radius: 16px !important; }
+  .accept-hero h1 { font-size: clamp(25px, 8vw, 36px) !important; }
+  .accept-summary { grid-template-columns: minmax(0, 1fr) !important; }
+  .accept-actions { display: grid !important; grid-template-columns: 1fr !important; }
+  .accept-actions > * { width: 100% !important; }
+}
+
+/* ---------- Site institucional: grades, seções e cabeçalho ---------- */
+@media (max-width: 1179px) {
+  .site-header .nav-wrapper {
+    width: min(100% - (2 * var(--nh-page-gutter)), 1440px) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .site-header .nav-wrapper {
+    min-height: 70px !important;
+    gap: 9px !important;
+  }
+
+  .site-header .brand-symbol { width: 46px !important; }
+  .site-header .brand-name strong { font-size: 15px !important; }
+  .site-header .brand-name small { font-size: 10px !important; }
+  .site-header .header-phone,
+  .site-header .header-collaborator { display: none !important; }
+
+  .site-header .menu-toggle {
+    flex: 0 0 auto !important;
+    width: 46px !important;
+    height: 46px !important;
+  }
+
+  .site-header .main-menu.open {
+    inset-inline: var(--nh-page-gutter) !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  .hero-actions,
+  .contact-actions,
+  .store-buttons,
+  .store-badges {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+
+  .hero-actions > *,
+  .contact-actions > *,
+  .store-buttons > *,
+  .store-badges > * { width: 100% !important; max-width: 100% !important; }
+
+  .benefits-grid,
+  .benefits-grid-expanded,
+  .offices-grid,
+  .steps-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Tablets: duas colunas onde cabe, sem cartões espremidos. */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .benefits-grid,
+  .benefits-grid-expanded,
+  .offices-grid,
+  .steps-grid,
+  .tool-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Paisagem baixa: modais e cabeçalhos não bloqueiam o conteúdo. */
+@media (max-height: 620px) and (orientation: landscape) {
+  dialog,
+  .admin-dialog,
+  .office-dialog,
+  .tow-dialog,
+  .communication-dialog,
+  .acceptance-dialog {
+    max-height: calc(100dvh - 12px) !important;
+  }
+
+  .dialog-card { max-height: calc(100dvh - 12px) !important; }
+  .login-wrap { margin-top: 14px !important; margin-bottom: 18px !important; }
+}
+
+
+/* =========================================================
+   V75 - Navegação interna responsiva com menu hambúrguer.
+   Em desktop amplo mantém a navegação horizontal. Em notebooks,
+   tablets, celulares e dobráveis usa o mesmo padrão do site principal.
+   ========================================================= */
+.nh-portal-menu-toggle{
+  display:none;
+  width:46px;
+  height:46px;
+  padding:0;
+  border:1.5px solid var(--nh-yellow,#f0f000);
+  border-radius:12px;
+  background:transparent;
+  color:#fff;
+  align-content:center;
+  justify-items:center;
+  gap:5px;
+  cursor:pointer;
+  flex:0 0 auto;
+}
+.nh-portal-menu-toggle span{
+  display:block;
+  width:23px;
+  height:3px;
+  border-radius:999px;
+  background:#fff;
+  transition:transform .2s ease, opacity .2s ease;
+}
+.nh-portal-menu-toggle.is-open span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+.nh-portal-menu-toggle.is-open span:nth-child(2){opacity:0}
+.nh-portal-menu-toggle.is-open span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
+
+@media (max-width:1179px){
+  .portal-header{
+    position:relative !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-rows:auto auto !important;
+    align-items:center !important;
+    gap:10px 12px !important;
+    min-height:68px !important;
+    padding:max(10px,env(safe-area-inset-top,0px)) var(--nh-page-gutter) 10px !important;
+    overflow:visible !important;
+  }
+  .portal-brand{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    width:auto !important;
+    max-width:100% !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:9px !important;
+    margin:0 !important;
+  }
+  .portal-brand img{width:44px !important;height:44px !important}
+  .portal-brand span{display:block !important;text-align:left !important;min-width:0 !important}
+  .portal-brand strong{font-size:16px !important;line-height:1.05 !important}
+  .portal-brand small{font-size:11px !important;line-height:1.1 !important;margin-top:2px}
+  .nh-portal-menu-toggle{
+    grid-column:2 !important;
+    grid-row:1 !important;
+    display:grid !important;
+    justify-self:end !important;
+    align-self:center !important;
+    min-height:46px !important;
+  }
+  .nh-standard-header-actions,
+  .portal-header .header-actions{
+    grid-column:1 / -1 !important;
+    grid-row:2 !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 !important;
+    padding:10px !important;
+    display:none !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    gap:7px !important;
+    overflow:visible !important;
+    justify-content:stretch !important;
+    border:1px solid rgba(255,255,255,.14) !important;
+    border-radius:16px !important;
+    background:rgba(7,12,64,.99) !important;
+    box-shadow:0 16px 40px rgba(7,12,64,.22) !important;
+  }
+  .nh-standard-header-actions.is-open,
+  .portal-header .header-actions.is-open{display:grid !important}
+  .nh-standard-header-actions a,
+  .nh-standard-header-actions button,
+  .portal-header .header-actions a,
+  .portal-header .header-actions button{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    min-height:44px !important;
+    padding:10px 14px !important;
+    font-size:13px !important;
+    line-height:1.2 !important;
+    text-align:left !important;
+    justify-content:flex-start !important;
+    white-space:normal !important;
+    border-radius:11px !important;
+  }
+  .nh-standard-header-actions a:hover,
+  .nh-standard-header-actions button:hover,
+  .portal-header .header-actions a:hover,
+  .portal-header .header-actions button:hover{
+    background:rgba(240,240,0,.10) !important;
+  }
+}
+
+@media (max-width:420px){
+  .portal-header{gap:8px !important}
+  .portal-brand img{width:40px !important;height:40px !important}
+  .portal-brand strong{font-size:14px !important}
+  .portal-brand small{font-size:10px !important}
+  .nh-portal-menu-toggle{width:44px !important;height:44px !important;min-height:44px !important}
+}
+
+@media (max-width:330px){
+  .portal-brand span{display:none !important}
+  .portal-header{grid-template-columns:auto 1fr auto !important}
+  .portal-brand{grid-column:1 !important}
+  .nh-portal-menu-toggle{grid-column:3 !important}
+  .nh-standard-header-actions,
+  .portal-header .header-actions{grid-column:1 / -1 !important}
+}
+
+/* =========================================================
+   V83.24 — acabamento responsivo global + painel ADMIN/Apontamento Digital
+   Mantém controles dentro do viewport em mini celulares, tablets,
+   notebooks, desktop e ultrawide sem reduzir legibilidade.
+   ========================================================= */
+
+:root{
+  --nh-fluid-shell: min(1560px, calc(100vw - (2 * var(--nh-page-gutter, 24px))));
+}
+
+/* Nenhum controle pode ultrapassar o card que o contém. */
+button,.button,input,select,textarea{
+  max-inline-size:100% !important;
+}
+button,.button{
+  white-space:normal;
+  text-align:center;
+  overflow-wrap:anywhere;
+}
+
+/* Cards de configuração antes tinham max-width fixo e comprimiam botões/tabelas. */
+.settings-card,
+#admin-passkey-card{
+  width:100% !important;
+  max-width:none !important;
+}
+
+.section-head{
+  min-width:0;
+}
+.section-head > div:first-child{
+  min-width:0;
+  flex:1 1 420px;
+}
+.section-head > button,
+.section-head > .actions{
+  flex:0 1 auto;
+  min-width:0;
+}
+
+#admin-passkey-card .section-head{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(180px,max-content);
+  align-items:center !important;
+  gap:14px !important;
+}
+#admin-passkey-card .section-head > button{
+  width:auto !important;
+  max-width:min(100%,320px) !important;
+  justify-self:end;
+}
+
+.passkey-required-banner{
+  min-width:0;
+}
+.passkey-required-banner > div{
+  min-width:0;
+  flex:1 1 520px;
+}
+.passkey-required-banner button{
+  max-width:min(100%,330px) !important;
+}
+
+/* Aba administrativa: em telas muito grandes usa mais espaço útil sem esticar texto. */
+@media (min-width:1600px){
+  .admin-page .shell{
+    width:var(--nh-fluid-shell) !important;
+    max-width:1560px !important;
+  }
+  .admin-page .admin-tabs{gap:10px !important;}
+  .admin-page .admin-tabs button{font-size:clamp(13px,.76vw,16px) !important;}
+  .admin-page .card{padding:clamp(22px,1.5vw,30px) !important;}
+}
+
+/* Notebook / tablet horizontal: evita botão de passkey espremido. */
+@media (max-width:1100px){
+  #admin-passkey-card .section-head{
+    grid-template-columns:minmax(0,1fr) !important;
+    align-items:stretch !important;
+  }
+  #admin-passkey-card .section-head > button{
+    width:100% !important;
+    max-width:none !important;
+    justify-self:stretch;
+  }
+  .passkey-required-banner{
+    align-items:stretch !important;
+    flex-direction:column !important;
+  }
+  .passkey-required-banner button{
+    width:100% !important;
+    max-width:none !important;
+  }
+}
+
+/* Admin tabs: desktop quebra linha; tablet/mobile vira trilho horizontal legível. */
+@media (min-width:900px){
+  .admin-page .admin-tabs{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    overflow:visible !important;
+  }
+  .admin-page .admin-tabs button{
+    flex:0 1 auto !important;
+  }
+}
+@media (max-width:899px){
+  .admin-page .admin-tabs{
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    gap:8px !important;
+    padding:8px 2px 10px !important;
+    scroll-snap-type:x proximity;
+    scrollbar-width:thin;
+  }
+  .admin-page .admin-tabs button{
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:max-content !important;
+    max-width:none !important;
+    white-space:nowrap !important;
+    scroll-snap-align:start;
+  }
+}
+
+/* Ações e filtros do Apontamento Digital se reorganizam sem cortar conteúdo. */
+#tab-nh-ponto .section-head .actions{
+  margin-top:0;
+  align-items:center;
+  justify-content:flex-end;
+}
+#tab-nh-ponto .section-head .actions input{
+  min-width:min(320px,100%);
+}
+#nh-ponto-employee-details-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));
+}
+
+@media (max-width:820px){
+  #tab-nh-ponto .section-head .actions{
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:1fr !important;
+  }
+  #tab-nh-ponto .section-head .actions > *{
+    width:100% !important;
+    max-width:none !important;
+  }
+  #tab-nh-ponto .table-wrap table{
+    min-width:980px !important;
+  }
+}
+
+/* Mini celular: controles ocupam largura integral e cards mantêm respiro. */
+@media (max-width:480px){
+  .admin-page .shell{
+    width:calc(100% - 20px) !important;
+  }
+  .admin-page .hero-panel,
+  .admin-page .card,
+  .admin-page .login-card{
+    padding:14px !important;
+    border-radius:14px !important;
+  }
+  .admin-page .section-head h2,
+  .admin-page .section-head h3{
+    font-size:clamp(1.15rem,6vw,1.5rem) !important;
+  }
+  .admin-page .section-head p,
+  .admin-page .helper{
+    font-size:.9rem !important;
+  }
+  #admin-passkey-card .section-head > button,
+  .passkey-required-banner button{
+    font-size:14px !important;
+    line-height:1.2 !important;
+  }
+}
+
+/* Telas extremamente estreitas: nunca força largura mínima de botão. */
+@media (max-width:320px){
+  button,.button{
+    padding-inline:10px !important;
+    font-size:12px !important;
+  }
+  .admin-page .shell{width:calc(100% - 12px) !important;}
+}
+
+/* V83.26 — visualização responsiva das selfies do Apontamento Digital */
+body.nh-ponto-selfie-open{overflow:hidden!important;overscroll-behavior:none}
+.nh-ponto-selfie-modal[hidden]{display:none!important}
+.nh-ponto-selfie-modal{position:fixed;inset:0;z-index:2147482000;background:rgba(3,7,22,.9);display:flex;align-items:center;justify-content:center;padding:clamp(10px,2vw,24px);overflow:auto}
+.nh-ponto-selfie-dialog{width:min(980px,100%);max-height:calc(100dvh - 20px);display:flex;flex-direction:column;min-width:0;background:#fff;border:2px solid #f0f000;border-radius:22px;box-shadow:0 28px 90px rgba(0,0,0,.52);overflow:hidden}
+.nh-ponto-selfie-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 20px;background:#0b174e;color:#fff}
+.nh-ponto-selfie-modal-head h3{margin:5px 0 4px;color:#fff;font-size:clamp(20px,3vw,30px)}
+.nh-ponto-selfie-modal-head .muted{margin:0;color:#d8def4;line-height:1.45}.nh-ponto-selfie-modal-head .eyebrow{color:#f0f000}
+.nh-ponto-selfie-modal-head .outline{flex:0 0 auto;border-color:#f0f000!important;color:#fff!important;background:transparent!important}
+.nh-ponto-selfie-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#02040a;padding:12px;overflow:auto}
+.nh-ponto-selfie-stage img{display:block;width:auto;height:auto;max-width:100%;max-height:min(70dvh,820px);object-fit:contain;border-radius:12px}
+.nh-ponto-selfie-modal-foot{padding:13px 18px;background:#0b174e;color:#d8fbe8;border-top:1px solid rgba(255,255,255,.14);font-weight:700;font-size:13px;line-height:1.45}
+.nh-ponto-selfie-required{display:block;margin-top:8px;max-width:260px;color:#8b5b00;font-size:11px;line-height:1.35}
+#tab-nh-ponto [data-nh-ponto-punch-selfie]{margin-top:8px;max-width:100%;white-space:normal}
+#tab-nh-ponto [data-nh-ponto-approve]:disabled,#tab-nh-ponto [data-nh-ponto-reject]:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:700px){
+ .nh-ponto-selfie-modal{padding:0;align-items:stretch}
+ .nh-ponto-selfie-dialog{width:100%;height:100vh;height:100dvh;max-height:none;border:0;border-radius:0}
+ .nh-ponto-selfie-modal-head{padding:max(12px,env(safe-area-inset-top)) 14px 12px;gap:10px}
+ .nh-ponto-selfie-modal-head h3{font-size:20px}.nh-ponto-selfie-modal-head .muted{font-size:11px}
+ .nh-ponto-selfie-modal-head .outline{padding:9px 10px!important;min-width:auto!important}
+ .nh-ponto-selfie-stage{padding:0;background:#000}.nh-ponto-selfie-stage img{width:100%;height:100%;max-width:none;max-height:none;border-radius:0;object-fit:contain}
+ .nh-ponto-selfie-modal-foot{padding:12px max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));font-size:12px}
+ #tab-nh-ponto .actions{width:100%}
+ #tab-nh-ponto [data-nh-ponto-approve],#tab-nh-ponto [data-nh-ponto-reject],#tab-nh-ponto [data-nh-ponto-punch-selfie]{width:100%;min-width:0}
+}

@@ -1,0 +1,66 @@
+{
+  "source": "nh-checklist-completo-v83-113-previews-responsivo(1).zip",
+  "base": "nh-base-universal-v118-implantacao-guiada.zip",
+  "release": "nh-base-universal-v119-candidato",
+  "changed": [
+    {
+      "file": "web/analise/analise.js",
+      "purpose": "Prévia resiliente e Termo de Responsabilidade pelo perfil analise, preservando regra comercial anterior"
+    },
+    {
+      "file": "web/analise/index.html",
+      "purpose": "Botões do Termo por analise, incluindo download antes/depois do aceite"
+    },
+    {
+      "file": "web/supervisao/supervisao.js",
+      "purpose": "Prévia resiliente e Termo de Responsabilidade pelo perfil supervisao, preservando regra comercial anterior"
+    },
+    {
+      "file": "web/supervisao/index.html",
+      "purpose": "Botões do Termo por supervisao, incluindo download antes/depois do aceite"
+    },
+    {
+      "file": "web/admin/admin.js",
+      "purpose": "Pré-visualizações administrativas com cache, limite de concorrência e fallback; financeiro preservado"
+    },
+    {
+      "file": "web/aceite-termo/aceite-termo.js",
+      "purpose": "Fluxo de aceite exclusivamente via WebAuthn sem identidade NH"
+    },
+    {
+      "file": "web/aceite-termo/index.html",
+      "purpose": "Textos de aceite WebAuthn acessíveis e neutros"
+    },
+    {
+      "file": "backend/src/main/java/br/com/nh/cotacao/controller/InspectionResponsibilityTermController.java",
+      "purpose": "Rotas de Analista e DTO status/auditoria de aceite"
+    },
+    {
+      "file": "backend/src/main/java/br/com/nh/cotacao/dto/ResponsibilityTermDtos.java",
+      "purpose": "Rotas de Analista e DTO status/auditoria de aceite"
+    },
+    {
+      "file": "backend/src/main/java/br/com/nh/cotacao/service/InspectionResponsibilityTermService.java",
+      "purpose": "Status e auditoria do termo, regeneração de dossiê e identidade do tenant"
+    },
+    {
+      "file": "backend/src/main/java/br/com/nh/cotacao/service/ResponsibilityTermPdfService.java",
+      "purpose": "PDF do termo com status/auditoria e identidade documental por empresa"
+    },
+    {
+      "file": "backend/src/main/resources/db/tenant/V3__term_acceptance_audit_columns.sql",
+      "purpose": "Migração estrutural de status do termo independente do histórico da NH"
+    },
+    {
+      "file": "web/shared/responsive.css",
+      "purpose": "Ações do termo responsivas em celular"
+    }
+  ],
+  "not_auto_merged": [
+    "V85/V86/V87 históricas: conflitos com V86/V89 financeiros, sem importação de dados/preços específicos",
+    "Regras comerciais 35/50/100 mil por plano: exclusivas da operação antiga, não são padrão multiempresa",
+    "Dados, PDFs, logotipos, cadastros, compilados dist e seeds legados",
+    "Mudanças NH Ponto na linha original: precisam de teste por módulo, migração Prisma inicial ainda pendente"
+  ],
+  "production_approved": false
+}

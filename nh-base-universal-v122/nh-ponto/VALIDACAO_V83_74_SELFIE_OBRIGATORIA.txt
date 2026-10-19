@@ -1,0 +1,28 @@
+VALIDAÇÃO V83.74 — SELFIE OBRIGATÓRIA EM TODAS AS MARCAÇÕES MANUAIS
+Data: 01/10/2026
+
+[OK] CLOCK_IN está no conjunto de ações com selfie obrigatória.
+[OK] BREAK_START está no conjunto de ações com selfie obrigatória.
+[OK] BREAK_END está no conjunto de ações com selfie obrigatória.
+[OK] PAUSE_START está no conjunto de ações com selfie obrigatória.
+[OK] PAUSE_END está no conjunto de ações com selfie obrigatória.
+[OK] CLOCK_OUT manual está no conjunto de ações com selfie obrigatória.
+[OK] selfieDataUrl é obrigatório no POST /punches.
+[OK] Latitude e longitude são obrigatórias no POST /punches.
+[OK] Challenge das marcações retorna requireSelfie=true.
+[OK] Marcação offline continua desativada.
+[OK] createImmutablePunch possui validação central de evidência presencial.
+[OK] SYSTEM_AUTO_LOCK_NO_SELFIE só é permitido para CLOCK_OUT com actorUserId=null.
+[OK] Uso indevido da exceção automática é rejeitado com SYSTEM_AUTO_CLOSE_SOURCE_FORBIDDEN.
+[OK] Trava manual configurada para +10 minutos.
+[OK] Finalização automática configurada para +15 minutos.
+[OK] Saída automática é criada pelo servidor com source SYSTEM_AUTO_LOCK_NO_SELFIE.
+[OK] Saída automática permanece sem ator humano.
+[OK] Interface informa selfie obrigatória em todas as marcações manuais.
+[OK] Interface explica a janela +10 até +15 minutos.
+[OK] Cache PWA atualizado para V83.74.
+[OK] Sintaxe TypeScript/TSX dos arquivos modificados validada via transpileModule.
+[OK] Sintaxe JavaScript dos arquivos API dist modificados validada com node --check.
+[OK] Nenhuma migration Prisma necessária.
+
+TOTAL: 22 verificações funcionais/estruturais + validação sintática.

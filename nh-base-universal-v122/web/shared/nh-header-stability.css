@@ -1,0 +1,244 @@
+/* NH v83.110 — cabeçalho institucional, baseado no layout original da Empresa Cliente.
+   Desktop: logomarca + assistência + menu inteiro + cotação + colaborador + Associado.
+   Telas compactas: navegação recolhida sem sobreposição; ambos os portais no menu.
+   Este arquivo carrega depois de style.css e responsive.css para consolidar a cascata. */
+
+.site-header {
+  z-index: 120 !important;
+  background: var(--nh-blue, #070c40) !important;
+  border-bottom: 3px solid var(--nh-yellow, #f0f000) !important;
+  overflow: visible !important;
+}
+.site-header .brand {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  text-decoration: none !important;
+}
+.site-header .brand-name {
+  display: grid !important;
+  gap: 2px !important;
+  line-height: 1 !important;
+  overflow: visible !important;
+}
+.site-header .brand-name strong {
+  display: block !important;
+  color: #fff !important;
+  font-size: clamp(15px, 1vw, 18px) !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: -.035em !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+.site-header .brand-name small {
+  display: block !important;
+  color: var(--nh-yellow, #f0f000) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .025em !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+.site-header .header-phone,
+.site-header .header-collaborator,
+.site-header .header-associate {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  min-height: 44px !important;
+  padding: 0 13px !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  border: 2px solid var(--nh-yellow, #f0f000) !important;
+  background: transparent !important;
+  color: white !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+}
+.site-header .header-cta {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  min-height: 44px !important;
+  padding: 0 14px !important;
+  margin: 0 !important;
+  border: 2px solid var(--nh-yellow, #f0f000) !important;
+  border-radius: 10px !important;
+  background: var(--nh-yellow, #f0f000) !important;
+  color: var(--nh-blue, #070c40) !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  text-transform: uppercase !important;
+}
+.site-header .header-associate {
+  background: white !important;
+  color: var(--nh-blue, #070c40) !important;
+  border-color: white !important;
+}
+.site-header .header-phone:hover,
+.site-header .header-collaborator:hover {
+  color: var(--nh-blue, #070c40) !important;
+  background: var(--nh-yellow, #f0f000) !important;
+}
+.site-header .header-associate:hover { background: #f0f000 !important; border-color: #f0f000 !important; }
+.site-header .main-menu .collaborator-menu-link,
+.site-header .main-menu .associate-menu-link,
+.site-header .main-menu .assistance-menu-link { display: none !important; }
+
+/* Menu original da segunda imagem: sempre visível em desktop largo. */
+@media (min-width: 1600px) {
+  .site-header { position: fixed !important; inset: 0 0 auto 0 !important; }
+  .site-header .nav-wrapper {
+    width: min(1700px, calc(100% - 44px)) !important;
+    max-width: 1700px !important;
+    min-height: 90px !important;
+    padding: 0 !important;
+    margin-inline: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-wrap: nowrap !important;
+    gap: clamp(7px, .6vw, 14px) !important;
+    overflow: visible !important;
+  }
+  .site-header .brand {
+    order: 1 !important;
+    flex: 0 1 244px !important;
+    min-width: 212px !important;
+    margin: 0 !important;
+  }
+  .site-header .header-phone { padding: 0 17px !important; font-size: 13px !important; }
+  .site-header .header-collaborator { padding: 0 16px !important; font-size: 13px !important; }
+  .site-header .header-associate { padding: 0 15px !important; font-size: 13px !important; }
+  .site-header .brand-symbol { width: 62px !important; min-width: 62px !important; height: auto !important; }
+  .site-header .header-phone { order: 2 !important; }
+  .site-header .main-menu {
+    order: 3 !important;
+    position: static !important;
+    display: flex !important;
+    flex: 0 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: clamp(8px, .7vw, 15px) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: clamp(10px, .62vw, 12px) !important;
+    text-transform: uppercase !important;
+  }
+  .site-header .main-menu a:not(.assistance-menu-link):not(.collaborator-menu-link):not(.associate-menu-link) {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+    width: auto !important;
+    padding: 12px 0 !important;
+    color: white !important;
+    white-space: nowrap !important;
+  }
+  .site-header .main-menu a.active::after { width: 100% !important; }
+  .site-header .main-menu a::after { bottom: -8px !important; }
+  .site-header .header-cta { order: 4 !important; }
+  .site-header .header-collaborator { order: 5 !important; }
+  .site-header .header-associate { order: 6 !important; }
+  .site-header .menu-toggle { display: none !important; }
+}
+
+/* Notebooks e tablets: ações priorizadas + menu recolhível.
+   Não reduzimos as fontes até o conteúdo se sobrepor. */
+@media (min-width: 761px) and (max-width: 1599px) {
+  .site-header { position: fixed !important; inset: 0 0 auto 0 !important; }
+  .site-header .nav-wrapper {
+    width: min(1480px, calc(100% - 28px)) !important;
+    max-width: 1480px !important;
+    min-height: 82px !important;
+    margin-inline: auto !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+  }
+  .site-header .brand { order: 1 !important; flex: 1 1 auto !important; min-width: 0 !important; margin-right: auto !important; }
+  .site-header .brand-symbol { width: 56px !important; min-width: 56px !important; }
+  .site-header .header-phone { order: 2 !important; }
+  .site-header .header-cta { order: 3 !important; }
+  .site-header .header-collaborator { order: 4 !important; }
+  .site-header .header-associate { order: 5 !important; }
+  .site-header .menu-toggle {
+    order: 6 !important;
+    display: grid !important;
+    flex: 0 0 44px !important;
+    width: 44px !important;
+    height: 44px !important;
+    place-content: center !important;
+    border: 1px solid var(--nh-yellow, #f0f000) !important;
+    border-radius: 10px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  .site-header .main-menu { display: none !important; }
+  .site-header .main-menu.open {
+    position: absolute !important;
+    display: grid !important;
+    inset: calc(100% + 8px) 0 auto auto !important;
+    width: min(360px, calc(100vw - 28px)) !important;
+    max-width: calc(100vw - 28px) !important;
+    max-height: calc(100dvh - 104px) !important;
+    overflow-y: auto !important;
+    padding: 14px !important;
+    gap: 3px !important;
+    border: 1px solid var(--nh-yellow, #f0f000) !important;
+    border-radius: 14px !important;
+    background: var(--nh-blue, #070c40) !important;
+    box-shadow: 0 20px 50px rgba(7,12,64,.35) !important;
+  }
+  .site-header .main-menu.open a { display: flex !important; padding: 10px 12px !important; min-height: 40px !important; color: white !important; }
+  .site-header .main-menu.open a::after { display: none !important; }
+  .site-header .main-menu.open .assistance-menu-link,
+  .site-header .main-menu.open .collaborator-menu-link,
+  .site-header .main-menu.open .associate-menu-link { display: none !important; }
+}
+@media (min-width: 761px) and (max-width: 1250px) {
+  .site-header .header-phone { display: none !important; }
+  .site-header .main-menu.open .assistance-menu-link { display: flex !important; color: var(--nh-yellow, #f0f000) !important; }
+}
+@media (min-width: 761px) and (max-width: 1050px) {
+  .site-header .header-collaborator, .site-header .header-associate { display: none !important; }
+  .site-header .main-menu.open .collaborator-menu-link,
+  .site-header .main-menu.open .associate-menu-link { display: flex !important; background: var(--nh-yellow, #f0f000) !important; color: var(--nh-blue, #070c40) !important; border-radius: 10px !important; }
+}
+
+@media (max-width: 760px) {
+  .site-header { position: sticky !important; top: 0 !important; }
+  .site-header .nav-wrapper { width: calc(100% - 16px) !important; max-width: none !important; min-height: 70px !important; padding: 0 !important; margin: 0 auto !important; display: flex !important; align-items: center !important; gap: 8px !important; }
+  .site-header .brand { order: 1 !important; flex: 1 1 auto !important; min-width: 0 !important; margin: 0 !important; gap: 6px !important; overflow: hidden !important; }
+  .site-header .brand-symbol { width: 44px !important; min-width: 44px !important; }
+  .site-header .brand-name { min-width: 0 !important; max-width: unset !important; }
+  .site-header .brand-name strong { font-size: clamp(12px, 3.5vw, 15px) !important; }
+  .site-header .brand-name small { font-size: 8px !important; }
+  .site-header .header-phone, .site-header .header-collaborator, .site-header .header-associate { display: none !important; }
+  .site-header .header-cta { order: 2 !important; display: inline-grid !important; place-items: center !important; flex: 0 0 42px !important; width: 42px !important; height: 42px !important; min-height: 42px !important; padding: 0 !important; font-size: 0 !important; line-height: 0 !important; }
+  .site-header .header-cta .wa-icon { width: 23px !important; min-width: 23px !important; height: 23px !important; font-size: 24px !important; line-height: 1 !important; }
+  .site-header .menu-toggle { order: 3 !important; flex: 0 0 42px !important; display: grid !important; place-content: center !important; width: 42px !important; min-width: 42px !important; max-width: 42px !important; height: 42px !important; border: 1px solid var(--nh-yellow, #f0f000) !important; border-radius: 10px !important; background: transparent !important; visibility: visible !important; opacity: 1 !important; }
+  .site-header .menu-toggle span { background: var(--nh-yellow, #f0f000) !important; }
+  .site-header .main-menu { display: none !important; }
+  .site-header .main-menu.open { position: fixed !important; display: grid !important; inset: 74px 8px auto 8px !important; width: auto !important; max-width: none !important; max-height: calc(100dvh - 85px) !important; overflow-y: auto !important; gap: 4px !important; padding: 14px !important; background: var(--nh-blue, #070c40) !important; border: 1px solid var(--nh-yellow, #f0f000) !important; border-radius: 14px !important; box-shadow: 0 20px 45px rgba(7,12,64,.32) !important; }
+  .site-header .main-menu.open a { display: flex !important; min-height: 43px !important; width: 100% !important; padding: 10px 12px !important; align-items: center !important; color: white !important; white-space: normal !important; }
+  .site-header .main-menu.open a::after { display: none !important; }
+  .site-header .main-menu.open .assistance-menu-link { display: flex !important; color: var(--nh-yellow, #f0f000) !important; }
+  .site-header .main-menu.open .collaborator-menu-link,
+  .site-header .main-menu.open .associate-menu-link { display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; border-radius: 10px !important; background: var(--nh-yellow, #f0f000) !important; color: var(--nh-blue, #070c40) !important; font-weight: 900 !important; }
+}

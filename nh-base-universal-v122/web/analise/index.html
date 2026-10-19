@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070c40">
+  <title>Equipe de Análise | Empresa Cliente</title>
+  <link rel="icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="shortcut icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="apple-touch-icon" href="/assets/identidade-pendente.svg" />
+  <meta property="og:image" content="" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:image" content="" />
+<link rel="stylesheet" href="/shared/portal.css?v=20260929-v83-35">
+  <link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24">
+  <link rel="stylesheet" href="/shared/brand-system.css?v=20260923-v73">
+
+  <style id="nh-dev-credit-style">
+    .nh-dev-credit {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px 10px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: .01em;
+      opacity: .56;
+      color: inherit;
+    }
+    .nh-dev-credit a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .nh-dev-credit a:hover,
+    .nh-dev-credit a:focus-visible {
+      text-decoration: underline;
+      opacity: .95;
+    }
+    @media (max-width: 640px) {
+      .nh-dev-credit {
+        padding: 7px 10px 9px;
+        font-size: 10px;
+        opacity: .52;
+      }
+    }
+    #edit-fipe-version { width:100%; min-width:0; max-width:100%; }
+  #analysis-fipe-version-status { font-size:.82rem; margin:0; overflow-wrap:anywhere; }
+  #edit-fipe-code[readonly], #edit-fipe-display[readonly] { background:#f4f6fa; }
+</style>
+<link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24" />
+  <script defer src="/shared/portal-nav.js?v=20260923-v77"></script>
+<style id="nh-v83-124-analysis">
+  .analysis-address-editor{min-width:0;border:1px solid #dce3ed;border-radius:14px;padding:14px;background:#f8faff;margin:8px 0}
+  .analysis-address-editor legend{font-weight:750;color:#101945;padding:0 7px}
+  .analysis-address-editor .muted{font-size:.85rem;margin:4px 0 12px}
+  .analysis-address-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .analysis-address-grid label,.analysis-plan-change label{min-width:0;display:flex;flex-direction:column;gap:6px}
+  .analysis-address-grid input,.analysis-address-grid select,.analysis-plan-change select{min-width:0;width:100%;max-width:100%;box-sizing:border-box}
+  .analysis-cep-control{display:flex;gap:8px;align-items:center;min-width:0}
+  .analysis-cep-control input{flex:1;min-width:0}
+  .analysis-cep-control button{white-space:nowrap;padding:10px 12px}
+  .analysis-plan-change{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin:12px 0;padding:12px;border:1px solid #dce3ed;border-radius:12px}
+  .analysis-plan-change p{grid-column:1/-1;margin:0;font-size:.83rem}
+  @media(max-width:640px){.analysis-address-grid,.analysis-plan-change{grid-template-columns:1fr}.analysis-street-field{grid-column:auto}.analysis-plan-change button{width:100%}}
+</style>
+<link rel="stylesheet" href="/shared/inspection-documents.css?v=20261016-v83-129">
+<style id="nh-v83-137-fipe-catalog">
+  .form-grid label input[list]{background-color:#fff;min-width:0}
+  .form-grid label:has(input[list]){min-width:0}
+  #edit-fipe-brand,#inspection-edit-model,#edit-vehicle-model,#admin-fipe-brand {max-width:100%}
+</style>
+</head>
+<body>
+<header class="portal-header">
+  <a class="portal-brand" href="/"><img src="/assets/identidade-pendente.svg" alt="Empresa Cliente"><span><strong>Empresa Cliente</strong><small>Equipe de Análise</small></span></a>
+  <button class="nh-portal-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="nh-portal-menu"><span></span><span></span><span></span></button><div id="nh-portal-menu" class="header-actions nh-standard-header-actions">
+        <a href="/">Site principal</a>
+        <a href="/colaborador/">Área do Colaborador</a>
+        <a href="/ponto/">Apontamento Digital</a>
+        <a href="/analise/">Analista</a>
+        <a href="/guincho/">Reboque / Guincho</a>
+        <a href="/oficina/">Área da Oficina</a>
+        <a href="/financeiro/">Área do Financeiro</a>
+        <a href="/supervisao/">Supervisor</a>
+        <a href="/admin/">Administrador</a>
+        <button id="logout" type="button" hidden>Sair</button>
+      </div>
+</header>
+
+<section id="analysis-login" class="login-wrap">
+  <div class="card login-card">
+    <span class="eyebrow" style="color:#070c40">ACESSO RESTRITO</span>
+    <h1>Equipe de Análise</h1>
+    <p>Entre com o usuário disponibilizado para analisar as vistorias.</p>
+    <form id="login-form" class="form-grid">
+      <label class="span-2">Usuário<input id="username" autocomplete="username" required></label>
+      <label class="span-2">Senha<input id="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary span-2" type="submit">Entrar com segurança</button>
+    </form>
+    <div id="login-message"></div>
+  </div>
+</section>
+
+<main id="analysis-view" class="shell" hidden>
+  <section class="hero-panel">
+    <span class="eyebrow">RETRATO NH</span>
+    <h1 id="analysis-welcome-title">Análise de vistorias</h1>
+    <p id="analysis-welcome-text">Seu painel de Analista está pronto e atualizado.</p>
+  </section>
+  <div id="message" aria-live="polite"></div>
+  <section class="analysis-queues" style="margin-top:22px">
+    <div class="section-head analysis-queues-head">
+      <div><h2>Vistorias recebidas</h2><p>Use as abas para separar o fluxo entre cadastro e documentos pendentes. A aprovação ou rejeição final é feita pela Supervisão de Análise.</p></div>
+      <div class="actions analysis-filter-actions" style="margin-top:0"><input id="filter" placeholder="Buscar associado, placa, consultor ou analista"><button id="refresh" class="outline" type="button">Atualizar</button></div>
+    </div>
+
+    <nav id="analysis-status-tabs" class="analysis-status-tabs" aria-label="Fila do analista">
+      <button type="button" class="analysis-status-tab active" data-analysis-queue="review">Para cadastro <span id="analysis-tab-review-count">0</span></button>
+      <button type="button" class="analysis-status-tab" data-analysis-queue="pending">Pendências de vistoria <span id="analysis-tab-pending-count">0</span></button>
+      <button type="button" class="analysis-status-tab" data-analysis-queue="acceptance">Aguardando aceite <span id="analysis-tab-acceptance-count">0</span></button>
+      <button type="button" class="analysis-status-tab" data-analysis-queue="accepted">Aceites realizados <span id="analysis-tab-accepted-count">0</span></button>
+    </nav>
+    <p id="analysis-status-description" class="analysis-status-description">Vistorias dos seus consultores que aguardam conferência e a marcação “Cadastro feito”.</p>
+
+    <article class="card analysis-queue-card">
+      <div class="analysis-queue-title">
+        <span class="analysis-queue-index">1</span>
+        <div>
+          <h2>Nova vistoria</h2>
+          <p>Vistorias originadas de cotações aceitas para novo cadastro do associado e do veículo.</p>
+        </div>
+        <span id="new-inspections-count" class="analysis-queue-count">0 registros</span>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Associado</th><th>Placa</th><th>Consultor</th><th>Analista responsável</th><th>Enviada em</th><th>Status</th><th>Ação</th></tr></thead>
+        <tbody id="new-inspections-body"></tbody>
+      </table></div>
+    </article>
+
+    <article class="card analysis-queue-card">
+      <div class="analysis-queue-title">
+        <span class="analysis-queue-index">2</span>
+        <div>
+          <h2>Atualização de boleto</h2>
+          <p>Atualizações iniciadas diretamente no Retrato NH, com identificação do plano já contratado.</p>
+        </div>
+        <span id="billing-inspections-count" class="analysis-queue-count">0 registros</span>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Associado</th><th>Placa</th><th>Consultor</th><th>Analista responsável</th><th>Enviada em</th><th>Status</th><th>Ação</th></tr></thead>
+        <tbody id="billing-inspections-body"></tbody>
+      </table></div>
+    </article>
+  </section>
+</main>
+
+<dialog id="inspection-dialog" class="admin-dialog wide-dialog">
+  <form id="inspection-form" class="dialog-card">
+    <div class="dialog-head">
+      <div><span class="eyebrow" style="color:#070c40">ANÁLISE DO RETRATO NH</span><h2 id="dialog-title">Vistoria</h2></div>
+      <button id="close-dialog" class="dialog-close" type="button" aria-label="Fechar">×</button>
+    </div>
+    <input id="inspection-id" type="hidden">
+    <div id="inspection-details" class="detail-grid"></div>
+    <section class="message" style="margin-top:16px">
+      <strong>Editar dados do associado e veículo</strong>
+      <p>O analista pode corrigir os dados abaixo enquanto a vistoria ainda não estiver com status <strong>Cadastro feito</strong>. A cotação vinculada é sincronizada automaticamente.</p>
+      <div class="form-grid" style="margin-top:12px">
+        <label>Nome do associado<input id="edit-associate-name" maxlength="140"></label>
+        <label>CPF<input id="edit-associate-cpf" maxlength="14" inputmode="numeric" placeholder="000.000.000-00"></label>
+        <label>WhatsApp<input id="edit-associate-whatsapp" maxlength="30" inputmode="tel" placeholder="(82) 99999-9999"></label>
+        <label>Placa<input id="edit-associate-plate" maxlength="10" placeholder="ABC1D23"></label>
+        <label>Veículo 0 km<select id="edit-zero-km"><option value="false">Não</option><option value="true">Sim</option></select></label>
+        <label>Tipo de veículo (FIPE)
+              <select id="edit-fipe-type" aria-label="Tipo de veículo da tabela FIPE"><option value="">Carregando tipos...</option></select>
+            </label>
+            <label>Marca do veículo (digite ou selecione)
+              <input id="edit-fipe-brand" list="edit-fipe-brand-list" maxlength="120" autocomplete="off" placeholder="Ex.: Honda" />
+              <datalist id="edit-fipe-brand-list"></datalist>
+            </label>
+            <label>Modelo do veículo (digite ou selecione)
+              <input id="edit-vehicle-model" list="edit-fipe-model-list" maxlength="120" autocomplete="off" placeholder="Ex.: CG 160" />
+              <datalist id="edit-fipe-model-list"></datalist>
+            </label>
+        <label>Ano do modelo<input id="edit-model-year" type="number" min="1950" max="2100"></label>
+        <label>Versão do veículo (Tabela FIPE)
+          <select id="edit-fipe-version" aria-describedby="analysis-fipe-version-status">
+            <option value="">Selecione tipo, marca, modelo e ano</option>
+          </select>
+        </label>
+        <label>Código FIPE<input id="edit-fipe-code" readonly aria-readonly="true" placeholder="Preenchimento automático"></label>
+        <label>Valor FIPE encontrado<input id="edit-fipe-display" readonly aria-readonly="true" placeholder="Preenchimento automático"></label>
+        <p id="analysis-fipe-version-status" class="muted span-2" aria-live="polite">A tabela FIPE pode mostrar diversas versões. Confira antes de selecionar.</p>
+        <label class="span-2">Endereço residencial<textarea id="edit-residence-address" maxlength="600" rows="3"></textarea></label>
+      </div>
+      <div class="actions" style="margin-top:10px"><button id="save-editable-details" class="secondary" type="button">Salvar dados corrigidos</button></div>
+      <div id="contract-values-section" class="message commercial-editor">
+        <strong>Valores do contrato</strong>
+        <p id="contract-values-helper">FIPE e mensalidade podem ser corrigidas enquanto o cadastro estiver pendente ou marcado como não feito, inclusive em vistorias antigas. Os valores salvos passam a valer no PPV/PDF contratual e ficam registrados no histórico.</p>
+        <p style="margin-top:10px"><strong>Plano da cotação:</strong> <span id="edit-contract-plan">—</span></p>
+            <div class="commercial-stage-heading">
+              <span>ETAPA 1</span>
+              <div><strong>Base do plano e condições do cálculo</strong><small>O valor-base vem da tabela cadastrada para o plano, tipo do veículo e FIPE. Rastreador/taxas só entram quando a regra atual exigir.</small></div>
+            </div>
+        <div class="form-grid" style="margin-top:10px">
+          <label>Valor FIPE do veículo<input id="edit-contract-fipe" data-money inputmode="decimal" placeholder="Ex.: 65.000,00"></label>
+          <label>Valor mensal final (automático)<input id="edit-contract-monthly" data-money inputmode="decimal" readonly aria-readonly="true"><small class="helper">Calculado na hora: valor-base cadastrado para o plano/FIPE + rastreador ou taxa aplicável + serviços adicionais selecionados − desconto.</small></label>
+          <label>Desconto aplicado
+            <select id="edit-contract-discount">
+              <option value="0">Sem desconto</option>
+            </select>
+          </label>
+          <label>Perfurado no vigia traseiro
+            <select id="edit-contract-branding">
+              <option value="NOT_APPLICABLE">Não se aplica</option>
+                  <option value="ANY_PERFORATED">Perfurado no vigia traseiro</option>
+              <option value="NH_AND_OTHER_COMPANY">Empresa Cliente + outra empresa</option>
+              <option value="NH_ONLY">Somente Empresa Cliente</option>
+            </select>
+          </label>
+        </div>
+        <div class="commercial-preview" aria-live="polite">
+          <div class="commercial-preview-item"><span>Mensalidade base do plano</span><strong id="analysis-preview-base">R$ 0,00</strong></div>
+          <div class="commercial-preview-item"><span id="analysis-preview-mandatory-label">Rastreador / taxa mensal aplicável</span><strong id="analysis-preview-mandatory">R$ 0,00</strong></div>
+          <div class="commercial-preview-item"><span>Adicionais selecionados</span><strong id="analysis-preview-optionals">R$ 0,00</strong></div>
+          <div class="commercial-preview-item"><span>Subtotal mensal</span><strong id="analysis-preview-subtotal">R$ 0,00</strong></div>
+          <div class="commercial-preview-item"><span>Taxa única (fora da mensalidade)</span><strong id="analysis-preview-one-time">R$ 0,00</strong></div>
+          <div class="commercial-preview-item commercial-preview-discount"><span id="analysis-preview-discount-label">Desconto</span><strong id="analysis-preview-discount">R$ 0,00</strong></div>
+          <div class="commercial-preview-item commercial-preview-total"><span>Valor final previsto</span><strong id="analysis-preview-final">R$ 0,00</strong><small id="analysis-preview-final-note">Calculado automaticamente com desconto e adicionais.</small></div>
+            </div>
+        <div class="commercial-benefits-section">
+          <div class="commercial-stage-heading commercial-stage-two">
+              <span>ETAPA 2</span>
+              <div><strong>Serviços adicionais e benefícios</strong><small>Esta lista vem do cadastro atual do plano. Ao adicionar ou remover um serviço, a prévia é recalculada na hora com o valor cadastrado.</small></div>
+            </div>
+          <div id="edit-contract-benefits" class="commercial-benefits-grid"></div>
+        </div>
+        <div class="actions" style="margin-top:10px"><button id="save-contract-values" class="secondary" type="button">Salvar revisão comercial</button></div>
+        <div id="contract-change-pending" class="message success" hidden style="margin-top:12px">
+          <strong>Novo valor aguardando confirmação do associado</strong>
+          <p id="contract-change-pending-text">Envie o link para o cliente conferir o novo valor e decidir sobre os adicionais já contratados.</p>
+          <div class="actions">
+            <a id="send-contract-change-link" class="secondary" target="_blank" rel="noopener">Enviar link para cliente confirmar o novo valor do plano</a>
+            <button id="copy-contract-change-link" class="outline" type="button">Copiar link</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div id="discount-validation-note" class="message" hidden style="margin-top:16px"></div>
+    <section id="inspection-files-section" class="inspection-media-section" hidden>
+      <div class="inspection-media-head">
+        <div><h3>Arquivos enviados</h3><p id="inspection-files-retention">Os arquivos confirmados permanecem vinculados à vistoria; o relatório PDF consolidado também continua disponível.</p></div>
+        <button id="download-all-files" class="secondary" type="button">Baixar todos (.zip)</button>
+      </div>
+      <div id="inspection-files-grid" class="inspection-media-grid"></div>
+    </section>
+    <div class="form-grid" style="margin-top:18px">
+      <div id="inspection-analyst-wrap" class="span-2">
+        <label>Analista responsável<select id="inspection-analyst">
+          <option value="">Selecione o analista</option>
+        </select></label>
+        <label id="inspection-new-analyst-wrap" style="margin-top:10px" hidden>Nome do novo analista
+          <input id="inspection-new-analyst-name" maxlength="140" placeholder="Nome completo do analista">
+        </label>
+        <p id="inspection-analyst-helper" class="helper">O responsável ficará registrado no histórico desta análise.</p>
+      </div>
+      <label>Situação do cadastro<select id="inspection-status" disabled>
+        <option value="AWAITING_DOCUMENTS">Aguardando documentos</option>
+        <option value="NOT_COMPLETED">Cadastro não feito</option>
+        <option value="COMPLETED">Cadastro feito</option>
+      </select></label>
+      <label class="span-2"><strong>O.B.S. Supervisão</strong><textarea id="supervision-note" rows="4" readonly placeholder="Nenhuma observação da supervisão para esta vistoria."></textarea><small id="supervision-note-meta" class="helper">As orientações registradas pela supervisão aparecem aqui.</small></label>
+      <label class="span-2">Observação da análise<textarea id="inspection-note" maxlength="1200" rows="4" placeholder="Informe pendências, motivo da rejeição ou orientações."></textarea></label>
+    </div>
+    <section id="analysis-document-center" class="nh-doc-center" aria-live="polite"></section>
+    <div id="analysis-responsibility-term-box" class="message webauthn-send-box" hidden style="margin-top:16px">
+      <strong>Termo de Responsabilidade · aceite separado</strong>
+      <p id="analysis-responsibility-term-status">O Analista pode enviar o termo sozinho ao associado, inclusive depois da vistoria ou do aceite do dossiê.</p>
+      <label style="margin-top:10px">Avarias / peças com responsabilidade do associado
+        <textarea id="analysis-responsibility-term-damages" maxlength="4000" rows="4" placeholder="Ex.: Para-choque dianteiro — trincado; Farol esquerdo — quebrado"></textarea>
+      </label>
+      <div class="actions" style="margin-top:10px">
+        <button id="analysis-send-responsibility-term" class="secondary" type="button">Enviar somente o termo</button>
+        <button id="analysis-copy-responsibility-term" class="outline" type="button">Copiar link do termo</button>
+        <button id="analysis-open-responsibility-term" class="outline" type="button">Abrir termo</button>
+            <button id="analysis-download-responsibility-term" class="outline" type="button">Baixar termo (PDF)</button>
+      </div>
+    </div>
+    </div>
+    <div id="inspection-links" class="actions"></div>
+    <div id="associate-notification" class="message success" hidden>
+      Status atualizado. Use o botão abaixo para informar o associado pelo WhatsApp.
+      <div class="actions"><button id="notify-associate" class="secondary" type="button">Enviar mensagem ao associado</button></div>
+    </div>
+    <div class="actions dialog-actions"><button id="cancel-dialog" class="outline" type="button">Fechar</button><button id="registration-not-complete" class="outline" type="button">Cadastro não feito</button><button id="registration-complete" class="secondary" type="button">✓ Cadastro feito · Enviar à supervisão</button><button class="primary" type="submit">Salvar observação</button></div>
+  </form>
+</dialog>
+
+<dialog id="analysis-confirm-dialog" class="admin-dialog">
+  <form method="dialog" class="dialog-card">
+    <div class="dialog-head">
+      <div><span class="eyebrow" style="color:#070c40">CONFIRMAÇÃO</span><h2 id="analysis-confirm-title">Confirmar ação</h2></div>
+      <button class="dialog-close" value="cancel" aria-label="Fechar">×</button>
+    </div>
+    <p id="analysis-confirm-text" class="muted"></p>
+    <div class="actions dialog-actions">
+      <button class="outline" value="cancel">Cancelar</button>
+      <button id="analysis-confirm-action" class="danger" value="default">Confirmar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="decision-whatsapp-dialog" class="admin-dialog communication-dialog">
+  <div class="dialog-card communication-card">
+    <div id="decision-whatsapp-icon" class="communication-icon">!</div>
+    <span class="eyebrow" style="color:#070c40">STATUS ATUALIZADO</span>
+    <h2>Comunique ao associado</h2>
+    <p id="decision-whatsapp-text">O status da vistoria foi modificado.</p>
+    <div id="decision-whatsapp-details" class="communication-summary"></div>
+    <div class="actions communication-actions">
+      <button id="decision-whatsapp-later" class="outline" type="button">Comunicar depois</button>
+      <button id="decision-whatsapp-send" class="secondary" type="button">Enviar mensagem ao associado</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="first-password-dialog" class="admin-dialog">
+  <form id="first-password-form" class="dialog-card">
+    <div class="dialog-head"><div><span class="eyebrow" style="color:#070c40">PRIMEIRO ACESSO</span><h2>Crie sua nova senha</h2></div></div>
+    <p class="muted">Por segurança, a senha padrão precisa ser alterada antes de acessar o painel.</p>
+    <div class="form-grid">
+      <label class="span-2">Senha atual<input id="first-current-password" type="password" autocomplete="current-password" required></label>
+      <label>Nova senha<input id="first-new-password" type="password" minlength="8" autocomplete="new-password" required></label>
+      <label>Confirmar nova senha<input id="first-confirm-password" type="password" minlength="8" autocomplete="new-password" required></label>
+    </div>
+    <div id="first-password-message"></div>
+    <div class="actions dialog-actions"><button class="primary" type="submit">Alterar senha e entrar</button></div>
+  </form>
+</dialog>
+
+<script src="/shared/config.js?v=20260923-v77"></script>
+    <script src="/shared/face-auth.js?v=20260928-v86"></script>
+<script src="/shared/url-tools.js?v=20260804-current-origin"></script>
+<script src="/shared/money-input.js?v=20260805-brl-mask"></script>
+<script src="/shared/inspection-documents.js?v=20261016-v83-129"></script>
+<script src="/shared/fipe-picker.js?v=20261016-v83-137"></script>
+<script src="/analise/analise.js?v=20261016-v83-137-fipe-combobox"></script>
+<script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
+
+  <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">
+    Gestao Software LTDA. Projetado e Desenvolvido por
+    <a href="https://www.linkedin.com/in/devcarloslima/" target="_blank" rel="noopener noreferrer">Carlos Lima</a>
+    e
+    Equipe de desenvolvimento.
+  </div>
+  <script defer src="/shared/developer-footer.js?v=20260929-v83-37"></script>
+</body>
+</html>

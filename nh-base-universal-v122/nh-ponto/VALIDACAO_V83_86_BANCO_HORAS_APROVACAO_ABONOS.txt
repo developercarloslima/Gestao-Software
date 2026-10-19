@@ -1,0 +1,16 @@
+V83.86 — VALIDAÇÃO ESTÁTICA
+
+[OK] CLOCK_OUT de jornada comum agora chama persistEmployeeLedger mesmo em REVIEW.
+[OK] Finalização automática também persiste o ledger mesmo em REVIEW.
+[OK] calculateEmployeeRange considera marcações REVIEW finalizadas para crédito provisório.
+[OK] Aprovação mantém o mesmo cálculo, sem duplicação.
+[OK] Marcações BLOCKED de uma jornada reprovada removem horas trabalhadas e geram déficit integral previsto.
+[OK] Saldo acumulado ignora ledger futuro.
+[OK] Refresh do banco remove resíduos futuros do TimeBalanceLedger.
+[OK] Jornada aberta não é lançada como saldo consolidado.
+[OK] Falta integral sem entrada é consolidada no fim do horário previsto.
+[OK] Compensação administrativa aceita HOUR, DAY, WEEK e MONTH.
+[OK] Interface mostra separadamente saldo de trabalho e saldo de horas extras disponível para compensação.
+[OK] TypeScript/TSX dos arquivos alterados passou por parse/transpilação com TypeScript sem erros sintáticos.
+
+Observação: o build completo dos workspaces não foi executado neste ambiente porque as dependências npm do projeto não estão instaladas/localmente disponíveis. O build Docker na VPS continua sendo a validação final de tipos e dependências.

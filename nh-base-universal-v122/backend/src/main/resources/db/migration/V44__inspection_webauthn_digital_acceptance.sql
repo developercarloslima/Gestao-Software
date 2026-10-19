@@ -1,0 +1,27 @@
+alter table inspection_requests
+    add column if not exists webauthn_registration_challenge varchar(160),
+    add column if not exists webauthn_registration_expires_at timestamptz,
+    add column if not exists webauthn_origin varchar(320),
+    add column if not exists webauthn_rp_id varchar(253),
+    add column if not exists webauthn_credential_id varchar(1024),
+    add column if not exists webauthn_public_key bytea,
+    add column if not exists webauthn_algorithm integer,
+    add column if not exists webauthn_sign_count bigint,
+    add column if not exists webauthn_assertion_challenge varchar(160),
+    add column if not exists webauthn_assertion_expires_at timestamptz,
+    add column if not exists acceptance_evidence_hash varchar(64),
+    add column if not exists acceptance_selfie_sha256 varchar(64),
+    add column if not exists acceptance_dossier_sha256 varchar(64),
+    add column if not exists acceptance_device_metadata text,
+    add column if not exists acceptance_ip varchar(80),
+    add column if not exists acceptance_latitude double precision,
+    add column if not exists acceptance_longitude double precision,
+    add column if not exists acceptance_accuracy_meters double precision,
+    add column if not exists acceptance_assertion_signature text,
+    add column if not exists acceptance_authenticator_data text,
+    add column if not exists acceptance_client_data_json text,
+    add column if not exists acceptance_proof_hash varchar(64),
+    add column if not exists acceptance_user_verified boolean,
+    add column if not exists accepted_at timestamptz;
+
+create index if not exists idx_inspection_requests_accepted_at on inspection_requests(accepted_at);

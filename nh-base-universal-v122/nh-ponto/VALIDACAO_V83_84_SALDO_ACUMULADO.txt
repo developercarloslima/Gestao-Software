@@ -1,0 +1,14 @@
+VALIDAÇÃO V83.84 — SALDO ACUMULADO POR TRABALHO
+
+[OK] Coluna Horas extras sem legenda 50%/100%.
+[OK] Saldo total do mês = horas normais + extras - déficit efetivo.
+[OK] Saldo acumulado = soma histórica de horas normais + extras - déficit efetivo.
+[OK] Ajustes manuais não alteram a coluna Saldo acumulado.
+[OK] Compensações e reservas não alteram a coluna Saldo acumulado.
+[OK] Saldo disponível para compensações permanece separado.
+[OK] Recalculo automático da competência selecionada preservado.
+[OK] Manutenção automática periódica preservada.
+[OK] Backfill inicial do mês atual e anterior preservado.
+[OK] Nenhuma marcação/jornada/selfie é apagada.
+[OK] Health atualizado para 0.8.20-v83.84.
+[OK] Cache PWA atualizado para V83.84.

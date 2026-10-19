@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070c40">
+  <title>Criar Retrato NH</title>
+  <link rel="icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="shortcut icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="apple-touch-icon" href="/assets/identidade-pendente.svg" />
+  <meta property="og:image" content="" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:image" content="" />
+<link rel="stylesheet" href="/shared/portal.css?v=20260820-responsive-portal-v461">
+  <link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24">
+  <link rel="stylesheet" href="/shared/brand-system.css?v=20260807-modals-v5">
+
+  <style id="nh-dev-credit-style">
+    .nh-dev-credit {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px 10px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: .01em;
+      opacity: .56;
+      color: inherit;
+    }
+    .nh-dev-credit a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .nh-dev-credit a:hover,
+    .nh-dev-credit a:focus-visible {
+      text-decoration: underline;
+      opacity: .95;
+    }
+    @media (max-width: 640px) {
+      .nh-dev-credit {
+        padding: 7px 10px 9px;
+        font-size: 10px;
+        opacity: .52;
+      }
+    }
+  </style>
+<link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24" />
+  <script src="/shared/gestao-branding.js" defer></script>
+</head>
+<body>
+<header class="portal-header">
+  <a class="portal-brand" href="/colaborador/">
+    <img src="/assets/identidade-pendente.svg" alt="Empresa Cliente">
+    <span><strong>Retrato NH</strong><small>Vistoria digital, fotos e vídeo</small></span>
+  </a>
+  <div class="header-actions"><a href="/colaborador/">← Painel</a></div>
+</header>
+
+<main class="shell">
+  <section class="hero-panel">
+    <span class="eyebrow">RETRATO NH</span>
+    <h1 id="page-title">Gerar link do Retrato NH</h1>
+    <p id="page-description">Use este formulário para atualização de boleto. A nova vistoria deve ser iniciada por uma cotação aceita.</p>
+  </section>
+
+  <section class="card" style="margin-top:22px">
+    <div class="section-head" style="margin-top:0">
+      <div><h2>Dados da solicitação</h2><p id="consultant-info"></p></div>
+    </div>
+
+    <form id="inspection-form" class="form-grid">
+      <div id="flow-notice" class="message success span-2" style="margin:0">
+        Atualização de boleto: informe os dados atuais do associado e o plano já contratado.
+      </div>
+      <label class="span-2">Tipo de solicitação
+        <select id="requestType" required disabled>
+          <option value="BILL_UPDATE" selected>Atualização de boleto</option>
+        </select>
+        <small class="field-helper">Nova vistoria não pode ser criada por esta tela diretamente. Ela é liberada exclusivamente a partir de uma cotação aceita.</small>
+      </label>
+      <label class="span-2">Tipo de veículo
+        <select id="vehicleType" required>
+          <option value="FOUR_WHEELS_OR_MORE">Carro, utilitário ou veículo com 4 rodas ou mais</option>
+          <option value="MOTORCYCLE">Moto ou veículo com menos de 4 rodas</option>
+        </select>
+        <small class="field-helper">Essa escolha define a sequência de fotos e as orientações do vídeo.</small>
+      </label>
+      <label class="span-2">Nome do associado
+        <input id="associateName" required maxlength="140" placeholder="Nome completo">
+      </label>
+      <label>CPF
+        <input id="cpf" required inputmode="numeric" maxlength="14" placeholder="000.000.000-00">
+      </label>
+      <label id="zero-km-field">O veículo é 0 km?
+        <select id="zeroKm" required>
+          <option value="false">Não</option>
+          <option value="true">Sim</option>
+        </select>
+        <small class="field-helper">Disponível para nova vistoria.</small>
+      </label>
+      <label id="manual-plate-field">Placa do veículo <span id="manual-plate-required">*</span>
+        <input id="plate" required maxlength="10" placeholder="ABC1D23">
+        <small id="manual-plate-help" class="field-helper">Obrigatória para veículos que não são 0 km.</small>
+      </label>
+      <label id="contracted-plan-field" class="span-2">Plano já contratado *
+        <input id="contractedPlan" maxlength="160" placeholder="Ex.: Plano Completo, Plano Proteção Total..." required>
+        <small class="field-helper">Informe o nome do plano que o associado já possui. Essa informação seguirá para a equipe de análise.</small>
+      </label>
+      <label class="span-2">WhatsApp do associado
+        <input id="whatsapp" inputmode="tel" placeholder="(82) 99999-9999">
+      </label>
+      <button id="submit-inspection" class="primary span-2" type="submit">Gerar link para atualização de boleto</button>
+    </form>
+    <div id="message"></div>
+  </section>
+
+  <section id="result" class="card" hidden style="margin-top:22px">
+    <div class="completion">
+      <div class="check">✓</div>
+      <h2>Link criado com sucesso</h2>
+      <p id="result-summary"></p>
+    </div>
+    <label>Link para o associado<input id="public-link" readonly></label>
+    <div class="actions">
+      <button id="copy-link" class="outline" type="button">Copiar link</button>
+      <a id="send-whatsapp" class="button secondary" target="_blank" rel="noreferrer">Enviar ao WhatsApp da equipe</a>
+      <a id="open-link" class="button outline" target="_blank" rel="noreferrer">Abrir como associado</a>
+      <button id="new-request" class="primary" type="button">Criar outra solicitação</button>
+    </div>
+  </section>
+</main>
+
+<script src="/shared/config.js?v=20260923-v77"></script>
+<script src="/shared/url-tools.js?v=20260804-current-origin"></script>
+<script src="/colaborador/retrato-create.js?v=20260817-idle-20m-v2"></script>
+<script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
+
+  <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">
+    Gestao Software LTDA. Projetado e Desenvolvido por
+    <a href="https://www.linkedin.com/in/devcarloslima/" target="_blank" rel="noopener noreferrer">Carlos Lima</a>
+    e
+    Equipe de desenvolvimento.
+  </div>
+  <script defer src="/shared/developer-footer.js?v=20260929-v83-37"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+# PERFIL PAGO; servicos Java, facial e Ponto 2 GB RAM; REVISE CUSTOS ANTES DE CRIAR.
+databases:
+- name: gestao-software-control-test-db
+  plan: basic_256mb
+  region: virginia
+  databaseName: gestao_control
+  user: gestao_control
+  postgresMajorVersion: '16'
+services:
+- type: web
+  name: gestao-software-control-test-api
+  runtime: docker
+  plan: standard
+  region: virginia
+  rootDir: backend
+  dockerfilePath: ./Dockerfile.render
+  dockerContext: .
+  healthCheckPath: /api/health
+  autoDeployTrigger: commit
+  envVars:
+  - key: DATABASE_HOST
+    fromDatabase:
+      name: gestao-software-control-test-db
+      property: host
+  - key: DATABASE_PORT
+    fromDatabase:
+      name: gestao-software-control-test-db
+      property: port
+  - key: DATABASE_NAME
+    fromDatabase:
+      name: gestao-software-control-test-db
+      property: database
+  - key: DATABASE_USERNAME
+    fromDatabase:
+      name: gestao-software-control-test-db
+      property: user
+  - key: DATABASE_PASSWORD
+    fromDatabase:
+      name: gestao-software-control-test-db
+      property: password
+  - key: AUTH_TOKEN_SECRET
+    generateValue: true
+  - key: AUTH_TOKEN_HOURS
+    value: '12'
+  - key: ALLOWED_ORIGINS
+    value: https://gestao-software-control-test-web.onrender.com,https://gestaosoftware.com.br,https://www.gestaosoftware.com.br
+- type: web
+  name: gestao-software-control-test-web
+  runtime: docker
+  plan: starter
+  region: virginia
+  rootDir: web
+  dockerfilePath: ./Dockerfile.render
+  dockerContext: .
+  healthCheckPath: /
+  autoDeployTrigger: commit
+  envVars:
+  - key: BACKEND_HOST
+    fromService:
+      type: web
+      name: gestao-software-control-test-api
+      property: host
+  - key: BACKEND_PORT
+    fromService:
+      type: web
+      name: gestao-software-control-test-api
+      property: port

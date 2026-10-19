@@ -1,0 +1,3 @@
+ALTER TABLE catalog_change_audit
+    ADD COLUMN IF NOT EXISTS old_text VARCHAR(500),
+    ADD COLUMN IF NOT EXISTS new_text VARCHAR(500);

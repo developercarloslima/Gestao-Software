@@ -1,0 +1,27 @@
+V83.88 — VALIDAÇÃO SALDO ACUMULADO + TEMPO TOTAL LOGADO
+
+1. Banco de Horas
+- Removido "Saldo p/ compensar" da tabela.
+- Saldo acumulado = horas extras acumuladas + correções auditadas - compensações aplicadas - reservas.
+- Horas normais não aumentam o acumulado.
+- Déficits não reduzem automaticamente o acumulado.
+- O acumulado não zera ao mudar a competência.
+- Débitos históricos antigos de bankDelta não contaminam mais o saldo.
+
+2. Jornada oficial
+- worked/total oficial = período total logado entre CLOCK_IN e CLOCK_OUT.
+- intervalo/pausa/tempo efetivo permanecem somente nos contadores gerenciais.
+- horas normais = até o limite previsto da jornada.
+- déficit = diferença entre carga prevista e total logado reconhecido.
+- hora extra de dia escalado = trecho após o fim previsto, limitado à extensão autorizada pelo ADM.
+
+3. Interface
+- Banco: "Total trabalhado" -> "Total logado".
+- Espelho: "Trabalhado" -> "Total logado".
+- Área do colaborador: "Trabalhado no mês" -> "Total logado no mês" e "Banco disponível" -> "Saldo acumulado".
+- Cache PWA alterado para v83.88.
+
+4. Validação técnica
+- 103 arquivos TS/TSX analisados por transpile do TypeScript: 0 erros sintáticos.
+- types.d.ts e vite-env.d.ts: 0 parse diagnostics.
+- Não há migration Prisma nova nesta versão.

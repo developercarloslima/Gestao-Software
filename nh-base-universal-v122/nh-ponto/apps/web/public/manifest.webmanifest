@@ -1,0 +1,13 @@
+{
+  "name": "Apontamento Digital",
+  "short_name": "Apontamento",
+  "start_url": "/ponto/",
+  "display": "standalone",
+  "background_color": "#070c40",
+  "theme_color": "#070c40",
+  "description": "Sistema operacional de jornada com prova digital verificável.",
+  "display_override": [
+    "standalone",
+    "browser"
+  ]
+}

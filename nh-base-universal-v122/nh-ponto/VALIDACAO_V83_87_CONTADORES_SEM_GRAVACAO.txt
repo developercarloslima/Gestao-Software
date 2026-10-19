@@ -1,0 +1,7 @@
+V83.87 — CONTADORES SEM GRAVAÇÃO
+[OK] Frontend não chama getDisplayMedia nem MediaRecorder no fluxo operacional.
+[OK] Painel do colaborador possui somente 4 contadores: logado, trabalho efetivo, intervalo e pausa.
+[OK] Aba administrativa renomeada para Contadores de tempo.
+[OK] Backend de monitoring.ts não possui start/heartbeat/chunk/stop de gravação.
+[OK] Tempos são derivados das marcações oficiais da jornada.
+[OK] Regras da v83.86 preservadas.

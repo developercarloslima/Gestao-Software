@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070c40">
+  <title>Aceite digital do dossiê | Empresa Cliente</title>
+  <link rel="icon" href="/assets/identidade-pendente.svg">
+  <link rel="stylesheet" href="/shared/portal.css?v=20260923-v73">
+  <link rel="stylesheet" href="/shared/brand-system.css?v=20260923-v73">
+  <link rel="stylesheet" href="/aceite-evento/aceite-evento.css?v=20260922-v68">
+  <script defer src="/shared/config.js?v=20260923-v77"></script>
+  <script defer src="/aceite-evento/aceite-evento.js?v=20260922-v68"></script>
+<link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24" />
+  <script src="/shared/gestao-branding.js" defer></script>
+</head>
+<body>
+<header class="portal-header"><a class="portal-brand" href="/"><img src="/assets/identidade-pendente.svg" alt="Empresa Cliente"><span><strong>Empresa Cliente</strong><small>Aceite digital do dossiê</small></span></a></header>
+<main class="accept-shell">
+  <section class="accept-hero">
+    <span class="eyebrow">ACEITE DIGITAL WEBAUTHN</span>
+    <h1>Confirmação do dossiê da ocorrência</h1>
+    <p>Revise o documento e confirme com a biometria, Face ID, Touch ID, PIN ou código de bloqueio do seu aparelho.</p>
+  </section>
+  <section id="loading" class="card"><p>Carregando informações do dossiê...</p></section>
+  <section id="accept-card" class="card accept-card" hidden>
+    <div class="accept-brand-line"></div>
+    <div class="accept-summary">
+      <div><span>Protocolo</span><strong id="protocol">—</strong></div>
+      <div><span>Associado</span><strong id="associate">—</strong></div>
+      <div><span>Veículo</span><strong id="vehicle">—</strong></div>
+      <div><span>Situação</span><strong id="accept-status">—</strong></div>
+    </div>
+    <div class="accept-info">
+      <h2>Antes de confirmar</h2>
+      <p>O documento apresentado ao associado contém os dados da ocorrência e tudo o que a oficina registrou para o veículo, como itens com avaria e a indicação de <strong>Recuperar/Reparar</strong> ou <strong>Trocar</strong>. Informações internas de compras, fornecedores e custos não fazem parte deste dossiê.</p>
+    </div>
+    <div class="accept-actions">
+      <button id="download-dossier" class="outline" type="button">Baixar e revisar dossiê</button>
+      <button id="confirm-acceptance" class="primary" type="button">Confirmar com biometria / PIN</button>
+    </div>
+    <div id="ios-help" class="ios-help" hidden><strong>iPhone: abra este link no Safari.</strong><p>Links abertos dentro de WhatsApp, Instagram ou outros navegadores internos podem impedir o WebAuthn.</p></div>
+    <p id="accept-message" class="accept-message" aria-live="polite"></p>
+    <div id="accept-proof" class="accept-proof" hidden></div>
+  </section>
+</main>
+  <script defer src="/shared/developer-footer.js?v=20260929-v83-37"></script>
+</body>
+</html>

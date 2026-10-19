@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#070c40">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24">
+  <link rel="stylesheet" href="/shared/brand-system.css?v=20260923-v73">
+  <link rel="stylesheet" href="./styles.css?v=20260831-mobile-plans-v50">
+  <title>Comparação de Planos | Empresa Cliente</title>
+  <link rel="icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="shortcut icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="apple-touch-icon" href="/assets/identidade-pendente.svg" />
+  <meta property="og:image" content="" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:image" content="" />
+
+  <style id="nh-dev-credit-style">
+    .nh-dev-credit {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px 10px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: .01em;
+      opacity: .56;
+      color: inherit;
+    }
+    .nh-dev-credit a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .nh-dev-credit a:hover,
+    .nh-dev-credit a:focus-visible {
+      text-decoration: underline;
+      opacity: .95;
+    }
+    @media (max-width: 640px) {
+      .nh-dev-credit {
+        padding: 7px 10px 9px;
+        font-size: 10px;
+        opacity: .52;
+      }
+    }
+  </style>
+<link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24" />
+  <script src="/shared/gestao-branding.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <img src="/assets/identidade-pendente.svg" alt="Empresa Cliente Proteção Veicular">
+    <span>Comparação de planos</span>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero-card">
+      <span class="eyebrow">PROTEÇÃO VEICULAR</span>
+      <h1>Escolha seu plano e personalize com adicionais</h1>
+      <p id="intro-text">Carregando sua comparação...</p>
+      <div id="vehicle-summary" class="vehicle-summary"></div>
+    </section>
+
+    <div id="error-box" class="error-box" hidden></div>
+
+    <section id="comparison-content" hidden>
+      <div class="section-title">
+        <span class="eyebrow">PLANOS DISPONÍVEIS</span>
+        <h2>Compare os valores</h2>
+        <p>Escolha um plano e marque os adicionais para ver o valor atualizado na hora.</p>
+      </div>
+      <div id="plan-list" class="plan-list"></div>
+    </section>
+  </main>
+
+  <div id="sticky-choice" class="sticky-choice" hidden>
+    <div>
+      <small>Sua escolha</small>
+      <strong id="sticky-plan">Selecione um plano</strong>
+      <span id="sticky-total">—</span>
+    </div>
+    <button id="send-choice" type="button" disabled>Escolher este plano e enviar ao consultor</button>
+  </div>
+
+  <script src="/shared/config.js"></script>
+  <script src="./app.js?v=20261003-v83-85"></script>
+
+  <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">
+    Gestao Software LTDA. Projetado e Desenvolvido por
+    <a href="https://www.linkedin.com/in/devcarloslima/" target="_blank" rel="noopener noreferrer">Carlos Lima</a>
+    e
+    Equipe de desenvolvimento.
+  </div>
+  <script defer src="/shared/developer-footer.js?v=20260929-v83-37"></script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="theme-color" content="#070c40">
+<link rel="stylesheet" href="./styles.css?v=20260831-mobile-plans-v50">
+  <title>NH Cotação Digital</title>
+  <link rel="icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="shortcut icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="apple-touch-icon" href="/assets/identidade-pendente.svg" />
+  <meta property="og:image" content="" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:image" content="" />
+  <link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24">
+  <link rel="stylesheet" href="/shared/brand-system.css?v=20260923-v73">
+
+  <style id="nh-dev-credit-style">
+    .nh-dev-credit {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px 10px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: .01em;
+      opacity: .56;
+      color: inherit;
+    }
+    .nh-dev-credit a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .nh-dev-credit a:hover,
+    .nh-dev-credit a:focus-visible {
+      text-decoration: underline;
+      opacity: .95;
+    }
+    @media (max-width: 640px) {
+      .nh-dev-credit {
+        padding: 7px 10px 9px;
+        font-size: 10px;
+        opacity: .52;
+      }
+    }
+  </style>
+<link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24" />
+  <script src="/shared/gestao-branding.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="./identidade-pendente.svg" alt="Empresa Cliente">
+      <div><strong>Empresa Cliente</strong><span>Cotação Digital</span></div>
+    </div>
+    <div id="environment-pill" class="secure-pill">🔒 Ambiente do consultor</div><a id="back-link" class="secure-pill" href="/colaborador/">← Voltar ao painel</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">PROTEÇÃO VEICULAR</span>
+        <h1 id="hero-title">Cotação rápida, clara e pronta para fechar.</h1>
+        <p id="hero-description">Informe os dados do veículo, compare os planos lado a lado e gere a proposta em PDF.</p>
+        <div class="hero-steps">
+          <span><b>1</b> Dados</span><span><b>2</b> Plano</span><span><b>3</b> Proposta</span><span><b>4</b> Vistoria</span>
+        </div>
+      </div>
+      <img class="hero-logo" src="../assets/identidade-pendente.svg" alt="Empresa Cliente Proteção Veicular">
+    </section>
+
+    <section class="content-card">
+      <div class="section-heading">
+        <div><span class="step-tag">ETAPA 1</span><h2>Dados do cliente e do veículo</h2></div>
+        <span class="required-note">* campos obrigatórios</span>
+      </div>
+
+      <form id="quote-form" class="form-grid">
+        <label id="consultant-field" class="span-2">Consultor responsável *<input id="consultantName" required readonly></label>
+        <div class="customer-identity-row span-2">
+          <input id="customerName" required maxlength="140" placeholder="Informe seu nome completo" aria-label="Nome completo do cliente">
+          <div id="customer-cpf-field" class="customer-identity-field">
+            <input id="customerCpf" inputmode="numeric" maxlength="14" placeholder="CPF (opcional)" aria-label="CPF do cliente (opcional)">
+          </div>
+        </div>
+        <label class="span-2">WhatsApp do cliente <span id="whatsapp-required"></span><input id="whatsapp" placeholder="(82) 99999-9999"></label>
+        <div id="associate-link-field" class="span-2">
+          <label>Associado existente (opcional)
+            <input id="associateLookup" list="associate-options" placeholder="Digite nome ou CPF para vincular; deixe vazio para criar automaticamente">
+            <datalist id="associate-options"></datalist>
+            <small class="field-help">Ao selecionar um associado existente, este veículo será vinculado à mesma ficha.</small>
+          </label>
+        </div>
+        <label id="adhesion-payment-field" class="span-2">Recebimento da adesão
+          <select id="adhesionPaymentMethod">
+            <option value="BOLETO">Gerar boleto no Asaas (com opção de Pix)</option>
+            <option value="PIX">Gerar Pix no Asaas</option>
+            <option value="CASH_HAND">Consultor recebeu a adesão em mãos</option>
+          </select>
+          <small class="field-help">O recebimento em mãos fica registrado no histórico. Pix/boleto dependem da integração Asaas.</small>
+        </label>
+
+        <fieldset class="zero-km-selector span-2">
+          <legend>O veículo é 0 km? *</legend>
+          <div class="binary-options" role="radiogroup" aria-label="Veículo zero quilômetro">
+            <label class="binary-option">
+              <input type="radio" name="zeroKm" value="true">
+              <span>Sim</span>
+            </label>
+            <label class="binary-option selected">
+              <input type="radio" name="zeroKm" value="false" checked>
+              <span>Não</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <label id="plate-field">Placa <span id="plate-required">*</span>
+          <input id="plate" required maxlength="10" placeholder="ABC1D23">
+          <small id="plate-help" class="field-help">Obrigatória para veículos que não são 0 km.</small>
+        </label>
+        <label id="model-field">Modelo do veículo *<input id="model" required placeholder="Ex.: Hyundai HB20 Comfort"></label>
+        <label>Ano de modelo *<input id="manufactureYear" required type="number" min="1950" placeholder="Ex.: 2026"></label>
+        <label id="fipe-field">Valor FIPE *<input id="fipeValue" data-money required inputmode="decimal" maxlength="18" placeholder="Ex.: 65.000,00"></label>
+
+        <fieldset class="vehicle-history-selector span-2">
+          <legend>O veículo possui passagem por leilão ou remarcação de chassi? <small>(opcional)</small></legend>
+          <div class="binary-options" role="radiogroup" aria-label="Passagem por leilão ou remarcação de chassi">
+            <label class="binary-option">
+              <input type="radio" name="auctionOrChassisRemarked" value="true">
+              <span>Sim</span>
+            </label>
+            <label class="binary-option">
+              <input type="radio" name="auctionOrChassisRemarked" value="false">
+              <span>Não</span>
+            </label>
+          </div>
+          <small class="field-help">Se marcar “Sim”, o ressarcimento integral será limitado automaticamente a 70% da FIPE. Se não responder, o cálculo permanece normal em 100% da FIPE.</small>
+        </fieldset>
+
+
+        <fieldset class="vehicle-selector span-2">
+          <legend>Categoria do veículo *</legend>
+          <div id="vehicle-options" class="vehicle-options">
+            <button type="button" data-type="MOTORCYCLE_PROMO_2026" class="vehicle-option promo-category-button">Tabela Promocional - Motocicletas</button>
+            <button type="button" data-type="MOTORCYCLE_UP_TO_300" class="vehicle-option">Motos até 300cc</button>
+            <button type="button" data-type="MOTORCYCLE_OVER_300" class="vehicle-option">Motos acima de 300cc</button>
+            <button type="button" data-type="SCOOTER_ELECTRIC" class="vehicle-option">Scooters e elétricas</button>
+            <button type="button" data-type="CAR" class="vehicle-option active">Carros</button>
+            <button type="button" data-type="UTILITY" class="vehicle-option">Utilitários</button>
+            <button type="button" data-type="TRUCK" class="vehicle-option">Caminhões</button>
+          </div>
+        </fieldset>
+
+        <fieldset id="promo-motorcycle-options" class="promo-motorcycle-selector span-2" hidden>
+          <legend>Tabela Promocional - Motocicletas</legend>
+          <div class="promo-motorcycle-grid" role="radiogroup" aria-label="Faixa da Tabela Promocional de Motocicletas">
+            <button type="button" class="promo-motorcycle-option" data-promo-tier="UP_TO_150_11K" data-min-cc="1" data-max-cc="150" data-max-fipe="11000" data-monthly-price="35" data-cc="150">
+              <strong>Motos até 150cc até R$ 11 mil</strong>
+              <span>R$ 35,00/mês</span>
+            </button>
+            <button type="button" class="promo-motorcycle-option" data-promo-tier="CC_151_160" data-min-cc="151" data-max-cc="160" data-monthly-price="45" data-cc="160">
+              <strong>Motos 151cc a 160cc</strong>
+              <span>R$ 45,00/mês</span>
+            </button>
+            <button type="button" class="promo-motorcycle-option" data-promo-tier="CC_161_300" data-min-cc="161" data-max-cc="300" data-monthly-price="75" data-cc="300">
+              <strong>Motos 161cc a 300cc</strong>
+              <span>R$ 75,00/mês</span>
+            </button>
+          </div>
+
+        </fieldset>
+
+        <label id="car-origin-field">Origem do carro *
+          <select id="carOrigin"><option value="CAR_NATIONAL">Nacional</option><option value="CAR_IMPORTED">Importado</option></select>
+        </label>
+        <label id="region-field" class="span-2" hidden>Origem da moto *
+          <select id="region"><option value="NORTHEAST">Demais cidades do Nordeste</option><option value="CAPITAL">Capital</option></select>
+        </label>
+
+        <label class="span-2">Observação da cotação
+          <textarea id="observation" maxlength="1200" rows="4" placeholder="Ex.: informações importantes sobre o cliente, veículo ou negociação."></textarea>
+        </label>
+
+        <label class="span-2 billing-due-field">Qual vencimento você quer no boleto das mensalidades? *
+          <select id="firstBillingDueDate" required>
+            <option value="">Calculando vencimentos disponíveis...</option>
+          </select>
+          <small id="billing-due-help" class="field-help">O primeiro vencimento deve ocorrer entre 30 e 40 dias após a emissão da cotação. Os vencimentos da NH são nos dias 5, 10, 15, 20, 25 e 30.</small>
+        </label>
+
+        <div class="form-actions span-2"><button id="simulate-button" class="primary-button" type="submit">Calcular planos disponíveis →</button></div>
+      </form>
+      <div id="error-box" class="error-box" hidden></div>
+    </section>
+
+    <section id="plans-section" class="content-card comparison-section" hidden>
+      <div class="section-heading"><div><span class="step-tag">ETAPA 2</span><h2>Compare e escolha o melhor plano</h2><p>✅ incluído &nbsp; ❌ não incluído</p></div></div>
+      <div id="plan-cards" class="plan-cards"></div>
+      <div id="comparison-table" class="comparison-table"></div>
+      <div id="comparison-share-actions" class="comparison-share-actions">
+        <label id="consultant-whatsapp-share-field" class="consultant-whatsapp-share-field">
+          <span>WhatsApp do consultor</span>
+          <input id="consultantWhatsapp" type="tel" inputmode="tel" maxlength="18" autocomplete="tel" placeholder="(82) 99999-9999">
+          <small>Este número receberá a escolha de plano e adicionais do associado. Ao enviar a comparação, ele ficará salvo no seu cadastro.</small>
+        </label>
+            <div class="consultant-whatsapp-share-field">
+          <span>Clique aqui para enviar comp. ao assoc.</span>
+          <button id="share-plan-comparison" class="secondary-button" type="button" aria-label="Enviar comparação de plano para o associado">Enviar comparação de plano</button>
+        </div>
+        
+      </div>
+
+      <div id="optional-section" class="optional-section" hidden>
+        <div class="optional-heading">
+          <div><span class="step-tag">ADICIONAIS</span><h3>Escolha os adicionais</h3></div>
+          <p>Nenhum adicional pago é incluído automaticamente. Marque somente o que o cliente deseja contratar.</p>
+        </div>
+        <div id="optional-list" class="optional-list"></div>
+      </div>
+
+      <section id="discount-section" class="discount-section" aria-labelledby="discount-title">
+        <div class="discount-heading">
+          <div><span class="step-tag">DESCONTO COMERCIAL</span><h3 id="discount-title">Escolha o desconto da proposta</h3></div>
+          <p>Os percentuais e as condições são definidos pelo Administrador do Cota/Vistoria. O sistema libera somente os descontos válidos para o plano, FIPE e idade do veículo.</p>
+        </div>
+        <div id="discount-options" class="discount-options" role="group" aria-label="Percentual de desconto">
+          <button id="clear-discount" type="button" class="discount-clear active">Sem desconto</button>
+        </div>
+        <label id="discount-condition" class="discount-condition" hidden>
+          <input id="discount-confirmation" type="checkbox">
+          <span id="discount-condition-text"></span>
+        </label>
+      </section>
+
+      <div class="selection-summary">
+        <div><span>Plano escolhido</span><strong id="selected-plan-name">—</strong></div>
+        <div><span>Valor da tabela</span><strong id="selected-plan-base-value">—</strong></div>
+        <div id="selected-mandatory-row" hidden><span>Acréscimo obrigatório</span><strong id="selected-mandatory-value">—</strong></div>
+        <div><span>Adicionais selecionados</span><strong id="selected-optionals-value">—</strong></div>
+        <div id="selected-pre-discount-row" hidden><span>Subtotal mensal</span><strong id="selected-pre-discount-value">—</strong></div>
+        <div id="selected-discount-row" hidden><span id="selected-discount-label">Desconto</span><strong id="selected-discount-value">—</strong></div>
+        <div id="selected-one-time-row" hidden><span>Taxa única</span><strong id="selected-one-time-value">—</strong></div>
+        <div><span>Valor em caso de ressarcimento integral</span><strong id="selected-indemnity-percent">100% da FIPE</strong></div>
+        <div class="selection-total"><span>Total mensal</span><strong id="selected-plan-value">—</strong></div>
+        <button id="confirm-plan" class="primary-button" type="button">Confirmar plano e gerar cotação →</button>
+      </div>
+    </section>
+
+    <section id="proposal-section" class="content-card proposal-card" hidden>
+      <div class="proposal-success">✓</div>
+      <span class="step-tag">ETAPA 3</span>
+      <h2 id="proposal-title"></h2>
+      <p id="proposal-description"></p>
+      <div id="quote-details" class="quote-details"></div>
+      <div id="quote-optionals" class="quote-optionals"></div>
+      <div class="proposal-actions">
+        <button id="pdf-download" class="secondary-button" type="button">⬇ Baixar PDF da cotação</button>
+        <button id="share-client-pdf" class="whatsapp-button" type="button">Enviar PDF ao WhatsApp do cliente</button>
+        <div id="accept-box" class="accept-box"><span>O cliente aceita a proposta?</span><button id="accept-yes" class="yes-button">Sim</button><button id="accept-no" class="no-button">Não</button></div>
+      </div>
+      <div id="decision-result"></div>
+      <button id="new-quote" class="new-quote">+ Fazer nova cotação</button>
+    </section>
+  </main>
+
+
+  <div id="inspection-modal" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="inspection-modal-title">
+    <div class="inspection-modal">
+      <button id="inspection-close" class="modal-close" type="button" aria-label="Fechar">×</button>
+
+      <section id="inspection-guidelines" class="inspection-guidelines">
+        <span class="step-tag">VISTORIA DIGITAL</span>
+        <h2 id="inspection-modal-title">Antes de começar, siga estas diretrizes</h2>
+        <p>As imagens serão anexadas ao PDF e armazenadas na pasta do cliente no Google Drive.</p>
+        <div class="guideline-grid">
+          <article><b>☀️ Boa iluminação</b><span>Fotografe em local claro, sem sombras fortes ou reflexos.</span></article>
+          <article><b>🚘 Veículo completo</b><span>Não corte partes do veículo e mantenha a placa visível quando solicitado.</span></article>
+          <article><b>🔎 Foto nítida</b><span>Limpe a lente, confira o foco e não use filtros ou capturas de tela.</span></article>
+          <article><b>📱 Uma foto por etapa</b><span>Siga a sequência exibida e refaça qualquer imagem que estiver ilegível.</span></article>
+          <article><b>🤳 Selfie obrigatória</b><span>Na última etapa, enquadre o associado em frente ao veículo e deixe a placa visível, quando houver.</span></article>
+        </div>
+        <div class="modal-actions">
+          <button id="inspection-start" class="primary-button" type="button">Vamos começar →</button>
+        </div>
+      </section>
+
+      <section id="inspection-capture" class="inspection-capture" hidden>
+        <div class="capture-progress"><span id="capture-step">Foto 1 de 9</span><div><i id="capture-progress-bar"></i></div></div>
+        <span class="step-tag">FOTO OBRIGATÓRIA</span>
+        <h2 id="capture-title">Frente do veículo</h2>
+        <p id="capture-instruction"></p>
+
+        <div id="capture-preview" class="capture-preview">
+          <div class="camera-placeholder"><span>📷</span><p>A câmera será aberta para registrar esta foto.</p></div>
+        </div>
+
+        <input id="camera-input" class="camera-input" type="file" accept="image/jpeg,image/png,image/*" capture="environment">
+        <div class="capture-actions">
+          <button id="capture-back" class="copy-button" type="button">← Voltar</button>
+          <button id="capture-photo" class="secondary-button" type="button">Abrir câmera</button>
+          <button id="capture-next" class="primary-button" type="button" disabled>Próxima foto →</button>
+        </div>
+        <div id="capture-error" class="error-box" hidden></div>
+      </section>
+
+      <section id="inspection-review" class="inspection-review" hidden>
+        <span class="step-tag">REVISÃO FINAL</span>
+        <h2>Confira as fotos antes de enviar</h2>
+        <p>Depois do envio, a pasta do cliente será criada no Drive e o PDF profissional será atualizado com o relatório fotográfico.</p>
+        <div id="inspection-review-grid" class="inspection-review-grid"></div>
+        <div class="modal-actions review-actions">
+          <button id="review-back" class="copy-button" type="button">← Revisar novamente</button>
+          <button id="inspection-upload" class="primary-button" type="button">Enviar fotos e concluir vistoria</button>
+        </div>
+        <div id="upload-status" class="upload-status" hidden></div>
+      </section>
+    </div>
+  </div>
+
+  <footer><img src="./identidade-pendente.svg" alt="NH"><span id="footer-label">Empresa Cliente Proteção Veicular • Sistema interno de cotações</span>
+</footer>
+  <script src="/shared/config.js?v=20260923-v77"></script>
+<script src="/shared/url-tools.js?v=20260804-current-origin"></script>
+  <script src="/shared/money-input.js?v=20260818-empty-placeholder-v1"></script>
+  <script src="./app.js?v=20261003-v83-85" defer></script>
+<script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
+
+  <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">
+    Gestao Software LTDA. Projetado e Desenvolvido por
+    <a href="https://www.linkedin.com/in/devcarloslima/" target="_blank" rel="noopener noreferrer">Carlos Lima</a>
+    e
+    Equipe de desenvolvimento.
+  </div>
+  <script defer src="/shared/developer-footer.js?v=20260929-v83-37"></script>
+</body>
+</html>

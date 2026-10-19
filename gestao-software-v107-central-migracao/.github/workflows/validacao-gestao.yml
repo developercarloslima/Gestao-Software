@@ -1,0 +1,75 @@
+name: Gestão Software - build e PostgreSQL
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: gestao
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: gestao_control
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U gestao -d gestao_control"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: Maven completo com testes
+        run: mvn -B -f backend/pom.xml clean verify
+      - name: Política de 50 VPS e validação de DNS sem dependências
+        run: |
+          mkdir -p /tmp/cloud-tests
+          javac -encoding UTF-8 -d /tmp/cloud-tests \
+            backend/src/main/java/br/com/gestaosoftware/control/service/CloudPlacementPolicy.java \
+            backend/src/main/java/br/com/gestaosoftware/control/service/CloudDnsValidation.java \
+            tests/cloud/PlacementPolicyTest.java tests/cloud/CloudDnsValidationTest.java
+          java -cp /tmp/cloud-tests PlacementPolicyTest
+          java -cp /tmp/cloud-tests CloudDnsValidationTest
+      - name: Proteções de exclusão, autorização e concorrência
+        run: |
+          python3 tests/cloud/release_guard_test.py
+          node --check web/admin/cloud.js
+          node --check web/admin/app.js
+          node tests/cloud/cloud_ui_test.cjs
+      - name: PostgreSQL - migrar base nova e testar inicialização
+        env:
+          DATABASE_URL: jdbc:postgresql://localhost:5432/gestao_control
+          DATABASE_USERNAME: gestao
+          DATABASE_PASSWORD: ci_password
+          AUTH_TOKEN_SECRET: ci-control-plane-secret-string-2026-change-me
+          TENANT_TEMPLATE_CERTIFIED: 'false'
+          AUTO_PROVISION_ENABLED: 'false'
+          CLOUD_ORCHESTRATOR_ENABLED: 'false'
+          CLOUD_DNS_PROVIDER: MANUAL
+        shell: bash
+        run: |
+          set -euo pipefail
+          mvn -B -f backend/pom.xml -DskipTests spring-boot:run > ci-gestao.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          ok=0
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8080/api/health >/dev/null; then ok=1; break; fi
+            if ! kill -0 "$PID" 2>/dev/null; then break; fi
+            sleep 2
+          done
+          tail -n 120 ci-gestao.log
+          test "$ok" -eq 1
+      - name: Docker build do backend e site
+        run: |
+          docker build -f backend/Dockerfile backend
+          docker build -f web/Dockerfile web

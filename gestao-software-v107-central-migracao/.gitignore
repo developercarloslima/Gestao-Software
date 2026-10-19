@@ -1,0 +1,17 @@
+# credenciais e segredos
+.env
+.env.*
+!.env.example
+!.env.production.example
+!.env.sample
+**/.env
+**/.env.local
+**/.env.production
+# dependencias e cache
+**/node_modules/
+**/target/
+**/.DS_Store
+**/__pycache__/
+**/*.pyc
+**/.idea/
+**/.vscode/

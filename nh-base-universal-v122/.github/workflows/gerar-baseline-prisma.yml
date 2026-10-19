@@ -1,0 +1,44 @@
+name: Gerar migração inicial Prisma (revisão obrigatória)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  schema:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: tenant_ponto
+          POSTGRES_PASSWORD: tenant_ponto_ci
+          POSTGRES_DB: tenant_ponto
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U tenant_ponto -d tenant_ponto"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências
+        working-directory: nh-ponto
+        run: npm install --ignore-scripts=false
+      - name: Gerar SQL versionado de schema vazio com Prisma oficial
+        working-directory: nh-ponto
+        run: bash scripts/gerar-baseline-prisma.sh
+      - name: Validar instalação em PostgreSQL descartável
+        working-directory: nh-ponto
+        env:
+          DATABASE_URL: postgresql://tenant_ponto:tenant_ponto_ci@localhost:5432/tenant_ponto?schema=public
+        run: |
+          npx prisma migrate deploy
+          npx prisma migrate status
+          npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --exit-code
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prisma-baseline-revisar-e-commitar
+          path: |
+            nh-ponto/prisma/migrations/
+          if-no-files-found: error

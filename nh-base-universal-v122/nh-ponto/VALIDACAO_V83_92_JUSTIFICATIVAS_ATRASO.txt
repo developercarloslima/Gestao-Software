@@ -1,0 +1,15 @@
+V83.92 — validação estática
+Data: 2026-10-05
+
+- 105 arquivos TypeScript/TSX de apps/api/src e apps/web/src analisados pelo parser/transpilador TypeScript.
+- Erros sintáticos encontrados: 0.
+- Política VARIED e PROFESSIONAL adicionada por empresa.
+- Fluxo profissional sem documento: rejeição automática no backend.
+- Selfie de justificativa validada como imagem e armazenada criptografada.
+- GPS da selfie armazenado junto da justificativa.
+- Documento comprobatório armazenado criptografado (PDF/JPG/PNG/WEBP, até 8 MB).
+- Detalhe do espelho restrito a SUPER_ADMIN e TIME_REVIEWER.
+- Espelho oficial exibe somente resumo/status/responsável, sem motivo/documento.
+- Cache PWA atualizado para V83.92.
+
+Observação: o build completo depende das dependências npm e será confirmado no build Docker da VPS.

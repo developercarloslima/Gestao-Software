@@ -1,0 +1,20 @@
+GESTÃO SOFTWARE v101 - RESULTADO DE VALIDAÇÃO NESTE AMBIENTE
+
+[OK] Validação sintática de web/admin/onboarding.js (Node --check)
+[OK] Leitura de docker-compose.yml e docker-compose.prod.yml com PyYAML
+[OK] Leitura de render.yaml, backend/src/main/resources/application.yml e kit compose.yaml
+[OK] Unicidade do número das migrações PostgreSQL V1..V6
+[OK] Compilação isolada de CapacitySizingService (Java 21, stub de @Service)
+[OK] Smoke test: 100.000 funcionários x 4 marcações x 22 dias = 8.800.000 / mês, tier ENTERPRISE
+[OK] Endpoint health/tenant permitido para validação independente HTTPS
+[OK] Worker em Python 3 possui sintaxe válida e possui vínculo obrigatório com UUID da VPS
+
+[NÃO EXECUTADO] Build Maven completo (Maven/Docker indisponíveis)
+[NÃO EXECUTADO] Build Docker e execução real da Gestão Software e NH
+[NÃO EXECUTADO] Integração com PostgreSQL, Flyway V6 em base com dados existentes
+[NÃO EXECUTADO] Integração com Asaas Sandbox, criação/recebimento real de faturas
+[NÃO EXECUTADO] DNS, TLS, Traefik, GHCR e provisionamento de VPS de ponta a ponta
+[NÃO EXECUTADO] AWS, Render, testes de 100k funcionários, autenticação, backup/restore
+[INCOMPLETO] White-label genérico do NH: partes antigas ainda contêm marca, arquivos e regras NH
+
+NÃO USAR PARA CRIAR AMBIENTES PAGOS OU CLIENTES REAIS SEM HOMOLOGAÇÃO.

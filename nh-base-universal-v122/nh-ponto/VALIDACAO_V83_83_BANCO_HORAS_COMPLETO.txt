@@ -1,0 +1,19 @@
+VALIDAÇÃO V83.83 — BANCO DE HORAS COMPLETO
+
+[OK] Tela possui competência mensal.
+[OK] Exibe horas previstas.
+[OK] Exibe horas normais trabalhadas.
+[OK] Exibe horas extras reconhecidas pelo banco.
+[OK] Exibe total realmente trabalhado.
+[OK] Exibe déficit de horas.
+[OK] Exibe saldo líquido do mês.
+[OK] Exibe saldo acumulado do banco.
+[OK] Exibe ajustes, compensações e reservas.
+[OK] Saída automática não cria extra artificial.
+[OK] Abertura da tela recalcula a competência.
+[OK] Manutenção automática a cada 15 minutos.
+[OK] Primeiro start reconstrói mês atual + anterior.
+[OK] Semana atual pode ser retroprocessada de forma auditada.
+[OK] Nenhuma marcação histórica é apagada.
+[OK] Cache PWA atualizado para V83.83.
+[OK] Health atualizado para 0.8.19-v83.83.

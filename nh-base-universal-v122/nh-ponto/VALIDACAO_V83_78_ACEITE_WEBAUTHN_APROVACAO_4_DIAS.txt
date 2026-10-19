@@ -1,0 +1,50 @@
+VALIDAÇÃO ESTRUTURAL — NH PONTO V83.78
+Data: 01/10/2026
+
+01. OK - enum TIMESHEET_ACCEPTANCE no Prisma
+02. OK - modelo TimesheetAcceptance
+03. OK - unique empresa/colaborador/mes
+04. OK - hash do snapshot salvo
+05. OK - assinatura admin no modelo
+06. OK - assinatura colaborador no modelo
+07. OK - rota options aceite mensal
+08. OK - rota verify aceite mensal
+09. OK - somente ADMIN/SUPER assina empresa
+10. OK - colaborador somente proprio espelho
+11. OK - challenge ligado ao hash
+12. OK - WebAuthn exige userVerification
+13. OK - status abre no ultimo dia
+14. OK - pendencia bloqueia aceite ADM
+15. OK - snapshot usa SHA-256/canonicalizacao
+16. OK - mudanca de hash invalida aceite anterior
+17. OK - novo aceite ADM limpa assinatura colaborador se hash mudou
+18. OK - aceite colaborador exige aceite admin valido
+19. OK - aceite integrado ao /time/me
+20. OK - aceite integrado ao espelho de gestao
+21. OK - funcao web performTimesheetAcceptance
+22. OK - botao aceite ADM
+23. OK - botao aceite colaborador
+24. OK - documento mostra aceite WebAuthn
+25. OK - EMPLOYEE pode cadastrar passkey
+26. OK - header tenant nas rotas timesheet security
+27. OK - ADMIN marcações aprovadas diretamente
+28. OK - ADMIN clockout recalcula ledger
+29. OK - auto-close ADMIN aprovado
+30. OK - servico consolidacao/admin e 4 dias
+31. OK - auditoria 4 dias
+32. OK - auditoria admin sem aprovacao manual
+33. OK - scheduler 15 min
+34. OK - execucao inicial manutencao
+35. OK - admin aprovado aparece no controle
+36. OK - controle ADMIN sem botoes de decisao
+37. OK - mensagem amigavel selfie
+38. OK - mensagem amigavel GPS
+39. OK - mensagem amigavel dispositivo
+40. OK - motivo tecnico preservado
+41. OK - cache PWA v83.78
+42. OK - API v83.78
+
+RESULTADO: 42/42 verificações estruturais aprovadas.
+TypeScript/TSX: 101 arquivos verificados por transpileModule, 0 erros de sintaxe.
+API dist: 51 arquivos recompilados por transpile para NodeNext/ES2022 e arquivos críticos aprovados por node --check.
+Prisma CLI: validação online não concluída neste ambiente porque o npx prisma excedeu o tempo disponível; o schema foi verificado estruturalmente e o deploy executa prisma db push.

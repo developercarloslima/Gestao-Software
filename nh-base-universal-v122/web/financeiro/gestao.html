@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#070c40">
+  <title>Gestão Financeira | Empresa Cliente</title>
+  <link rel="icon" href="/assets/identidade-pendente.svg">
+  <link rel="stylesheet" href="/shared/portal.css">
+  <link rel="stylesheet" href="/shared/responsive.css">
+  <link rel="stylesheet" href="/shared/brand-system.css">
+  <style>
+    .fin-shell{max-width:1420px;margin:auto;padding:24px 18px 60px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.tabs button{border:1px solid #dbe2ef;background:#fff;border-radius:10px;padding:9px 12px}.tabs button.active{background:#070c40;color:#fff}.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.kpi,.panel{background:#fff;border:1px solid #e3e8f1;border-radius:18px;padding:18px}.kpi span{display:block;color:#6c7589;font-size:.84rem}.kpi strong{font-size:1.28rem;font-weight:400}.table-wrap{overflow:auto}.grid-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.grid-form input,.grid-form select,.grid-form textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccd5e7;border-radius:9px}.section{margin-top:16px}.status{display:inline-flex;padding:5px 9px;border-radius:999px;background:#eef3ff;font-weight:400}.login-wrap{min-height:70vh;display:grid;place-items:center}.login-card{width:min(450px,calc(100% - 30px))}.actions{display:flex;gap:7px;flex-wrap:wrap}.muted{color:#6c7589}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.risk-list,.dre-list{display:grid;gap:9px}.metric-row{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #edf0f6;padding:8px 0}.metric-row span:last-child{font-weight:400}.danger{color:#a61b1b}.ok{color:#0d7b4b}.warning{color:#8a5a00}.compact-note{font-size:.9rem;color:#697386}.doc-context{background:#f6f8fc;border-radius:12px;padding:10px 12px;margin-top:8px;display:none}@media(max-width:850px){.two-col{grid-template-columns:1fr}}
+  </style>
+  <script defer src="/shared/config.js"></script>
+  <script defer src="/financeiro/gestao.js"></script>
+  <script src="/shared/gestao-branding.js" defer></script>
+</head>
+<body>
+<header class="portal-header"><a class="portal-brand" href="/"><img src="/assets/identidade-pendente.svg" alt="NH"><span><strong>Empresa Cliente</strong><small>Área do Financeiro</small></span></a><div class="header-actions"><a href="/">Site</a><a href="/financeiro/">Área do Financeiro</a><a href="/financeiro/gestao.html">Gestão Financeira</a><button id="logout" hidden>Sair</button></div></header>
+<section id="login" class="login-wrap"><div class="card login-card"><span class="eyebrow">FINANCEIRO</span><h1>Gestão Financeira</h1><p>Acesso restrito ao Financeiro e Administradores.</p><form id="login-form" class="form-grid"><label class="span-2">Usuário<input id="username" required></label><label class="span-2">Senha<input id="password" type="password" required></label><button class="primary span-2">Entrar</button></form><div id="login-msg"></div></div></section>
+<main id="app" class="fin-shell" hidden>
+<section class="hero-panel"><span class="eyebrow">CONTROLE FINANCEIRO</span><h1>Financeiro da empresa</h1><p>Caixa, consultores, contas, documentos, conciliação, fornecedores, orçamento, DRE e indicadores.</p></section>
+<div class="tabs" id="tabs"><button data-tab="overview" class="active">Visão geral</button><button data-tab="consultants">Consultores e saques</button><button data-tab="documents">Documentos</button><button data-tab="ledger">Contas e caixa</button><button data-tab="reconciliation">Conciliação</button><button data-tab="suppliers">Fornecedores/cartões</button><button data-tab="budget">Orçamento e KPIs</button><button data-tab="rules">Comissionamento</button></div>
+
+<section id="tab-overview">
+  <div class="panel"><div class="section-head"><div><h2>Visão gerencial</h2><p>Receita filtrável por semana, mês, semestre ou ano.</p></div><select id="range"><option value="week">Semana</option><option value="month" selected>Mês</option><option value="semester">Semestre</option><option value="year">Ano</option></select></div>
+    <div class="kpis">
+      <div class="kpi"><span>Receita</span><strong id="k-revenue">R$ 0</strong></div><div class="kpi"><span>Despesas operacionais</span><strong id="k-expense">R$ 0</strong></div><div class="kpi"><span>Resultado operacional</span><strong id="k-result">R$ 0</strong></div><div class="kpi"><span>Margem operacional</span><strong id="k-margin">0%</strong></div>
+      <div class="kpi"><span>EBITDA gerencial</span><strong id="k-ebitda">R$ 0</strong></div><div class="kpi"><span>Margem de contribuição</span><strong id="k-contribution">R$ 0</strong></div><div class="kpi"><span>Ponto de equilíbrio</span><strong id="k-break-even">R$ 0</strong></div><div class="kpi"><span>ROI gerencial</span><strong id="k-roi">0%</strong></div>
+      <div class="kpi"><span>Posição de caixa</span><strong id="k-cash">R$ 0</strong></div><div class="kpi"><span>Reserva mínima</span><strong id="k-reserve">R$ 0</strong></div><div class="kpi"><span>Contas a pagar</span><strong id="k-payable">R$ 0</strong></div><div class="kpi"><span>Contas a receber</span><strong id="k-receivable">R$ 0</strong></div>
+      <div class="kpi"><span>Inadimplência</span><strong id="k-overdue">R$ 0</strong></div><div class="kpi"><span>Taxa de inadimplência</span><strong id="k-delinquency">0%</strong></div><div class="kpi"><span>Saques pendentes</span><strong id="k-withdrawals">0</strong></div><div class="kpi"><span>Movimentos não conciliados</span><strong id="k-unreconciled">0</strong></div>
+    </div>
+  </div>
+  <div class="two-col section"><div class="panel"><h2>DRE gerencial</h2><div id="dre" class="dre-list"></div></div><div class="panel"><h2>Balanço gerencial</h2><div id="balance-sheet" class="dre-list"></div></div></div><div class="panel section"><h2>Riscos e liquidez</h2><div id="risk" class="risk-list"></div></div>
+  <div class="panel section"><h2>Fluxo de caixa diário</h2><div class="table-wrap"><table><thead><tr><th>Data</th><th>Entradas</th><th>Saídas</th><th>Saldo do dia</th></tr></thead><tbody id="cashflow"></tbody></table></div></div>
+</section>
+
+<section id="tab-consultants" hidden>
+  <div class="panel"><h2>Comissões dos consultores</h2><div class="table-wrap"><table><thead><tr><th>Consultor</th><th>Carreira</th><th>Base ativa</th><th>Receita da base</th><th>Vendas mês</th><th>Comissão mês</th><th>Indicador</th></tr></thead><tbody id="consultants"></tbody></table></div></div>
+  <div class="panel section"><h2>Solicitações de saque</h2><p class="compact-note">Pix: o Financeiro aprova e a transferência é enviada ao Asaas. TED: a solicitação fica em processamento até o pagamento bancário e anexação do comprovante.</p><div class="table-wrap"><table><thead><tr><th>Consultor</th><th>Forma</th><th>Solicitado</th><th>Taxa</th><th>Líquido</th><th>Status</th><th>Dados/nota</th><th>Ação</th></tr></thead><tbody id="withdrawals"></tbody></table></div></div>
+</section>
+
+<section id="tab-documents" hidden><div class="panel"><h2>Notas fiscais, comprovantes, holerites e documentos</h2>
+  <form id="doc-form" class="grid-form">
+    <label>Tipo<select id="doc-type"><option value="CONSULTANT_INVOICE">Nota fiscal do consultor</option><option value="CONSULTANT_PAYMENT_RECEIPT">Comprovante de pagamento do consultor</option><option value="PAYSLIP">Holerite</option><option value="SUPPLIER_INVOICE">Nota de fornecedor</option><option value="TAX_DOCUMENT">Documento/guia fiscal</option><option value="ISSUED_INVOICE">Nota fiscal emitida</option><option value="OTHER">Outro</option></select></label>
+    <label>Referência<input id="doc-month" type="date"></label><label>Título<input id="doc-title"></label><label>Consultor<select id="doc-person"><option value="">Não vincular</option></select></label>
+    <label>Colaborador / nome<input id="doc-collaborator-name" placeholder="Para holerites de qualquer colaborador"></label><label>Matrícula/referência<input id="doc-collaborator-ref" placeholder="Opcional"></label><label>ID do saque<input id="doc-withdrawal" placeholder="Preenchido ao anexar comprovante"></label>
+    <label>Observações<input id="doc-notes"></label><label>Arquivo<input id="doc-file" type="file" required></label><button class="primary">Enviar documento</button>
+  </form><div id="doc-context" class="doc-context"></div><div id="doc-msg"></div>
+  <div class="table-wrap section"><table><thead><tr><th>Tipo</th><th>Título</th><th>Pessoa</th><th>Referência</th><th>Arquivo</th><th>Enviado por</th><th></th></tr></thead><tbody id="documents"></tbody></table></div></div></section>
+
+<section id="tab-ledger" hidden><div class="panel"><h2>Novo lançamento</h2><form id="entry-form" class="grid-form">
+  <label>Tipo<select id="entry-type"><option value="REVENUE">Receita</option><option value="EXPENSE">Despesa</option><option value="PAYABLE">Conta a pagar</option><option value="RECEIVABLE">Conta a receber</option><option value="TAX">Imposto</option><option value="PAYROLL">Folha</option><option value="BANK_ADJUSTMENT">Ajuste bancário</option></select></label>
+  <label>Descrição<input id="entry-desc" required></label><label>Valor<input id="entry-amount" type="number" min="0" step="0.01" required></label><label>Vencimento<input id="entry-due" type="date"></label><label>Data efetiva<input id="entry-effective" type="date"></label>
+  <label>Categoria<input id="entry-category"></label><label>Natureza do custo<select id="entry-cost-nature"><option value="">Não se aplica</option><option value="FIXED">Fixo</option><option value="VARIABLE">Variável</option><option value="CAPEX">CAPEX / investimento</option></select></label><label>Contraparte<input id="entry-counterparty"></label><label>Departamento<input id="entry-department"></label><label>Forma de pagamento<input id="entry-payment"></label><button class="primary">Adicionar</button>
+  </form><div id="entry-msg"></div></div><div class="panel section"><h2>Contas e movimentos</h2><div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Descrição</th><th>Natureza</th><th>Valor</th><th>Vencimento</th><th>Efetivo</th><th>Status</th><th>Conciliado</th><th>Ação</th></tr></thead><tbody id="ledger"></tbody></table></div></div></section>
+
+<section id="tab-reconciliation" hidden><div class="panel"><h2>Conciliação bancária</h2><p class="muted">Confira os pagamentos/recebimentos com o extrato e marque como conciliado. A estrutura está pronta para integração bancária/Open Finance futura.</p><div class="table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Status</th><th>Conciliado</th><th></th></tr></thead><tbody id="reconciliation"></tbody></table></div></div></section>
+
+<section id="tab-suppliers" hidden><div class="panel"><h2>Fornecedores</h2><form id="supplier-form" class="grid-form"><label>Nome<input id="supplier-name" required></label><label>CPF/CNPJ<input id="supplier-doc"></label><label>Contato<input id="supplier-contact"></label><label>Condições de pagamento<input id="supplier-terms"></label><button class="primary">Cadastrar</button></form><div class="table-wrap section"><table><thead><tr><th>Fornecedor</th><th>Documento</th><th>Contato</th><th>Condições</th></tr></thead><tbody id="suppliers"></tbody></table></div></div><div class="panel section"><h2>Cartões corporativos</h2><form id="card-form" class="grid-form"><label>Identificação<input id="card-label" required></label><label>Portador<input id="card-holder"></label><label>Últimos 4<input id="card-last4" maxlength="4"></label><label>Limite<input id="card-limit" type="number" step="0.01"></label><button class="primary">Cadastrar</button></form><div class="table-wrap section"><table><thead><tr><th>Cartão</th><th>Portador</th><th>Final</th><th>Limite</th></tr></thead><tbody id="cards"></tbody></table></div></div></section>
+
+<section id="tab-budget" hidden>
+  <div class="panel"><h2>Orçamento empresarial</h2><form id="budget-form" class="grid-form"><label>Departamento<input id="budget-dept" required></label><label>Início<input id="budget-start" type="date" required></label><label>Fim<input id="budget-end" type="date" required></label><label>Valor planejado<input id="budget-amount" type="number" step="0.01" required></label><button class="primary">Salvar orçamento</button></form><div class="table-wrap section"><table><thead><tr><th>Departamento</th><th>Período</th><th>Planejado</th></tr></thead><tbody id="budgets"></tbody></table></div></div>
+  <div class="panel section"><h2>Parâmetros dos KPIs</h2><p class="muted">Esses valores alimentam ROI e alerta de liquidez; não alteram movimentações financeiras.</p><form id="settings-form" class="grid-form"><label>Capital investido<input id="setting-invested" type="number" min="0" step="0.01"></label><label>Reserva mínima de caixa<input id="setting-reserve" type="number" min="0" step="0.01"></label><button class="primary">Salvar parâmetros</button></form><div id="settings-msg"></div></div>
+</section>
+
+<section id="tab-rules" hidden><div class="panel"><h2>Guia de Comissionamento 2026</h2><p class="muted">Valores pré-cadastrados conforme o Guia de Comissionamento e Plano de Carreira da Empresa Cliente. Alterações ficam registradas com usuário e data.</p><div class="table-wrap"><table><thead><tr><th>Regra</th><th>Valor</th><th>Unidade</th><th>Ativa</th><th>Atualização</th><th></th></tr></thead><tbody id="rules"></tbody></table></div></div><div class="panel section"><h2>Plano de carreira</h2><div class="table-wrap"><table><thead><tr><th>Nível</th><th>Base ativa</th><th>Auxílio</th><th>Benefícios</th></tr></thead><tbody id="career-levels"></tbody></table></div></div><div class="panel section"><h2>Premiações por base ativa</h2><div class="table-wrap"><table><thead><tr><th>Placas ativas</th><th>Premiação</th><th>Valor quando monetário</th></tr></thead><tbody id="base-prizes"></tbody></table></div></div></section>
+</main>
+</body></html>

@@ -1,0 +1,63 @@
+# Somente teste LOCAL: banco efêmero em tmpfs, nome exclusivo, sem volumes da NH operacional.
+# Executar sempre com -p gs-nh-v122-homologacao.
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: tenant_homologacao
+      POSTGRES_USER: tenant_test
+      POSTGRES_PASSWORD: only_test_never_production
+    tmpfs:
+      - /var/lib/postgresql/data:size=1073741824
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tenant_test -d tenant_homologacao"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [isolated]
+  api-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.tenant
+    environment:
+      SPRING_PROFILES_ACTIVE: tenant
+      GS_TENANT_MODE: 'true'
+      TENANT_REQUIRES_COMMERCIAL_CATALOG: 'false'
+      TENANT_REQUIRES_PAYMENT_INTEGRATION: 'false'
+      TENANT_REQUIRES_PONTO_SETUP: 'false'
+      DATABASE_URL: jdbc:postgresql://postgres-test:5432/tenant_homologacao
+      DATABASE_USERNAME: tenant_test
+      DATABASE_PASSWORD: only_test_never_production
+      AUTH_TOKEN_SECRET: test_only_do_not_use_in_production_2026_32_chars
+      IMPORT_AES_KEY_BASE64: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      TENANT_DISPLAY_NAME: Empresa de Homologacao
+      TENANT_LEGAL_NAME: Empresa de Homologacao Ltda
+      TENANT_DOCUMENT: '11222333000181'
+      GESTAO_COMPANY_ID: 11111111-2222-4333-8444-555555555555
+      GESTAO_TENANT_HOST: homologacao.example.invalid
+      PUBLIC_WEB_URL: http://localhost:3188
+      PUBLIC_API_URL: http://localhost:3188
+      ALLOWED_ORIGINS: http://localhost:3188
+      ADMIN_USERNAME: admin@homologacao.invalid
+      ADMIN_PASSWORD: only_test_admin_2026_never_production
+      INITIAL_PORTAL_PASSWORD: only_test_initial_2026_never_production
+      DEMO_ASSOCIATE_ENABLED: 'false'
+      FIPE_API_BASE_URL: http://fipe-test:8000
+      FIPE_DATASET_SYNC_ENABLED: 'false'
+      ASAAS_ENABLED: 'false'
+    depends_on:
+      postgres-test: {condition: service_healthy}
+    ports:
+      - '127.0.0.1:3188:8080'
+    networks: [isolated]
+  fipe-test:
+    profiles: [fipe]
+    build: ./api-fipe
+    environment:
+      DATABASE_PATH: /app/data/fipe.sqlite3
+    tmpfs: [/app/data:size=134217728]
+    ports:
+      - '127.0.0.1:3189:8000'
+    networks: [isolated]
+networks:
+  isolated: {}

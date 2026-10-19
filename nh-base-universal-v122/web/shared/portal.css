@@ -1,0 +1,1915 @@
+@import url("https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;700;800;900&display=swap");
+:root{--navy:#070c40;--navy2:#070c40;--yellow:#f0f000;--bg:#f3f5fb;--text:#1d2135;--muted:#687087;--line:#dfe3ee;--white:#fff;--green:#16834d;--red:#b93838;--shadow:0 18px 48px rgba(7,12,64,.12)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}a{color:inherit}.portal-header{min-height:72px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 max(20px,calc((100vw - 1180px)/2));gap:20px;box-shadow:0 8px 25px rgba(7,12,64,.2)}.portal-brand{display:flex;align-items:center;gap:12px;text-decoration:none}.portal-brand img{width:46px;height:46px;object-fit:contain}.portal-brand strong{display:block;font-size:17px}.portal-brand small{color:var(--yellow);font-weight:700}.header-actions{display:flex;align-items:center;gap:10px}.header-actions a,.header-actions button{border:1px solid rgba(255,255,255,.28);background:transparent;color:#fff;border-radius:999px;padding:9px 14px;text-decoration:none;font-weight:750;cursor:pointer}.shell{width:min(1180px,calc(100% - 32px));margin:38px auto 70px}.hero-panel{background:linear-gradient(135deg,var(--navy),#070c40);border-radius:28px;padding:32px;color:#fff;box-shadow:var(--shadow);position:relative;overflow:hidden}.hero-panel:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:var(--yellow);opacity:.09;right:-80px;top:-120px}.eyebrow{display:inline-block;color:var(--yellow);font-size:12px;letter-spacing:.12em;font-weight:900}.hero-panel h1{font-size:clamp(28px,4vw,46px);margin:8px 0 10px;line-height:1.05}.hero-panel p{max-width:720px;color:#e5e8ff;margin:0;font-size:16px}.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 8px 30px rgba(31,41,90,.06)}.login-wrap{width:min(480px,calc(100% - 32px));margin:52px auto}.login-card{padding:30px}.login-card h1{margin:0 0 6px;color:var(--navy)}.login-card p{color:var(--muted);margin:0 0 24px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.span-2{grid-column:span 2}label{display:grid;gap:7px;font-size:13px;font-weight:800;color:#303750}input,select,textarea{width:100%;border:1px solid #cfd5e3;border-radius:12px;padding:12px 13px;font:inherit;background:#fff;color:var(--text);outline:none}input:focus,select:focus,textarea:focus{border-color:var(--navy2);box-shadow:0 0 0 3px rgba(7,12,64,.1)}button,.button{border:0;border-radius:12px;padding:12px 17px;font:inherit;font-weight:850;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}.primary{background:var(--yellow);color:var(--navy)}.secondary{background:var(--navy);color:#fff}.outline{border:1px solid var(--navy);background:#fff;color:var(--navy)}.danger{background:#fff0f0;color:var(--red);border:1px solid #f1cccc}.button:disabled,button:disabled{opacity:.58;cursor:not-allowed}.message{padding:12px 14px;border-radius:12px;margin:14px 0;font-size:14px}.message.error{background:#fff0f0;color:#9c2c2c;border:1px solid #f1cccc}.message.success{background:#eaf8f0;color:#146b42;border:1px solid #bfe4ce}.tool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:24px}.tool-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;text-decoration:none;box-shadow:0 8px 30px rgba(31,41,90,.06);transition:.18s}.tool-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:#bec6dc}.tool-icon{width:50px;height:50px;border-radius:15px;background:var(--navy);color:var(--yellow);display:grid;place-items:center;font-size:24px}.tool-card h2{margin:18px 0 7px;color:var(--navy);font-size:22px}.tool-card p{margin:0;color:var(--muted);line-height:1.5}.tool-link{margin-top:20px;color:var(--navy);font-weight:900}.section-head{display:flex;justify-content:space-between;align-items:end;gap:18px;margin:30px 0 14px}.section-head h2{margin:0;color:var(--navy)}.section-head p{margin:5px 0 0;color:var(--muted)}.consultant-chip{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:999px;background:#eef0ff;color:var(--navy);font-weight:850}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.hidden,[hidden]{display:none!important}.steps{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}.step{padding:8px 12px;background:#edf0f7;border-radius:999px;font-size:12px;font-weight:850;color:#667}.step.active{background:var(--yellow);color:var(--navy)}.guidelines{background:#fffbea;border:1px solid #eee19a;border-radius:16px;padding:18px}.guidelines h3{color:var(--navy);margin-top:0}.upload-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.upload-item{border:1px dashed #b9c1d5;border-radius:15px;padding:15px;background:#fbfcff}.upload-item strong{display:block;color:var(--navy);margin-bottom:6px}.upload-item small{display:block;color:var(--muted);margin-bottom:10px}.table-wrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:18px}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:12px 13px;border-bottom:1px solid #eaedf3;text-align:left;font-size:13px;vertical-align:middle}th{background:#f5f6fb;color:var(--navy);font-size:12px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0}tr:last-child td{border-bottom:0}.badge{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:900;background:#edf0f7}.badge.ok{background:#e5f6ec;color:#12683f}.badge.warn{background:#fff4cf;color:#806000}.badge.off{background:#feeaea;color:#9f3333}.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}.admin-tabs button{background:#fff;color:var(--navy);border:1px solid var(--line)}.admin-tabs button.active{background:var(--navy);color:#fff}.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.kpi{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px}.kpi span{color:var(--muted);font-size:12px;font-weight:800}.kpi strong{display:block;font-size:28px;color:var(--navy);margin-top:5px}.inline-edit{display:flex;gap:8px;align-items:center}.inline-edit input{min-width:110px;padding:8px}.photo-preview{max-width:100%;border-radius:12px;margin-top:8px}.completion{text-align:center;padding:34px}.completion .check{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;background:#e5f6ec;color:var(--green);font-size:36px}.footer-note{text-align:center;color:var(--muted);font-size:12px;margin-top:28px}@media(max-width:820px){.form-grid,.tool-grid,.upload-grid,.kpi-grid{grid-template-columns:1fr}.span-2{grid-column:auto}.portal-header{padding:10px 16px;min-height:64px}.portal-brand span{display:none}.header-actions .desktop-only{display:none}.shell{margin-top:22px}.hero-panel{padding:25px 20px;border-radius:20px}.card{padding:18px}.section-head{align-items:start;flex-direction:column}.tool-grid{gap:12px}.table-wrap{border-radius:12px}}
+.muted,.helper{color:var(--muted);line-height:1.5}.compact-card{padding:18px}.filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.row-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.small-button{padding:8px 10px;border-radius:9px;font-size:12px;white-space:nowrap}.table-code{display:block;color:var(--muted);font-size:11px;margin-top:5px}.empty-state{text-align:center;color:var(--muted);padding:28px}.table-wrap input,.table-wrap select{min-width:130px;padding:8px 9px;border-radius:9px;font-size:13px}.table-wrap textarea{min-width:220px}.helper{font-size:13px;margin:14px 0 0}.admin-tabs{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0}.admin-tabs button{padding:10px 13px}.card h3{color:var(--navy)}
+@media(max-width:820px){.filter-grid{grid-template-columns:1fr}.admin-tabs{position:static}.row-actions{min-width:220px}}
+
+/* Painel administrativo completo */
+.overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:18px}.overview-grid .card h2{margin:0 0 16px;color:var(--navy);font-size:19px}.overview-grid .card p{margin:8px 0;color:var(--muted)}.status-summary{display:grid;gap:9px}.status-summary>div{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #edf0f5}.status-summary>div:last-child{border-bottom:0}.status-summary strong{font-size:19px;color:var(--navy)}.settings-card{max-width:680px}.settings-row{display:grid;grid-template-columns:180px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid var(--line)}.settings-row span{color:var(--muted);font-weight:750}.settings-row strong{overflow-wrap:anywhere}.settings-card>.primary{margin-top:18px}.detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.detail-grid>div{border:1px solid var(--line);background:#f8f9fd;border-radius:13px;padding:12px;min-width:0}.detail-grid span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:850;margin-bottom:5px}.detail-grid strong{display:block;color:var(--navy);overflow-wrap:anywhere}.audit-text{max-width:300px;white-space:normal;line-height:1.45}.admin-dialog{border:0;padding:0;background:transparent;width:min(640px,calc(100% - 28px));max-height:calc(100vh - 34px);overflow:visible}.admin-dialog.wide-dialog{width:min(980px,calc(100% - 28px))}.admin-dialog::backdrop{background:rgba(3,8,54,.68);backdrop-filter:blur(3px)}.dialog-card{background:#fff;border-radius:22px;padding:24px;box-shadow:0 26px 90px rgba(3,8,54,.36);max-height:calc(100vh - 34px);overflow:auto}.dialog-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:20px}.dialog-head h2{margin:5px 0 0;color:var(--navy)}.dialog-close{width:38px;height:38px;padding:0;border-radius:50%;background:#eef0f7;color:var(--navy);font-size:25px;line-height:1}.dialog-actions{justify-content:flex-end;border-top:1px solid var(--line);padding-top:18px;margin-top:22px}.admin-dialog label+label{margin-top:14px}.form-check{display:flex;align-items:center;gap:10px;margin-top:18px}.form-check-input{width:auto;margin:0}.form-check-label{font-size:14px}.table-wrap .button.small-button{padding:8px 10px;border-radius:9px;font-size:12px}.table-wrap td strong{color:var(--navy)}
+@media(max-width:980px){.overview-grid{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:680px){.overview-grid,.detail-grid{grid-template-columns:1fr}.settings-row{grid-template-columns:1fr;gap:5px}.dialog-card{padding:18px;border-radius:18px}.dialog-actions{flex-direction:column-reverse}.dialog-actions button{width:100%}}
+
+/* Links de ação indisponíveis quando o destino administrativo não está configurado. */
+a.button.disabled, a.button[aria-disabled="true"] {
+  opacity: .55;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+
+.table-subtitle{display:block;margin-top:4px;color:#6b7280;font-size:.75rem;font-weight:500}
+
+/* Retrato NH: captura obrigatória pela câmera, sem seleção de galeria. */
+.camera-upload-item{display:flex;flex-direction:column;align-items:stretch;gap:0}.camera-upload-item .camera-action{align-self:flex-start;margin-top:auto}.camera-upload-item .camera-action.captured{background:#e5f6ec;color:#12683f;border-color:#a9d9bd}.capture-status{margin:0 0 12px;color:var(--muted);font-size:13px;font-weight:750}.capture-preview{display:block;width:100%;max-height:260px;object-fit:cover;border-radius:12px;border:1px solid var(--line);margin:2px 0 12px;background:#eef0f7}.video-preview{max-height:420px;background:#080b22}.capture-summary{margin:16px 0 0;padding:12px 14px;border-radius:12px;background:#eef0ff;color:var(--navy);font-size:13px;font-weight:850}.camera-modal{position:fixed;inset:0;z-index:1000;background:rgba(3,8,54,.86);padding:18px;overflow:auto;display:grid;place-items:center}.camera-modal[hidden]{display:none!important}.camera-panel{width:min(820px,100%);background:#fff;border-radius:22px;padding:20px;box-shadow:0 28px 90px rgba(0,0,0,.42)}.camera-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}.camera-panel-head h2{margin:5px 0 0;color:var(--navy)}.camera-close{width:42px;height:42px;padding:0;border-radius:50%;background:#eef0f7;color:var(--navy);font-size:28px;line-height:1}.camera-live-frame{position:relative;overflow:hidden;border-radius:18px;background:#050816;aspect-ratio:16/9;display:grid;place-items:center}.camera-live-frame video{width:100%;height:100%;object-fit:cover}.recording-indicator{position:absolute;top:14px;left:14px;display:flex;align-items:center;gap:7px;padding:8px 11px;border-radius:999px;background:rgba(8,10,24,.76);color:#fff;font-size:13px;font-weight:850}.recording-indicator span{width:10px;height:10px;border-radius:50%;background:#ff3b30;box-shadow:0 0 0 5px rgba(255,59,48,.2);animation:nh-recording-pulse 1.1s infinite}.camera-instruction{margin:14px 0 0;color:var(--muted);line-height:1.5}.camera-controls{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:16px}.camera-open{overflow:hidden}@keyframes nh-recording-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@media(max-width:680px){.camera-modal{padding:0;align-items:end}.camera-panel{border-radius:22px 22px 0 0;padding:16px}.camera-live-frame{aspect-ratio:3/4}.camera-controls{display:grid;grid-template-columns:1fr}.camera-controls button{width:100%}.camera-upload-item .camera-action{align-self:stretch}.capture-preview{max-height:340px}}
+
+/* Retrato NH: guias visuais, endereço residencial e assinatura digital. */
+.inspection-guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0 20px}.inspection-guide-grid figure{margin:0;padding:10px;border-radius:16px;background:#070C40;border:1px solid rgba(255,204,0,.45);box-shadow:0 12px 28px rgba(7,12,64,.12)}.inspection-guide-grid a{display:block;border-radius:11px;overflow:hidden;background:#020829}.inspection-guide-grid img{display:block;width:100%;height:auto}.inspection-guide-grid figcaption{padding:10px 4px 2px;color:#fff;font-size:13px;font-weight:850;text-align:center}.registration-fields{margin-top:18px;padding:20px;border:1px solid #cfd5e2;border-radius:18px;background:#f8f9fd}.registration-fields h3{margin:6px 0 4px;color:var(--navy)}.registration-fields>label{display:block;margin-top:16px;color:var(--navy);font-weight:850}.registration-fields textarea{width:100%;margin-top:7px;resize:vertical;min-height:105px}.field-helper{display:block;margin-top:6px;color:var(--muted);font-size:12px}.signature-block{margin-top:18px}.signature-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:10px}.signature-heading strong{display:block;color:var(--navy)}.signature-heading small{display:block;margin-top:4px;color:var(--muted);line-height:1.4}.signature-heading button{flex:0 0 auto;padding:9px 12px}.signature-block canvas{display:block;width:100%;height:auto;aspect-ratio:900/260;border:2px dashed #9aa5c0;border-radius:14px;background:#fff;touch-action:none;cursor:crosshair;box-shadow:inset 0 1px 4px rgba(7,12,64,.08)}.signature-block canvas.has-signature{border-style:solid;border-color:#16834d}.signature-block .capture-status{margin-top:9px}.signature-block .capture-status.ok{color:#12683f}
+@media(max-width:680px){.inspection-guide-grid{grid-template-columns:1fr;gap:14px}.registration-fields{padding:16px}.signature-heading{flex-direction:column}.signature-heading button{width:100%}.signature-block canvas{aspect-ratio:3/1}}
+
+
+/* Identidade visual oficial NH - Manual da Marca 2026 */
+:root{
+  --navy:#070c40;
+  --navy2:#070c40;
+  --yellow:#f0f000;
+  --bg:#f7f8fb;
+  --text:#070c40;
+  --muted:#596078;
+  --line:#dfe3ee;
+  --white:#ffffff;
+  --shadow:0 18px 48px rgba(7,12,64,.12);
+  --font-brand:"Helvetica Now Display","Helvetica Neue",Helvetica,Arial,Inter,sans-serif;
+  --font-slogan:"League Spartan","Helvetica Neue",Arial,sans-serif;
+}
+body,input,select,textarea,button{font-family:var(--font-brand)}
+h1,h2,h3,h4,h5,h6,.portal-brand strong{font-family:var(--font-brand)}
+.eyebrow,.portal-brand small,.step,.badge,.status-pill{font-family:var(--font-slogan);letter-spacing:.07em}
+.portal-header{background:var(--navy);border-bottom:4px solid var(--yellow);box-shadow:0 8px 26px rgba(7,12,64,.2)}
+.portal-brand img{filter:none!important;transform:none!important;object-fit:contain}
+.portal-brand small,.eyebrow{color:var(--yellow)}
+.hero-panel{background:var(--navy);border:1px solid rgba(240,240,0,.4);box-shadow:var(--shadow)}
+.hero-panel:after{background:var(--yellow);opacity:.08}
+.card,.tool-card,.dialog-card,.camera-panel{border-color:rgba(7,12,64,.14);box-shadow:0 10px 32px rgba(7,12,64,.08)}
+.card h1,.card h2,.card h3,.tool-card h2,.section-head h2,.dialog-head h2{color:var(--navy)}
+.primary{background:var(--yellow);color:var(--navy);border:1px solid var(--yellow)}
+.primary:hover{box-shadow:0 10px 24px rgba(7,12,64,.18);transform:translateY(-1px)}
+.secondary{background:var(--navy);color:#fff}
+.outline{border-color:var(--navy);color:var(--navy);background:#fff}
+.outline:hover{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(240,240,0,.2)}
+.header-actions a,.header-actions button{border-color:rgba(240,240,0,.62)}
+.header-actions a:hover,.header-actions button:hover{background:var(--yellow);color:var(--navy)}
+input:focus,select:focus,textarea:focus{border-color:var(--navy);box-shadow:0 0 0 4px rgba(240,240,0,.24)}
+.tool-icon{background:var(--navy);color:var(--yellow)}
+.tool-card:hover{border-color:var(--yellow);box-shadow:var(--shadow)}
+.consultant-chip,.capture-summary{background:rgba(240,240,0,.2);color:var(--navy)}
+.step.active{background:var(--navy);color:#fff;box-shadow:inset 0 -3px 0 var(--yellow)}
+.admin-tabs button.active{background:var(--navy);color:#fff;box-shadow:inset 0 -3px 0 var(--yellow)}
+.inspection-guide-grid figure{background:var(--navy);border-color:rgba(240,240,0,.65)}
+.registration-fields{background:#fff;border-color:rgba(7,12,64,.18)}
+.signature-block canvas{border-color:rgba(7,12,64,.46)}
+.camera-live-frame,.capture-preview.video-preview{background:var(--navy)}
+.completion .check,.check{background:rgba(240,240,0,.22);color:var(--navy)}
+@media(max-width:680px){.portal-header{border-bottom-width:3px}}
+
+/* Comunicação manual pelo WhatsApp */
+.communication-dialog{width:min(560px,calc(100% - 28px))}.communication-card{text-align:center;padding:30px}.communication-card h2{margin:8px 0 10px;font-size:30px}.communication-card>p{margin:0 auto;color:var(--muted);max-width:470px;line-height:1.55}.communication-icon{display:grid;place-items:center;width:72px;height:72px;margin:0 auto 16px;border-radius:50%;background:#e5f6ec;color:#13814f;font-size:38px;font-weight:950}.communication-icon.rejected{background:#fff0ee;color:#b93a2f}.communication-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0;text-align:left}.communication-summary>div{padding:12px;border:1px solid var(--line);border-radius:12px;background:#f8f9fd;min-width:0}.communication-summary span{display:block;color:var(--muted);font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}.communication-summary strong{display:block;color:var(--navy);overflow-wrap:anywhere}.communication-actions{justify-content:center}.communication-actions button{min-width:190px}
+@media(max-width:680px){.communication-card{padding:24px 18px}.communication-card h2{font-size:25px}.communication-summary{grid-template-columns:1fr}.communication-actions{display:grid;grid-template-columns:1fr}.communication-actions button{width:100%;min-width:0}}
+
+
+/* Retrato NH: guia individual exibido antes de cada abertura da câmera. */
+.vehicle-guide-summary{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin:16px 0 20px;
+  padding:16px;
+  border:1px solid rgba(7,12,64,.16);
+  border-left:5px solid var(--yellow);
+  border-radius:16px;
+  background:#fff;
+}
+.vehicle-guide-icon{
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  width:52px;
+  height:52px;
+  border-radius:15px;
+  background:var(--navy);
+  font-size:25px;
+}
+.vehicle-guide-summary span,
+.vehicle-guide-summary small{
+  display:block;
+  color:var(--muted);
+}
+.vehicle-guide-summary span{
+  margin-bottom:3px;
+  font-size:11px;
+  font-weight:850;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.vehicle-guide-summary strong{
+  display:block;
+  color:var(--navy);
+  font-size:17px;
+  line-height:1.3;
+}
+.vehicle-guide-summary small{
+  margin-top:4px;
+  font-size:13px;
+  font-weight:750;
+}
+
+.capture-guide-page{
+  scroll-margin-top:18px;
+}
+.capture-guide-page[hidden]{display:none!important}
+.capture-guide-panel{
+  width:min(720px,100%);
+  margin:0 auto;
+}
+.capture-guide-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:14px;
+}
+.capture-guide-head h2{
+  margin:5px 0 0;
+  color:var(--navy);
+}
+.capture-guide-warning{
+  margin:0 0 14px;
+  padding:12px 14px;
+  border:1px solid rgba(240,240,0,.72);
+  border-radius:13px;
+  background:rgba(240,240,0,.16);
+  color:var(--navy);
+  font-weight:900;
+  line-height:1.45;
+}
+.capture-guide-figure{
+  display:grid;
+  place-items:center;
+  margin:0;
+  overflow:hidden;
+  border:2px solid var(--yellow);
+  border-radius:18px;
+  background:var(--navy);
+}
+.capture-guide-figure img{
+  display:block;
+  width:100%;
+  max-height:min(68dvh,760px);
+  object-fit:contain;
+  background:var(--navy);
+}
+.capture-guide-instruction{
+  margin:14px 0 0;
+  color:var(--muted);
+  font-size:15px;
+  line-height:1.58;
+}
+.capture-guide-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:18px;
+}
+
+@media(max-width:680px){
+  .vehicle-guide-summary{align-items:flex-start;padding:14px}
+  .vehicle-guide-icon{width:46px;height:46px;border-radius:13px;font-size:22px}
+  .capture-guide-page{padding:16px}
+  .capture-guide-head h2{font-size:22px}
+  .capture-guide-warning{font-size:14px}
+  .capture-guide-figure img{max-height:58dvh}
+  .capture-guide-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  .capture-guide-actions button{width:100%}
+}
+
+.admin-form-section{margin-top:6px;padding:13px 14px;border-radius:13px;background:#f4f5fb;border:1px solid var(--line)}.admin-form-section strong{display:block;color:var(--navy);font-size:14px}.admin-form-section small{display:block;margin-top:4px;color:var(--muted);line-height:1.45}.code-value{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:#596079;overflow-wrap:anywhere}
+
+/* Nomes do catálogo permanecem inteiros; as tabelas usam rolagem horizontal em telas estreitas. */
+.catalog-name{display:inline-block;white-space:nowrap;word-break:keep-all;overflow-wrap:normal;hyphens:none}
+
+
+/* Auditoria administrativa */
+.audit-list{display:grid;gap:14px}.audit-card{background:#fff;border:1px solid var(--line);border-left:5px solid #8c94ad;border-radius:18px;padding:18px 20px;box-shadow:0 6px 22px rgba(7,12,64,.05)}.audit-card-success{border-left-color:#208a59}.audit-card-danger{border-left-color:#bd4141}.audit-card-update{border-left-color:#e1c900}.audit-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.audit-card-title{display:flex;align-items:flex-start;gap:12px;min-width:0}.audit-type-badge{flex:none;display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;background:#eef0f8;color:var(--navy);font-size:11px;font-weight:900;white-space:nowrap}.audit-card h3{margin:0;color:var(--navy);font-size:16px;line-height:1.35}.audit-card time{display:block;margin-top:5px;color:var(--muted);font-size:12px}.audit-admin{display:grid;gap:3px;min-width:180px;text-align:right}.audit-admin span{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:900}.audit-admin strong{color:var(--navy);font-size:12px;overflow-wrap:anywhere}.audit-details{margin-top:14px;border-top:1px solid #e8ebf2;padding-top:12px}.audit-details summary{cursor:pointer;color:var(--navy);font-size:13px;font-weight:850;list-style:none;display:inline-flex;align-items:center;gap:7px}.audit-details summary::-webkit-details-marker{display:none}.audit-details summary:before{content:'+';width:20px;height:20px;border-radius:50%;background:#eef0f8;display:grid;place-items:center;font-size:15px}.audit-details[open] summary:before{content:'−'}.audit-change-list{display:grid;gap:8px;margin-top:13px}.audit-change-row{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:16px;align-items:center;padding:10px 12px;border-radius:12px;background:#f8f9fd;border:1px solid #edf0f5}.audit-field-label{color:#4b536c;font-size:12px;font-weight:850}.audit-change-values{display:grid;grid-template-columns:minmax(0,1fr) 26px minmax(0,1fr);gap:7px;align-items:center;min-width:0}.audit-before,.audit-after{display:block;padding:8px 10px;border-radius:9px;font-size:12px;line-height:1.35;overflow-wrap:anywhere}.audit-before{background:#fff0f0;color:#8c3333;border:1px solid #f1d2d2}.audit-after{background:#eaf8f0;color:#176b45;border:1px solid #c9e9d6}.audit-arrow{text-align:center;color:#7b8298;font-weight:900}.audit-single-value{grid-column:1/-1}.audit-no-change{padding:12px;border-radius:12px;background:#f8f9fd;color:var(--muted);font-size:13px}.audit-empty{text-align:center;padding:34px;background:#fff;border:1px dashed #cbd1df;border-radius:18px;color:var(--muted)}
+@media(max-width:720px){.audit-card{padding:15px}.audit-card-head{display:grid}.audit-card-title{display:grid;gap:8px}.audit-admin{text-align:left;min-width:0;border-top:1px solid #edf0f5;padding-top:10px}.audit-change-row{grid-template-columns:1fr;gap:7px}.audit-change-values{grid-template-columns:1fr}.audit-arrow{transform:rotate(90deg)}.audit-type-badge{width:max-content}.audit-card h3{font-size:15px}}
+
+/* Continuidade da vistoria e ações de arquivos */
+.connection-actions{display:flex;justify-content:flex-start;margin-top:12px}.connection-actions[hidden]{display:none!important}
+.draft-panel{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:16px 0;padding:15px 16px;border:1px solid #b9dfc9;border-left:5px solid #238454;border-radius:15px;background:#eefaf3;color:var(--navy)}
+.draft-panel[hidden]{display:none!important}.draft-panel[data-kind="warning"]{border-color:#ead596;border-left-color:#d09a00;background:#fff9e7}.draft-panel div{display:grid;gap:4px}.draft-panel strong{font-size:14px}.draft-panel small{color:#4f5d69;line-height:1.45}.draft-panel button{flex:none}
+.status-with-action{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.status-with-action .button{white-space:nowrap}.row-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+@media(max-width:700px){.draft-panel{align-items:stretch;display:grid}.draft-panel button{width:100%}.status-with-action{align-items:flex-start;flex-direction:column}.row-actions{display:grid;grid-template-columns:1fr}.row-actions>*{width:100%!important;text-align:center}}
+
+/* Envio real por partes, com retomada após oscilação de internet */
+.upload-progress{display:grid;gap:9px;margin:16px 0;padding:16px;border:1px solid #b8c4eb;border-left:5px solid var(--navy);border-radius:15px;background:#f3f6ff;color:var(--navy)}
+.upload-progress[hidden]{display:none!important}.upload-progress strong{font-size:14px}.upload-progress small{font-weight:800;color:#46506d}.upload-progress p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
+.upload-progress progress{width:100%;height:14px;overflow:hidden;border:0;border-radius:999px;background:#dfe4f2;accent-color:var(--navy)}
+.upload-progress progress::-webkit-progress-bar{background:#dfe4f2;border-radius:999px}.upload-progress progress::-webkit-progress-value{background:var(--navy);border-radius:999px}.upload-progress progress::-moz-progress-bar{background:var(--navy);border-radius:999px}
+
+.document-upload-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.document-upload-card{display:flex;flex-direction:column;gap:7px;border:1px solid rgba(7,12,64,.18);border-radius:15px;padding:15px;background:#f8f9fd;color:var(--navy)}.document-upload-card span{font-weight:900}.document-upload-card small{color:var(--muted);line-height:1.45}.document-upload-card input[type=file]{padding:10px;background:#fff}.document-upload-card strong{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.document-upload-card.has-file{border-color:#16834d;background:#eefaf3}.document-upload-card.has-file strong{color:#12683f}@media(max-width:680px){.document-upload-grid{grid-template-columns:1fr}}
+
+
+/* Arquivos da vistoria armazenados no PostgreSQL */
+.inspection-media-section{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:18px;background:#f8f9fd}.inspection-media-section[hidden]{display:none!important}.inspection-media-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}.inspection-media-head h3{margin:0;color:var(--navy)}.inspection-media-head p{margin:4px 0 0;color:var(--muted);font-size:13px}.inspection-media-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.inspection-media-card{display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid #dfe3ee;border-radius:15px;background:#fff}.inspection-media-preview{display:grid;place-items:center;min-height:150px;background:#eef1f7}.inspection-media-preview img,.inspection-media-preview video{display:block;width:100%;height:190px;object-fit:contain;background:#111}.inspection-media-placeholder{padding:26px 14px;text-align:center;color:var(--navy);font-weight:900}.inspection-media-body{display:grid;gap:5px;padding:12px}.inspection-media-body strong{color:var(--navy);font-size:13px;line-height:1.35}.inspection-media-body small{color:var(--muted);overflow-wrap:anywhere}.inspection-media-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}.inspection-media-actions button{flex:1;min-width:90px}.inspection-media-card.expired{opacity:.72}.inspection-media-expired{padding:10px;border-radius:10px;background:#fff2f2;color:#9b3333;font-size:12px;font-weight:800}.inspection-media-loading{color:var(--muted);font-size:12px;font-weight:800}
+@media(max-width:900px){.inspection-media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.inspection-media-head{display:grid}.inspection-media-head button{width:100%}.inspection-media-grid{grid-template-columns:1fr}.inspection-media-preview img,.inspection-media-preview video{height:230px}}
+.additional-documents-section{margin-top:18px}.additional-files-list{display:grid;gap:8px;margin-top:12px}.additional-file-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid rgba(7,12,64,.14);border-radius:12px;background:#fff}.additional-file-row div{min-width:0}.additional-file-row strong,.additional-file-row small{display:block;overflow-wrap:anywhere}.additional-file-row small{margin-top:3px;color:var(--muted)}.additional-file-row button{flex:0 0 auto;padding:8px 10px}@media(max-width:680px){.additional-file-row{align-items:stretch;flex-direction:column}.additional-file-row button{width:100%}}
+
+
+/* =========================================================
+   IDENTIDADE VISUAL NH — BOTÕES DOS PORTAIS INTERNOS
+   Azul-marinho, amarelo institucional e branco.
+   ========================================================= */
+button,
+.button {
+  min-height: 44px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  font-family: "League Spartan", Inter, system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: .015em;
+  line-height: 1.1;
+  box-shadow: 0 7px 18px rgba(7, 12, 64, .10);
+  transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease, color .18s ease, border-color .18s ease;
+}
+
+button:not(:disabled):hover,
+.button:not([aria-disabled="true"]):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 11px 24px rgba(7, 12, 64, .16);
+}
+
+button:not(:disabled):active,
+.button:not([aria-disabled="true"]):active {
+  transform: translateY(0);
+  box-shadow: 0 5px 12px rgba(7, 12, 64, .12);
+}
+
+button:focus-visible,
+.button:focus-visible {
+  outline: 3px solid rgba(240, 240, 0, .58);
+  outline-offset: 3px;
+}
+
+.primary {
+  border-color: var(--yellow);
+  background: var(--yellow);
+  color: var(--navy);
+  box-shadow: 0 8px 20px rgba(240, 240, 0, .25), 0 5px 14px rgba(7, 12, 64, .10);
+}
+
+.primary:not(:disabled):hover {
+  border-color: var(--navy);
+  background: var(--yellow);
+  color: var(--navy);
+}
+
+.secondary {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--yellow);
+}
+
+.secondary:not(:disabled):hover {
+  border-color: var(--yellow);
+  background: #0b125a;
+  color: var(--yellow);
+}
+
+.outline {
+  border-color: var(--navy);
+  background: var(--white);
+  color: var(--navy);
+  box-shadow: 0 6px 16px rgba(7, 12, 64, .07);
+}
+
+.outline:not(:disabled):hover {
+  border-color: var(--yellow);
+  background: rgba(240, 240, 0, .16);
+  color: var(--navy);
+}
+
+.danger {
+  border-color: #b93838;
+  background: #fff;
+  color: #9f2525;
+}
+
+.danger:not(:disabled):hover {
+  border-color: #9f2525;
+  background: #fff0f0;
+  color: #861d1d;
+}
+
+.small-button {
+  min-height: 38px;
+  padding: 9px 13px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.dialog-close {
+  min-height: 38px;
+  border: 2px solid transparent;
+  box-shadow: none;
+}
+
+.dialog-close:not(:disabled):hover {
+  border-color: var(--yellow);
+  background: var(--navy);
+  color: var(--yellow);
+}
+
+.header-actions a,
+.header-actions button {
+  min-height: 40px;
+  border: 1px solid rgba(240, 240, 0, .72);
+  color: #fff;
+  box-shadow: none;
+}
+
+.header-actions a:hover,
+.header-actions button:not(:disabled):hover {
+  border-color: var(--yellow);
+  background: var(--yellow);
+  color: var(--navy);
+}
+
+.admin-tabs button {
+  min-height: 42px;
+  border: 1px solid rgba(7, 12, 64, .18);
+  background: #fff;
+  color: var(--navy);
+  box-shadow: 0 5px 14px rgba(7, 12, 64, .06);
+}
+
+.admin-tabs button:hover {
+  border-color: var(--yellow);
+  background: rgba(240, 240, 0, .14);
+}
+
+.admin-tabs button.active {
+  border-color: var(--yellow);
+  background: var(--navy);
+  color: var(--yellow);
+  box-shadow: inset 0 -3px 0 var(--yellow), 0 8px 18px rgba(7, 12, 64, .15);
+}
+
+/* =========================================================
+   ADMIN — STATUS MAIS LEGÍVEIS EM VISÃO GERAL, COTAÇÕES
+   E RETRATO NH.
+   ========================================================= */
+.admin-page .badge {
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  border: 1px solid rgba(7, 12, 64, .08);
+  font-family: "League Spartan", Inter, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: .01em;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(7, 12, 64, .06);
+}
+
+.admin-page .badge.ok {
+  border-color: #9ed6b8;
+  background: #e4f7ec;
+  color: #0e653d;
+}
+
+.admin-page .badge.warn {
+  border-color: #ead36c;
+  background: #fff4bd;
+  color: #6f5300;
+}
+
+.admin-page .badge.off {
+  border-color: #efb5b5;
+  background: #ffebeb;
+  color: #922b2b;
+}
+
+.admin-page #tab-overview .status-summary {
+  gap: 3px;
+}
+
+.admin-page #tab-overview .status-summary > div {
+  min-height: 48px;
+  gap: 14px;
+  padding: 9px 0;
+}
+
+.admin-page #tab-overview .status-summary > div > span {
+  min-width: 0;
+}
+
+.admin-page #tab-overview .status-summary .badge {
+  font-size: 15px;
+  padding: 8px 13px;
+}
+
+.admin-page #tab-overview .status-summary strong {
+  min-width: 34px;
+  font-family: "League Spartan", Inter, system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.admin-page #tab-quotes .badge,
+.admin-page #tab-inspections .badge,
+.admin-page #tab-activities .badge {
+  font-size: 14px;
+  padding: 7px 11px;
+}
+
+@media (max-width: 520px) {
+  .admin-page .badge {
+    max-width: 100%;
+    font-size: 13px;
+    white-space: normal;
+  }
+
+  .admin-page #tab-overview .status-summary .badge {
+    font-size: 14px;
+  }
+}
+
+/* =========================================================
+   PAINEL DO CONSULTOR — status e ações com leitura reforçada
+   sem perder a adaptação para cartões em telas menores.
+   ========================================================= */
+#activity-dashboard .badge {
+  min-width: 132px;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 14px;
+  border: 1px solid rgba(7, 12, 64, .08);
+  font-family: "League Spartan", Inter, system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: .012em;
+  text-align: center;
+  white-space: normal;
+  box-shadow: 0 5px 13px rgba(7, 12, 64, .07);
+}
+
+#activity-dashboard .badge.warn {
+  border-color: #ead36c;
+  background: #fff1b8;
+  color: #705300;
+}
+
+#activity-dashboard .badge.ok {
+  border-color: #9ed6b8;
+  background: #e4f7ec;
+  color: #0e653d;
+}
+
+#activity-dashboard .badge.off {
+  border-color: #efb5b5;
+  background: #ffebeb;
+  color: #922b2b;
+}
+
+#activity-dashboard .small-button {
+  min-height: 42px;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.12;
+}
+
+#activity-dashboard .inspection-actions,
+#activity-dashboard .quote-actions {
+  gap: 8px;
+}
+
+/* =========================================================
+   EDIÇÃO SEGURA DA COTAÇÃO
+   ========================================================= */
+.quote-edit-dialog {
+  width: min(760px, calc(100% - 28px));
+}
+
+.quote-edit-dialog .dialog-head p {
+  max-width: 590px;
+  margin: 7px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.quote-edit-locked-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 4px 0 20px;
+}
+
+.quote-edit-locked-grid > div {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #dfe3ee;
+  border-radius: 13px;
+  background: #f7f8fc;
+}
+
+.quote-edit-locked-grid span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.quote-edit-locked-grid strong {
+  display: block;
+  color: var(--navy);
+  font-size: 14px;
+  line-height: 1.32;
+  overflow-wrap: anywhere;
+}
+
+.quote-edit-fields {
+  margin-top: 0;
+}
+
+.quote-edit-protection {
+  margin-top: 18px;
+  padding: 14px 15px;
+  border: 1px solid #e7d35f;
+  border-radius: 13px;
+  background: #fff9d9;
+  color: #574400;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.quote-edit-protection strong {
+  color: var(--navy);
+}
+
+@media (max-width: 760px) {
+  #activity-dashboard .badge {
+    min-width: 0;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 36px;
+    padding: 8px 12px;
+    font-size: 15px;
+  }
+
+  #activity-dashboard .small-button {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .quote-edit-locked-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .quote-edit-dialog .dialog-card {
+    padding: 19px 15px;
+  }
+
+  .quote-edit-locked-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-edit-dialog .dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .quote-edit-dialog .dialog-actions button {
+    width: 100%;
+  }
+}
+
+
+/* Selfie: permite corrigir a orientação para que placa e textos não fiquem espelhados. */
+.camera-live-frame video {
+  transition: transform .18s ease;
+}
+.camera-live-frame.selfie-orientation-corrected video {
+  transform: scaleX(-1);
+}
+
+.section-head-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.retention-notice {
+  border-left: 4px solid var(--yellow);
+}
+
+.retention-notice p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+@media (max-width: 820px) {
+  .section-head-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .section-head-actions > * {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+
+
+/* =========================================================
+   ANALISTA — FILAS DE VISTORIAS SEPARADAS POR TIPO
+   ========================================================= */
+.analysis-queues {
+  display: grid;
+  gap: 20px;
+}
+
+.analysis-queues > .section-head {
+  margin-bottom: 0;
+}
+
+.analysis-filter-actions input {
+  min-width: min(360px, 62vw);
+}
+
+.analysis-queue-card {
+  padding: 0;
+  overflow: hidden;
+  border-color: rgba(7, 12, 64, .14);
+}
+
+.analysis-queue-title {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(90deg, rgba(7, 12, 64, .045), rgba(240, 240, 0, .075));
+}
+
+.analysis-queue-title h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.analysis-queue-title p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.analysis-queue-index {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--navy);
+  color: var(--yellow);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.analysis-queue-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid rgba(7, 12, 64, .18);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.analysis-queue-card .table-wrap {
+  border: 0;
+  border-radius: 0;
+}
+
+.analysis-queue-card table {
+  min-width: 900px;
+}
+
+@media (max-width: 920px) {
+  .analysis-filter-actions,
+  .analysis-filter-actions input,
+  .analysis-filter-actions button {
+    width: 100%;
+  }
+
+  .analysis-filter-actions input {
+    min-width: 0;
+  }
+
+  .analysis-queue-title {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    padding: 16px;
+  }
+
+  .analysis-queue-count {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+
+/* =========================================================
+   CONSULTOR — decisão da proposta dentro da edição
+   ========================================================= */
+.quote-edit-decision{margin-top:18px;padding:16px;border:1px solid rgba(7,12,64,.10);border-radius:15px;background:#f7f8fc;display:flex;align-items:center;justify-content:space-between;gap:18px}.quote-edit-decision[hidden],.quote-edit-accepted[hidden]{display:none!important}.quote-edit-decision-copy{min-width:0}.quote-edit-decision-copy strong{display:block;color:var(--navy);font-size:16px}.quote-edit-decision-copy small{display:block;margin-top:5px;color:var(--muted);line-height:1.4}.quote-edit-decision-actions{display:flex;gap:10px;flex:0 0 auto}.quote-decision-yes,.quote-decision-no{min-width:72px;min-height:44px;padding:9px 18px;border-radius:12px;font-weight:800}.quote-decision-yes{background:var(--yellow);color:var(--navy);border:1px solid var(--yellow)}.quote-decision-no{background:#ffe5e2;color:#9c2929;border:1px solid #ffd0cb}.quote-decision-no.selected{box-shadow:inset 0 -3px 0 #c63a32}.quote-edit-accepted{margin-top:16px;padding:18px;border:1px solid rgba(7,12,64,.12);border-left:4px solid var(--yellow);border-radius:15px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:18px}.quote-edit-accepted>div{min-width:0}.quote-edit-accepted strong{display:block;color:var(--navy);font-size:18px}.quote-edit-accepted p{margin:6px 0 0;color:var(--muted);line-height:1.45}.quote-edit-retrato-link{flex:0 0 auto;white-space:nowrap}@media(max-width:700px){.quote-edit-decision,.quote-edit-accepted{display:grid;grid-template-columns:1fr;align-items:stretch}.quote-edit-decision-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.quote-edit-retrato-link{width:100%;white-space:normal;text-align:center}}@media(max-width:380px){.quote-edit-decision-actions{grid-template-columns:1fr}}
+
+
+/* V31 — documentos da venda nova: CRLV + identidade frente e verso */
+@media (min-width:901px){.document-upload-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:681px) and (max-width:900px){.document-upload-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* V38 visual — ações dos arquivos da vistoria responsivas em qualquer largura */
+.inspection-media-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  margin-top: 8px;
+}
+
+.inspection-media-actions > button,
+.inspection-media-actions > a {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0 !important;
+  min-height: 44px;
+  padding: 10px 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Exclusão/solicitação sempre ganha a linha inteira. */
+.inspection-media-actions > .danger {
+  grid-column: 1 / -1;
+}
+
+/* Quando existem apenas Baixar + Excluir, ambos ocupam a largura inteira. */
+.inspection-media-actions > :first-child:nth-last-child(2) {
+  grid-column: 1 / -1;
+}
+
+/* Em cards muito estreitos, nenhuma ação fica lado a lado. */
+@media (max-width: 460px) {
+  .inspection-media-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .inspection-media-actions > * {
+    grid-column: 1 !important;
+  }
+}
+
+.inspection-media-note {
+  display: block;
+  margin-top: 6px;
+  color: #596079;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+
+/* Retrato NH: controles de flash e retomada da gravação de vídeo. */
+.camera-flash-button[aria-pressed="true"] {
+  background: #fff8a8;
+  border-color: #d6cd00;
+  color: var(--navy);
+}
+
+.recording-paused-banner {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(7, 12, 64, .92);
+  color: #fff;
+  border: 1px solid rgba(240, 236, 0, .72);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .28);
+  z-index: 2;
+}
+
+.recording-paused-banner strong {
+  color: var(--yellow);
+  font-size: 14px;
+}
+
+.recording-paused-banner span {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.resume-recording-button {
+  box-shadow: 0 3px 0 #d6cd00;
+}
+
+@media (max-width: 680px) {
+  .recording-paused-banner {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+  }
+}
+
+/* Painel de Análises: filas por situação */
+.analysis-status-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0 8px;
+}
+.analysis-status-tab {
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid #cfd3df;
+  border-radius: 14px;
+  background: #fff;
+  color: #070c40;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+.analysis-status-tab span {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef0f6;
+  font-size: 12px;
+}
+.analysis-status-tab.active {
+  background: #070c40;
+  color: #f4ef00;
+  border-color: #070c40;
+  box-shadow: 0 3px 0 #e9ef00;
+}
+.analysis-status-tab.active span {
+  background: #f4ef00;
+  color: #070c40;
+}
+.analysis-status-description {
+  margin: 0 0 16px;
+  color: #586074;
+}
+@media (max-width: 900px) {
+  .analysis-status-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .analysis-status-tabs { grid-template-columns: 1fr; }
+  .analysis-status-tab { justify-content: space-between; text-align: left; }
+}
+
+/* Coberturas por plano + regras de limite */
+.coverage-plan-options {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+  margin-top:8px;
+}
+.coverage-plan-choice {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:46px;
+  padding:10px 12px;
+  border:1px solid #d7d9e5;
+  border-radius:14px;
+  background:#fff;
+  cursor:pointer;
+}
+.coverage-plan-choice input { width:18px; height:18px; flex:0 0 auto; }
+.coverage-plan-choice strong { color:#070c40; }
+.coverage-rules-editor {
+  margin-top:18px;
+  padding:16px;
+  border:1px solid #dfe1eb;
+  border-radius:18px;
+  background:#f8f9fd;
+}
+.coverage-rules-head {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:start;
+  gap:16px;
+  margin-bottom:14px;
+}
+.coverage-rules-head h3 { margin:0 0 6px; color:#070c40; }
+.coverage-rules-head .helper { margin:0; max-width:64ch; }
+#add-coverage-rule {
+  min-height:46px;
+  padding:10px 18px;
+  border-radius:14px;
+  font-size:14px;
+  font-weight:900;
+  white-space:nowrap;
+  align-self:start;
+}
+.coverage-rules-list { display:grid; gap:14px; }
+.coverage-rule-row {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  align-items:end;
+  padding:14px;
+  border:1px solid #d9dce8;
+  border-radius:16px;
+  background:#fff;
+}
+.coverage-rule-row label { display:grid; gap:7px; font-size:.88rem; font-weight:800; color:#070c40; min-width:0; }
+.coverage-rule-row input,.coverage-rule-row select { width:100%; min-width:0; }
+.coverage-rule-row .coverage-rule-remove {
+  min-height:46px;
+  padding:10px 16px;
+  justify-self:start;
+}
+.coverage-plan-separator td {
+  background:#070c40;
+  color:#f4ee00 !important;
+  font-weight:900;
+  font-size:1rem;
+  letter-spacing:.02em;
+  text-align:center;
+  border-bottom:3px solid #f4ee00;
+}
+.coverage-plan-separator td:hover {
+  background-color:#f4ee00 !important;
+  color:#070c40 !important;
+}
+@media (max-width:1100px) {
+  .coverage-rule-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .coverage-rule-row .coverage-rule-remove { grid-column:1 / -1; }
+}
+@media (max-width:680px) {
+  .coverage-rules-head { grid-template-columns:1fr; }
+  .coverage-rules-head button, #add-coverage-rule { width:100%; justify-self:stretch; }
+  .coverage-rule-row { grid-template-columns:1fr; }
+}
+
+
+/* Responsividade global reforçada - portal e áreas internas */
+.portal-header{
+  flex-wrap:wrap;
+}
+.header-actions{
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.header-actions a,
+.header-actions button{
+  min-height:42px;
+  text-align:center;
+  white-space:nowrap;
+}
+.table-wrap{max-width:100%;}
+@media (max-width: 1024px){
+  .portal-header{
+    padding:12px 18px;
+    align-items:center;
+  }
+  .portal-brand{
+    min-width:0;
+    flex:1 1 220px;
+  }
+  .header-actions{
+    flex:999 1 100%;
+    justify-content:flex-start;
+  }
+}
+@media (max-width: 820px){
+  .shell{width:min(100%,calc(100% - 24px));margin:22px auto 56px;}
+  .card{padding:18px; border-radius:18px;}
+  .hero-panel{padding:22px 18px; border-radius:20px;}
+  .hero-panel h1{font-size:clamp(26px,8vw,40px);}
+  .header-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    width:100%;
+    gap:10px;
+  }
+  .header-actions a,
+  .header-actions button{
+    width:100%;
+    min-width:0;
+    white-space:normal;
+    padding:10px 12px;
+    font-size:13px;
+    line-height:1.2;
+  }
+  .portal-brand{
+    justify-content:center;
+    flex:1 1 100%;
+  }
+  .portal-brand span{display:block; min-width:0;}
+  .portal-brand strong{font-size:15px;}
+  .portal-brand small{font-size:12px;}
+  .section-head{align-items:stretch;}
+  .section-head > *{width:100%;}
+  .actions{display:grid; grid-template-columns:1fr;}
+  .actions > *{width:100%;}
+  .admin-tabs{display:grid; grid-template-columns:repeat(2,minmax(0,1fr));}
+  .admin-tabs button{width:100%;}
+}
+@media (max-width: 520px){
+  .portal-header{padding:10px 12px; gap:12px;}
+  .portal-brand img{width:42px; height:42px;}
+  .portal-brand strong{font-size:14px;}
+  .portal-brand small{font-size:11px;}
+  .header-actions{grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;}
+  .header-actions a,
+  .header-actions button{
+    font-size:12px;
+    border-radius:16px;
+    padding:9px 10px;
+  }
+  .tool-grid,.upload-grid,.kpi-grid,.form-grid{grid-template-columns:1fr;}
+  .span-2{grid-column:auto;}
+  .table-wrap{border-radius:12px;}
+}
+@media (max-width: 340px){
+  .header-actions{grid-template-columns:1fr;}
+  .portal-brand{justify-content:center;}
+}
+
+/* Aceite digital WebAuthn do PPV */
+.digital-acceptance-card { border-top: 4px solid #ffec00; }
+.digital-acceptance-content { display: grid; gap: 14px; }
+.digital-acceptance-content h2 { margin: 0; color: #080f63; }
+.digital-evidence-list { display: grid; gap: 5px; padding: 14px; border: 1px solid #dce0ea; border-radius: 12px; background: #f7f8fc; }
+.digital-evidence-list strong { color: #080f63; margin-bottom: 3px; }
+.digital-acceptance-details { padding: 12px 14px; border-radius: 10px; background: #edf8f1; border: 1px solid #b9dfc7; overflow-wrap: anywhere; }
+.digital-acceptance-details strong { color: #176f45; }
+
+/* V46 - Supervisão/Análise: abas flexíveis sem estouro horizontal. */
+.analysis-status-tab {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.16;
+}
+@media (max-width: 1280px) {
+  .analysis-status-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 680px) {
+  .analysis-status-tabs { grid-template-columns: 1fr; }
+}
+
+
+/* V46.1 - proteção global contra estouro horizontal em todos os portais. */
+html, body { max-width:100%; overflow-x:hidden; }
+.shell, .card, .hero-panel, .section-head, .actions, .form-grid,
+.tool-grid, .upload-grid, .kpi-grid, .detail-grid, .analysis-queues,
+.admin-tabs, .dialog-card, .inspection-media-grid { min-width:0; }
+img, video, canvas, svg { max-width:100%; }
+input, select, textarea, button, a { max-width:100%; }
+.section-head > *, .actions > *, .form-grid > *, .detail-grid > * { min-width:0; }
+
+@media (max-width: 1180px) {
+  .shell { width:min(100% - 28px, 1180px); }
+  .portal-header { padding-inline:14px; }
+}
+
+@media (max-width: 760px) {
+  .shell { width:calc(100% - 20px) !important; margin:18px auto 48px !important; }
+  .hero-panel, .card { border-radius:16px !important; }
+  .hero-panel { padding:20px 16px !important; }
+  .card { padding:16px !important; }
+  .section-head { gap:12px !important; }
+  .admin-dialog, .admin-dialog.wide-dialog { width:calc(100% - 16px) !important; max-width:none !important; }
+  .dialog-card { max-height:calc(100dvh - 16px) !important; padding:16px !important; }
+  .dialog-head { gap:10px; }
+  .dialog-head h2 { overflow-wrap:anywhere; }
+  .table-wrap { width:100%; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+}
+
+@media (max-width: 420px) {
+  .shell { width:calc(100% - 12px) !important; }
+  .hero-panel { padding:17px 13px !important; }
+  .card { padding:13px !important; }
+  .dialog-card { padding:13px !important; border-radius:14px !important; }
+}
+
+/* Envio explícito do aceite WebAuthn pela supervisão */
+.webauthn-send-box { margin-top: 12px; }
+.webauthn-send-box p { margin: 6px 0 10px; }
+.webauthn-send-box .actions { margin-top: 6px; }
+@media (max-width: 640px) {
+  .webauthn-send-box .actions { display: grid; grid-template-columns: 1fr; }
+  .webauthn-send-box .actions button { width: 100%; }
+}
+
+.footer-note .footer-developer a{color:var(--navy);font-weight:900;text-decoration:none}.footer-note .footer-developer a:hover,.footer-note .footer-developer a:focus-visible{text-decoration:underline}
+
+/* V47 - compatibilidade WebAuthn em iPhone/iOS */
+.ios-webauthn-help {
+  display:grid; gap:8px; padding:14px; border:1px solid #f0d75c;
+  border-radius:12px; background:#fffbea; color:#242424;
+}
+.ios-webauthn-help[hidden] { display:none !important; }
+.ios-webauthn-help strong { color:#080f63; }
+.ios-webauthn-help p, .ios-webauthn-help small { margin:0; line-height:1.45; }
+.ios-webauthn-help .actions { margin-top:4px; }
+@media (max-width:640px) {
+  .ios-webauthn-help .actions { display:grid; grid-template-columns:1fr; }
+  .ios-webauthn-help .actions button { width:100%; }
+}
+
+
+/* Retrato NH — flash manual + automático por baixa iluminação (foto e vídeo). */
+.camera-flash-button[data-flash-mode="auto"] {
+  border-color: rgba(240, 236, 0, .82);
+}
+
+.camera-flash-button[data-flash-mode="on"],
+.camera-flash-button[aria-pressed="true"] {
+  background: #fff8a8;
+  border-color: #d6cd00;
+  color: var(--navy);
+}
+
+.camera-flash-button[data-flash-mode="off"] {
+  background: #fff;
+  color: #5c6277;
+}
+
+.camera-flash-status {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  max-width: min(78%, 360px);
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(7, 12, 64, .84);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, .24);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.25;
+  text-align: right;
+  z-index: 2;
+  backdrop-filter: blur(6px);
+}
+
+.camera-flash-status[data-flash-state="on"] {
+  color: var(--yellow);
+  border-color: rgba(240, 236, 0, .72);
+}
+
+@media(max-width:680px) {
+  .camera-flash-status {
+    right: 10px;
+    bottom: 10px;
+    max-width: calc(100% - 20px);
+    font-size: 11px;
+  }
+}
+
+/* V19 - revisão comercial: prévia de desconto/adicionais + edição responsiva */
+.commercial-editor {
+  margin-top: 16px !important;
+  padding: 18px !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.commercial-editor > p {
+  max-width: 920px;
+}
+
+.commercial-editor .form-grid {
+  align-items: start;
+}
+
+.commercial-editor .form-grid > label {
+  min-width: 0;
+}
+
+/* O CSS legado adicionava margem no segundo label e quebrava o alinhamento
+   das grades dos diálogos. Em formulários em grid, o próprio gap deve cuidar
+   do espaçamento vertical/horizontal. */
+.admin-dialog .form-grid > label + label {
+  margin-top: 0 !important;
+}
+
+.commercial-editor input,
+.commercial-editor select,
+.commercial-editor textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.commercial-editor .helper {
+  display: block;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.commercial-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.commercial-preview-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  min-height: 82px;
+  padding: 12px 13px;
+  border: 1px solid rgba(7, 12, 64, .13);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .78);
+}
+
+.commercial-preview-item span {
+  color: #5f6474;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.commercial-preview-item strong {
+  margin-top: 4px;
+  color: var(--navy);
+  font-size: clamp(16px, 1.7vw, 21px);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.commercial-preview-item small {
+  display: block;
+  margin-top: 5px;
+  color: #5f6474;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.commercial-preview-discount strong {
+  color: #a12b2b;
+}
+
+.commercial-preview-total {
+  grid-column: 1 / -1;
+  border-width: 2px;
+  border-color: rgba(7, 12, 64, .48);
+  background: rgba(240, 236, 0, .17);
+}
+
+.commercial-preview-total strong {
+  font-size: clamp(19px, 2vw, 25px);
+}
+
+.commercial-benefits-section {
+  margin-top: 18px;
+}
+
+.commercial-benefits-section > p {
+  margin: 6px 0 10px !important;
+}
+
+.commercial-benefits-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px !important;
+  margin-top: 10px;
+}
+
+.commercial-benefits-grid > label,
+.commercial-benefits-grid > label + label,
+.admin-dialog .commercial-benefits-grid > label + label {
+  margin-top: 0 !important;
+}
+
+.commercial-benefit-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  min-width: 0;
+  padding: 11px 12px !important;
+  border: 1px solid rgba(7, 12, 64, .13) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, .76);
+  cursor: pointer;
+}
+
+.commercial-benefit-row:has(.commercial-benefit-input:disabled) {
+  cursor: default;
+}
+
+.commercial-benefit-input {
+  flex: 0 0 18px;
+  width: 18px !important;
+  min-width: 18px !important;
+  height: 18px;
+  margin: 2px 0 0 !important;
+}
+
+.commercial-benefit-copy {
+  display: block;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+}
+
+.commercial-benefit-copy > strong {
+  display: block;
+  line-height: 1.3;
+}
+
+.commercial-benefit-detail {
+  display: block;
+  margin-top: 4px;
+  color: #646979;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.commercial-benefits-empty {
+  grid-column: 1 / -1;
+  padding: 12px;
+  border: 1px dashed rgba(7, 12, 64, .2);
+  border-radius: 10px;
+  color: #686d7d;
+}
+
+.commercial-lock-banner {
+  display: grid;
+  gap: 3px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(170, 36, 36, .28);
+  border-radius: 12px;
+  background: rgba(170, 36, 36, .07);
+}
+
+.commercial-lock-banner[hidden] {
+  display: none !important;
+}
+
+.commercial-lock-banner strong {
+  color: #8d2222;
+}
+
+.commercial-lock-banner span {
+  color: #555b69;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (max-width: 980px) {
+  .commercial-preview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .commercial-preview-total {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .commercial-benefits-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .commercial-editor {
+    padding: 13px !important;
+    margin-top: 12px !important;
+  }
+  .commercial-preview {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .commercial-preview-total {
+    grid-column: auto;
+  }
+  .commercial-preview-item {
+    min-height: 70px;
+    padding: 10px 11px;
+  }
+  .commercial-benefit-row {
+    padding: 10px !important;
+  }
+  .commercial-editor .actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .commercial-editor .actions > button,
+  .commercial-editor .actions > a {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
+}
+.commercial-benefit-row.is-selected {
+  border-color: rgba(7, 12, 64, .34) !important;
+  background: rgba(7, 12, 64, .045);
+}
+.commercial-benefit-row.is-locked {
+  opacity: .78;
+}
+
+/* V21 - etapas explícitas da correção comercial e catálogo vivo de adicionais */
+.commercial-stage-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  margin: 14px 0 10px;
+  padding: 11px 12px;
+  border: 1px solid rgba(7, 12, 64, .13);
+  border-radius: 12px;
+  background: rgba(7, 12, 64, .035);
+}
+.commercial-stage-heading > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--navy);
+  color: var(--yellow);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.commercial-stage-heading strong,
+.commercial-stage-heading small {
+  display: block;
+}
+.commercial-stage-heading strong {
+  color: var(--navy);
+  line-height: 1.3;
+}
+.commercial-stage-heading small {
+  margin-top: 3px;
+  color: #626878;
+  line-height: 1.4;
+}
+.commercial-stage-two {
+  margin-top: 18px;
+  background: rgba(240, 236, 0, .10);
+}
+@media (max-width: 560px) {
+  .commercial-stage-heading {
+    grid-template-columns: 1fr;
+  }
+  .commercial-stage-heading > span {
+    justify-self: start;
+  }
+}
+
+/* V23 — ações de Cadastro realizado / não realizado visíveis e sem corte em desktop/mobile. */
+.registration-actions-panel{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;align-items:stretch;overflow:visible!important}.registration-actions-panel>button,.registration-actions-panel>.button{width:100%;min-width:0!important;max-width:100%;white-space:normal!important;text-align:center;line-height:1.25;overflow-wrap:anywhere}.registration-actions-panel>button:disabled{opacity:.58}@media(max-width:760px){.registration-actions-panel{grid-template-columns:1fr!important}.registration-actions-panel>button,.registration-actions-panel>.button{width:100%!important}}
+
+/* V24: estado atual do cadastro continua clicável para ADM/Supervisão. */
+.registration-actions-panel>button.is-current{box-shadow:inset 0 0 0 2px rgba(255,239,0,.9);font-weight:800}
+
+/* V70 - navegação interna padronizada */
+.nh-standard-header-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.nh-standard-header-actions a,
+.nh-standard-header-actions button{
+  display:inline-flex !important;
+}
+@media(max-width:1100px){
+  .nh-standard-header-actions{
+    width:100%;
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+    padding:2px 0 5px;
+  }
+  .nh-standard-header-actions a,
+  .nh-standard-header-actions button{
+    width:auto !important;
+    flex:0 0 auto;
+    white-space:nowrap !important;
+    min-height:38px;
+    padding:8px 11px;
+    font-size:12px;
+  }
+}
+
+/* V70 - visão administrativa de ocorrências, oficina e reboque */
+.admin-operations-card{max-height:calc(100dvh - 36px);overflow:auto}
+.admin-ops-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.admin-ops-grid>div{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#f8f9fc;min-width:0}
+.admin-ops-grid span{display:block;color:var(--muted);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+.admin-ops-grid strong{display:block;color:var(--navy);margin-top:4px;overflow-wrap:anywhere}
+.admin-ops-section{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.admin-ops-section h3{margin:0 0 10px;color:var(--navy)}
+.admin-ops-list{display:grid;gap:8px}
+.admin-ops-row,.admin-ops-card{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.admin-ops-row>div,.admin-ops-card{min-width:0}
+.admin-ops-row strong,.admin-ops-card strong{color:var(--navy)}
+.admin-ops-row small,.admin-ops-card small{display:block;color:var(--muted);margin-top:3px;overflow-wrap:anywhere}
+.admin-ops-row p,.admin-ops-card p{margin:7px 0 0;color:#4b536b;white-space:pre-wrap}
+.admin-mini-list{display:grid;gap:5px;margin-top:9px;font-size:12px;color:#4b536b}
+@media(max-width:900px){.admin-ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.admin-ops-grid{grid-template-columns:1fr}.admin-ops-row{flex-direction:column}.admin-ops-row button{width:100%}}
+
+
+/* V71 - prévias administrativas, aceite do associado e listas progressivas */
+.admin-progressive-item[hidden]{display:none!important}
+.admin-progressive-actions{display:flex;justify-content:center;margin-top:12px}
+.admin-progressive-more{min-width:180px}
+.admin-progressive-more span{font-size:11px;color:var(--muted);font-weight:700}
+.admin-file-row{align-items:center}
+.admin-file-actions{display:flex;gap:8px;flex:0 0 auto}
+.admin-file-preview-card{width:min(94vw,980px);max-height:calc(100dvh - 36px);overflow:auto}
+.admin-file-preview-content{min-height:300px;display:grid;place-items:center;border:1px solid var(--line);border-radius:14px;background:#f7f8fc;overflow:hidden}
+.admin-file-preview-image{display:block;max-width:100%;max-height:68dvh;object-fit:contain;background:#fff}
+.admin-file-preview-pdf{display:block;width:100%;height:min(70dvh,760px);border:0;background:#fff}
+.admin-acceptance-cell{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.admin-acceptance-cell .admin-acceptance-send{padding:7px 9px;font-size:11px;line-height:1.1}
+.admin-acceptance-bar{margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-left:5px solid var(--yellow);border-radius:12px;background:#fbfbfe;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.admin-acceptance-bar>div{display:grid;gap:3px}
+.admin-acceptance-bar span{color:var(--muted);font-size:10px;font-weight:850;letter-spacing:.04em}
+.admin-acceptance-bar strong{color:var(--navy)}
+.admin-acceptance-card{width:min(94vw,650px)}
+.admin-acceptance-status{border-radius:14px;padding:14px 16px;margin:16px 0;display:grid;gap:4px;border:1px solid #dfe3ef}
+.admin-acceptance-status.loading{background:#f6f7fb}
+.admin-acceptance-status.pending{background:#fffbea;border-color:#e7d74e}
+.admin-acceptance-status.accepted{background:#eaf9f0;border-color:#80c99a}
+.admin-acceptance-status.error{background:#fff0f0;border-color:#efb4b4;color:#a52323}
+.admin-acceptance-status strong{color:var(--navy)}
+.admin-acceptance-status span{font-size:.9rem;color:var(--muted)}
+.admin-acceptance-link-label{display:grid;gap:7px;font-weight:800;color:var(--navy)}
+.admin-acceptance-link-row{display:grid;grid-template-columns:1fr auto;gap:8px}
+.admin-acceptance-link-row input{width:100%;padding:11px 12px;border:1px solid #cbd2e3;border-radius:10px;background:#fff}
+.admin-acceptance-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+.admin-acceptance-proof-note{margin-top:10px;padding:10px 12px;border-radius:10px;background:#f1f8f4;color:#16603a;font-weight:700;font-size:.9rem}
+@media(max-width:700px){
+  .admin-file-actions{width:100%;flex-wrap:wrap}
+  .admin-file-actions button{flex:1 1 130px}
+  .admin-acceptance-bar{align-items:flex-start;flex-direction:column}
+  .admin-acceptance-bar .admin-acceptance-send{width:100%}
+  .admin-acceptance-link-row{grid-template-columns:1fr}
+  .admin-acceptance-actions>*{flex:1 1 100%}
+  .admin-file-preview-content{min-height:220px}
+  .admin-file-preview-pdf{height:65dvh}
+}
+
+/* V72 · Paginação progressiva de listas administrativas */
+.admin-progressive-actions,.admin-auto-pagination{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+.admin-progressive-more,.admin-progressive-less,.admin-auto-more,.admin-auto-less{min-width:150px}
+.admin-progressive-more span,.admin-auto-more span{font-size:11px;color:var(--muted);font-weight:700}
+.admin-progressive-less[hidden],.admin-auto-less[hidden],.admin-auto-more[hidden]{display:none!important}
+@media (max-width:640px){.admin-progressive-actions,.admin-auto-pagination{align-items:stretch}.admin-progressive-more,.admin-progressive-less,.admin-auto-more,.admin-auto-less{width:100%;min-width:0}}
+
+
+/* Cabeçalho padronizado em desktop e mobile */
+.nh-standard-header-actions{display:flex;align-items:center;gap:10px}
+.nh-standard-header-actions a,
+.nh-standard-header-actions button{white-space:nowrap}
+@media(min-width:821px){
+  .portal-header{
+    min-height:82px;
+    padding:12px max(22px,calc((100vw - 1480px)/2));
+    gap:28px;
+    flex-wrap:nowrap;
+  }
+  .portal-brand img{width:52px;height:52px}
+  .portal-brand strong{font-size:18px;line-height:1.1}
+  .portal-brand small{font-size:14px;line-height:1.1}
+  .nh-standard-header-actions{
+    flex:1;
+    justify-content:flex-end;
+    flex-wrap:nowrap;
+    overflow:visible;
+  }
+  .nh-standard-header-actions a,
+  .nh-standard-header-actions button{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:42px;
+    padding:10px 16px;
+    border-radius:999px;
+    font-size:15px;
+    font-weight:800;
+    line-height:1;
+    border-width:1.5px;
+  }
+}
+@media(max-width:820px){
+  .portal-header{
+    flex-direction:column;
+    align-items:stretch;
+    gap:12px;
+  }
+  .nh-standard-header-actions{
+    width:100%;
+    justify-content:flex-start;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    padding-bottom:2px;
+  }
+  .nh-standard-header-actions::-webkit-scrollbar{display:none}
+  .nh-standard-header-actions a,
+  .nh-standard-header-actions button{
+    flex:0 0 auto;
+  }
+}
+
+/* V77 - Compras de Eventos no painel administrativo */
+.admin-purchase-view{display:grid;gap:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.admin-purchase-view>div:first-child{display:grid;gap:4px}
+.admin-purchase-view>div:first-child strong{color:var(--navy);font-size:15px}
+.admin-purchase-view>div:first-child small{color:var(--muted)}
+
+/* V83.21 — aviso de passkey obrigatória após reset */
+.passkey-required-banner{margin:18px 0;padding:18px 20px;border:1px solid #e2b900;border-radius:16px;background:#fff9d8;display:flex;align-items:center;justify-content:space-between;gap:18px;box-shadow:0 8px 24px rgba(7,12,64,.08)}
+.passkey-required-banner strong{display:block;color:var(--navy);font-size:17px}.passkey-required-banner p{margin:5px 0 0;color:#545c70;line-height:1.45}.passkey-required-banner button{flex:0 0 auto}
+@media(max-width:720px){.passkey-required-banner{align-items:stretch;flex-direction:column}.passkey-required-banner button{width:100%}}
+
+/* V83.35 — catálogo de coberturas consolidado */
+.catalog-plan-list{display:flex;flex-wrap:wrap;gap:6px;max-width:360px}
+.catalog-plan-chip{display:inline-flex!important;margin:0!important;padding:5px 8px;border-radius:999px;background:#eef0ff;color:var(--navy);font-size:11px!important;font-weight:850;line-height:1.2}
+@media(max-width:680px){.catalog-plan-list{max-width:none}.catalog-plan-chip{white-space:normal;text-align:left}}
+
+/* Editor administrativo de descontos e efeitos por benefício */
+.discount-benefit-row {
+  grid-template-columns:minmax(190px,1.15fr) minmax(180px,.9fr) minmax(220px,1.25fr) minmax(160px,.75fr);
+}
+.discount-benefit-row > label:first-child {
+  align-self:center;
+}
+.discount-benefit-row > label:first-child strong {
+  color:#070c40;
+}
+@media (max-width: 980px) {
+  .discount-benefit-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 620px) {
+  .discount-benefit-row { grid-template-columns:1fr; }
+}
+
+/* v83.95 - catálogo simples de benefícios e seleção por plano */
+.plan-benefit-options{display:grid;gap:12px;margin-top:4px;max-height:52vh;overflow:auto;padding-right:4px}
+.plan-benefit-row{display:grid;grid-template-columns:minmax(220px,1.4fr) minmax(150px,.8fr) minmax(180px,1fr) minmax(160px,.8fr) minmax(90px,.45fr);gap:10px;align-items:end;padding:12px;border:1px solid #d9dce8;border-radius:14px;background:#fff;transition:.15s}
+.plan-benefit-row.selected{border-color:#9ea6c7;box-shadow:0 0 0 2px rgba(7,12,64,.05)}
+.plan-benefit-toggle{display:flex;align-items:center;gap:10px;min-height:46px;padding:8px 10px;border-radius:12px;background:#f7f8fc}
+.plan-benefit-toggle input{width:18px;height:18px;flex:0 0 auto}
+.plan-benefit-toggle span{min-width:0}
+.plan-benefit-row label{min-width:0}
+.plan-benefit-row input,.plan-benefit-row select{min-width:0}
+.benefit-status-stack{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.benefit-status-stack>span{display:flex;align-items:center;gap:6px}
+@media(max-width:1100px){.plan-benefit-row{grid-template-columns:repeat(2,minmax(0,1fr))}.plan-benefit-toggle{grid-column:1/-1}}
+@media(max-width:680px){.plan-benefit-row{grid-template-columns:1fr}.plan-benefit-toggle{grid-column:auto}.plan-benefit-options{max-height:none}}
+
+/* v83.102 - elegibilidade de adicionais por tipo de veículo */
+.benefit-category-stack{display:grid;gap:10px;min-width:220px}
+.benefit-category-stack .catalog-plan-list{margin-top:5px}
+
+/* v83.103 - regras completas de cobertura por plano */
+.coverage-plan-rule-row{
+  grid-template-columns:minmax(220px,1.35fr) minmax(170px,.9fr) minmax(150px,.75fr) minmax(175px,.9fr) minmax(175px,.9fr) minmax(150px,.75fr) minmax(210px,1.1fr) minmax(90px,.45fr);
+}
+.coverage-optional-toggle{display:grid;gap:7px}
+.coverage-check-line{display:flex;align-items:center;gap:9px;min-height:46px;padding:9px 11px;border:1px solid #d9dce8;border-radius:12px;background:#fff}
+.coverage-check-line input{width:18px;height:18px;flex:0 0 auto}
+.coverage-check-line strong{font-size:.86rem;color:#070c40}
+.coverage-discount-effects{display:grid;gap:12px}
+.coverage-discount-effect-row{display:grid;grid-template-columns:minmax(220px,1.15fr) minmax(180px,.8fr) minmax(210px,1fr) minmax(230px,1.2fr);gap:10px;align-items:end;padding:12px;border:1px solid #d9dce8;border-radius:14px;background:#fff}
+.coverage-discount-effect-row label{min-width:0}
+.coverage-discount-effect-row input,.coverage-discount-effect-row select{min-width:0;width:100%}
+.catalog-warning{padding:13px 15px;border:1px solid #e0c94a;border-radius:14px;background:#fffceb;color:#3d3400;line-height:1.45}
+@media(max-width:1350px){.coverage-plan-rule-row{grid-template-columns:repeat(3,minmax(0,1fr))}.coverage-plan-rule-row .plan-benefit-toggle{grid-column:1/-1}.coverage-discount-effect-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.coverage-plan-rule-row,.coverage-discount-effect-row{grid-template-columns:1fr}.coverage-plan-rule-row .plan-benefit-toggle{grid-column:auto}}
+
+/* v83.104 - editor de coberturas mais legível e responsivo */
+.coverage-type-choice{
+  min-width:0;
+  margin:0;
+  padding:0;
+  border:0;
+}
+.coverage-type-choice legend{
+  margin:0 0 7px;
+  padding:0;
+  font-size:.82rem;
+  font-weight:800;
+  color:#545c70;
+}
+.coverage-type-cards{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+.coverage-type-card{
+  position:relative;
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  min-width:0;
+  min-height:72px;
+  padding:11px 12px;
+  border:1px solid #d9dce8;
+  border-radius:13px;
+  background:#fff;
+  cursor:pointer;
+  transition:border-color .15s ease,box-shadow .15s ease,background .15s ease,transform .15s ease;
+}
+.coverage-type-card:hover:not(.is-disabled){
+  border-color:#9ea6c7;
+  transform:translateY(-1px);
+}
+.coverage-type-card.active{
+  border-color:#070c40;
+  background:#f5f6ff;
+  box-shadow:0 0 0 2px rgba(7,12,64,.08);
+}
+.coverage-type-card.is-disabled{
+  opacity:.48;
+  cursor:not-allowed;
+  background:#f5f6f8;
+}
+.coverage-type-card input{
+  width:18px;
+  height:18px;
+  margin:1px 0 0;
+  flex:0 0 auto;
+}
+.coverage-type-card-copy{
+  display:grid;
+  gap:3px;
+  min-width:0;
+}
+.coverage-type-card-copy strong{
+  color:#070c40;
+  font-size:.89rem;
+  line-height:1.2;
+}
+.coverage-type-card-copy small{
+  color:#6c7385;
+  font-size:.74rem;
+  line-height:1.3;
+}
+.coverage-plan-price-field{
+  min-width:0;
+}
+.coverage-plan-rule-row{
+  grid-template-columns:minmax(220px,1.25fr) minmax(320px,1.6fr) minmax(150px,.75fr) minmax(175px,.9fr) minmax(175px,.9fr) minmax(150px,.75fr) minmax(210px,1.1fr) minmax(90px,.45fr);
+}
+#coverage-vehicle-categories.coverage-plan-options{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:10px;
+}
+#coverage-vehicle-categories .coverage-plan-choice{
+  min-width:0;
+  width:100%;
+}
+@media(max-width:1500px){
+  .coverage-plan-rule-row{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .coverage-plan-rule-row .plan-benefit-toggle,
+  .coverage-plan-rule-row .coverage-type-choice{grid-column:1/-1;}
+}
+@media(max-width:900px){
+  .coverage-plan-rule-row{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .coverage-plan-rule-row .plan-benefit-toggle,
+  .coverage-plan-rule-row .coverage-type-choice{grid-column:1/-1;}
+  .coverage-type-cards{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:620px){
+  .coverage-plan-rule-row{grid-template-columns:1fr;padding:10px;}
+  .coverage-plan-rule-row .plan-benefit-toggle,
+  .coverage-plan-rule-row .coverage-type-choice{grid-column:auto;}
+  .coverage-type-cards{grid-template-columns:1fr;}
+  .coverage-type-card{min-height:64px;}
+  #coverage-vehicle-categories.coverage-plan-options{grid-template-columns:1fr;}
+}
+
+/* v83.104 - cards de vínculo também no editor de plano */
+.plan-benefit-card-row{
+  grid-template-columns:minmax(220px,1.1fr) minmax(330px,1.6fr) minmax(210px,1fr) minmax(160px,.75fr) minmax(90px,.4fr);
+  align-items:end;
+}
+.plan-benefit-card-row .coverage-type-choice{min-width:0;}
+@media(max-width:1250px){
+  .plan-benefit-card-row{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .plan-benefit-card-row .plan-benefit-toggle,
+  .plan-benefit-card-row .coverage-type-choice{grid-column:1/-1;}
+}
+@media(max-width:680px){
+  .plan-benefit-card-row{grid-template-columns:1fr;gap:9px;padding:10px;}
+  .plan-benefit-card-row .plan-benefit-toggle,
+  .plan-benefit-card-row .coverage-type-choice{grid-column:auto;}
+}
+
+/* v83.104 - catálogo de benefícios responsivo */
+@media(max-width:900px){
+  .coverage-catalog-wrap{overflow:visible;border:0;background:transparent;box-shadow:none;}
+  .coverage-catalog-wrap table,
+  .coverage-catalog-wrap tbody,
+  .coverage-catalog-wrap tr,
+  .coverage-catalog-wrap td{display:block;width:100%;}
+  .coverage-catalog-wrap thead{display:none;}
+  .coverage-catalog-wrap tbody{display:grid;gap:12px;}
+  .coverage-catalog-wrap tbody tr{
+    padding:14px;
+    border:1px solid #d9dce8;
+    border-radius:16px;
+    background:#fff;
+    box-shadow:0 8px 24px rgba(7,12,64,.05);
+  }
+  .coverage-catalog-wrap tbody td{
+    padding:10px 0;
+    border:0;
+    border-bottom:1px solid #eceef5;
+    min-width:0;
+  }
+  .coverage-catalog-wrap tbody td:last-child{border-bottom:0;padding-bottom:0;}
+  .coverage-catalog-wrap tbody td::before{
+    content:attr(data-label);
+    display:block;
+    margin-bottom:6px;
+    color:#7a8090;
+    font-size:.7rem;
+    font-weight:900;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+  .coverage-catalog-wrap .benefit-category-stack{min-width:0;}
+  .coverage-catalog-wrap .catalog-plan-list{max-width:none;}
+  .coverage-catalog-wrap .row-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .coverage-catalog-wrap .row-actions button{width:100%;}
+}
+@media(max-width:520px){
+  .coverage-catalog-wrap tbody tr{padding:12px;}
+  .coverage-catalog-wrap .row-actions{grid-template-columns:1fr;}
+}

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#070c40" />
+  <title>Área do Guincho / Reboque | Empresa Cliente</title>
+  <link rel="icon" href="/assets/identidade-pendente.svg" />
+  <link rel="stylesheet" href="/shared/portal.css?v=20260923-v73" />
+  <link rel="stylesheet" href="/shared/brand-system.css?v=20260923-v73" />
+  <link rel="stylesheet" href="/guincho/guincho.css?v=20260923-v70" />
+  <script defer src="/shared/config.js?v=20260923-v77"></script><script defer src="/shared/face-auth.js?v=20260928-v86"></script>
+  <script defer src="/guincho/guincho.js?v=20260923-v70"></script>
+<link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24" />
+  <script defer src="/shared/portal-nav.js?v=20260923-v77"></script>
+  <script src="/shared/gestao-branding.js" defer></script>
+</head>
+<body>
+  <header class="portal-header">
+    <a class="portal-brand" href="/">
+      <img src="/assets/identidade-pendente.svg" alt="Empresa Cliente" />
+      <span><strong>Empresa Cliente</strong><small>Guincho / Reboque</small></span>
+    </a>
+    <button class="nh-portal-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="nh-portal-menu"><span></span><span></span><span></span></button><div id="nh-portal-menu" class="header-actions nh-standard-header-actions">
+        <a href="/">Site principal</a>
+        <a href="/colaborador/">Área do Colaborador</a>
+        <a href="/ponto/">Apontamento Digital</a>
+        <a href="/analise/">Analista</a>
+        <a href="/guincho/">Reboque / Guincho</a>
+        <a href="/oficina/">Área da Oficina</a>
+        <a href="/financeiro/">Área do Financeiro</a>
+        <a href="/supervisao/">Supervisor</a>
+        <a href="/admin/">Administrador</a>
+        <button id="logout" type="button" hidden>Sair</button>
+      </div>
+  </header>
+
+  <section id="login-view" class="login-wrap">
+    <div class="card login-card">
+      <span class="eyebrow">ACESSO OPCIONAL DO PRESTADOR</span>
+      <h1>Área do Guincho / Reboque</h1>
+      <p>Quando o prestador optar por usar a plataforma, registra o veículo pela placa, confirma acessórios e envia as fotos do atendimento. Este checklist é independente da ocorrência.</p>
+      <form id="login-form" class="form-grid">
+        <label class="span-2">Usuário<input id="username" autocomplete="username" required /></label>
+        <label class="span-2">Senha<input id="password" type="password" autocomplete="current-password" required /></label>
+        <button class="primary span-2" type="submit">Entrar com segurança</button>
+      </form>
+      <div id="login-message"></div>
+    </div>
+  </section>
+
+  <main id="app-view" class="shell" hidden>
+    <section class="hero-panel tow-hero">
+      <span class="eyebrow">ATENDIMENTO INDEPENDENTE</span>
+      <h1>Checklist de Guincho / Reboque</h1>
+      <p>O reboque não depende da abertura de uma ocorrência. Cadastre pela placa, marque os acessórios encontrados e fotografe frente, laterais e traseira em qualquer ordem.</p>
+      <div class="tow-user-chip" id="user-chip"></div>
+    </section>
+
+    <section class="kpi-grid tow-kpis" aria-label="Resumo dos atendimentos">
+      <div class="kpi"><span>Em preenchimento</span><strong id="kpi-draft">0</strong></div>
+      <div class="kpi"><span>Concluídos</span><strong id="kpi-completed">0</strong></div>
+      <div class="kpi"><span>Total exibido</span><strong id="kpi-total">0</strong></div>
+    </section>
+
+    <section id="queue-view">
+      <div class="section-head">
+        <div><h2>Checklists de reboque</h2><p>Pesquise por placa para continuar um atendimento ou crie um novo checklist.</p></div>
+        <div class="tow-head-actions"><button id="new-record" class="primary" type="button">+ Novo checklist</button><button id="refresh" class="outline" type="button">Atualizar</button></div>
+      </div>
+      <div class="card tow-filters">
+        <label>Buscar<input id="search" placeholder="Código, placa, modelo, motorista ou prestador" /></label>
+        <label>Status<select id="status-filter"><option value="">Todos</option><option value="DRAFT">Em preenchimento</option><option value="COMPLETED">Concluído</option></select></label>
+        <button id="search-button" class="secondary" type="button">Buscar</button>
+      </div>
+      <div id="queue-message"></div>
+      <div id="event-list" class="tow-event-grid"></div>
+    </section>
+
+    <section id="detail-view" hidden>
+      <div class="detail-toolbar">
+        <button id="back" class="outline" type="button">← Voltar aos checklists</button>
+        <span id="detail-status" class="badge"></span>
+      </div>
+      <div id="event-detail"></div>
+    </section>
+  </main>
+
+  <dialog id="create-dialog" class="tow-dialog">
+    <form id="create-form" class="dialog-card tow-create-dialog-card">
+      <button id="close-create-top" class="tow-dialog-close" type="button" aria-label="Fechar novo checklist">×</button>
+      <span class="eyebrow">NOVO ATENDIMENTO</span>
+      <h2>Novo checklist de reboque</h2>
+      <p class="helper">A placa é a chave usada pelo NH Checklist para localizar este atendimento quando uma ocorrência for aberta depois.</p>
+      <div class="form-grid">
+        <label>Placa *<input id="create-plate" maxlength="10" autocomplete="off" placeholder="ABC1D23" required /></label>
+        <label>Modelo<input id="create-model" maxlength="180" placeholder="Ex.: Onix 1.0" /></label>
+        <label>Categoria<select id="create-category"><option value="">Não informado</option><option value="LIGHT_CAR">Carro leve</option><option value="MOTORCYCLE">Motocicleta</option><option value="UTILITY">Utilitário</option><option value="TRUCK">Caminhão</option></select></label>
+        <label>Prestador / empresa<input id="create-provider" maxlength="180" placeholder="Ex.: Reboques Silva" /></label>
+        <label>Motorista<input id="create-driver" maxlength="180" /></label>
+        <label>Telefone<input id="create-phone" maxlength="40" inputmode="tel" /></label>
+        <label class="span-2">Observações gerais<textarea id="create-notes" maxlength="3000" rows="3" placeholder="Informações relevantes do atendimento"></textarea></label>
+      </div>
+      <div id="create-existing-message"></div>
+      <section class="tow-create-block">
+        <div class="tow-create-title"><div><h3>Acessórios e pertences</h3><p>O checklist já vem configurado. Marque <strong>Sim, Não ou Não se aplica</strong>. Ao marcar <strong>Sim</strong>, aparecem os botões para tirar uma foto pela câmera ou anexar pela galeria.</p></div></div>
+        <div id="create-checklist" class="tow-create-checklist"></div>
+      </section>
+      <section class="tow-create-block">
+        <div class="tow-create-title"><div><h3>Fotos do veículo</h3><p>Registre frente, lateral esquerda, lateral direita e traseira. A ordem não importa e você pode adicionar fotos extras.</p></div></div>
+        <div class="tow-create-photo-grid">
+          <div class="tow-create-photo-choice"><strong>Frente</strong><div class="tow-file-actions"><label class="tow-file-button">📷 Câmera<input id="create-file-FRONT" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden /></label><label class="tow-file-button outline-file">🖼️ Galeria<input id="create-gallery-FRONT" type="file" accept="image/jpeg,image/png,image/webp" hidden /></label></div></div>
+          <div class="tow-create-photo-choice"><strong>Lateral esquerda</strong><div class="tow-file-actions"><label class="tow-file-button">📷 Câmera<input id="create-file-LEFT_SIDE" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden /></label><label class="tow-file-button outline-file">🖼️ Galeria<input id="create-gallery-LEFT_SIDE" type="file" accept="image/jpeg,image/png,image/webp" hidden /></label></div></div>
+          <div class="tow-create-photo-choice"><strong>Lateral direita</strong><div class="tow-file-actions"><label class="tow-file-button">📷 Câmera<input id="create-file-RIGHT_SIDE" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden /></label><label class="tow-file-button outline-file">🖼️ Galeria<input id="create-gallery-RIGHT_SIDE" type="file" accept="image/jpeg,image/png,image/webp" hidden /></label></div></div>
+          <div class="tow-create-photo-choice"><strong>Traseira</strong><div class="tow-file-actions"><label class="tow-file-button">📷 Câmera<input id="create-file-REAR" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden /></label><label class="tow-file-button outline-file">🖼️ Galeria<input id="create-gallery-REAR" type="file" accept="image/jpeg,image/png,image/webp" hidden /></label></div></div>
+          <div class="tow-create-photo-choice span-2"><strong>Fotos extras / detalhes</strong><div class="tow-file-actions"><label class="tow-file-button">📷 Câmera<input id="create-file-OTHER" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden /></label><label class="tow-file-button outline-file">🖼️ Galeria<input id="create-gallery-OTHER" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden /></label></div></div>
+        </div>
+      </section>
+      <div id="create-message"></div>
+      <div class="actions"><button id="cancel-create" class="outline" type="button">Cancelar</button><button id="create-submit" class="primary" type="submit">Criar e abrir checklist</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="password-dialog" class="tow-dialog">
+    <form id="password-form" class="dialog-card" method="dialog">
+      <span class="eyebrow">PRIMEIRO ACESSO</span>
+      <h2>Crie sua nova senha</h2>
+      <p class="helper">Por segurança, a senha inicial deve ser alterada antes de usar a Área do Guincho.</p>
+      <label>Senha atual<input id="current-password" type="password" autocomplete="current-password" required /></label>
+      <label>Nova senha<input id="new-password" type="password" minlength="8" maxlength="120" autocomplete="new-password" required /></label>
+      <label>Confirmar nova senha<input id="confirm-password" type="password" minlength="8" maxlength="120" autocomplete="new-password" required /></label>
+      <div id="password-message"></div>
+      <div class="actions"><button class="primary" type="submit">Alterar senha e continuar</button></div>
+    </form>
+  </dialog>
+
+  <div id="photo-viewer" class="photo-viewer" hidden>
+    <button id="close-photo" class="photo-close" type="button" aria-label="Fechar foto">×</button>
+    <img id="photo-viewer-image" alt="Foto do atendimento" />
+  </div>
+  <script defer src="/shared/developer-footer.js?v=20260929-v83-37"></script>
+</body>
+</html>

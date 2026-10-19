@@ -1,0 +1,17 @@
+VALIDAÇÃO V83.55 — 30/09/2026
+
+OK - 87/87 arquivos TS/TSX parseados sem erro sintático.
+OK - 28/28 arquivos JavaScript do portal/hinova passaram em `node --check`.
+OK - Fluxo DELETE sem body não envia Content-Type application/json.
+OK - Assistente de exclusão consulta colaboradores e unidades de destino.
+OK - Endpoints de realocação/arquivamento/exclusão restritos a ADMIN/SUPER_ADMIN.
+OK - Fila de aprovação diária usa CLOCK_OUT em REVIEW e exige CLOCK_IN + CLOCK_OUT.
+OK - Aprovação individual do ponto desativada no ponto-api e no painel principal.
+OK - Reprovação diária exige justificativa no frontend e no backend.
+OK - Detalhes da jornada exibem horário, GPS, unidade e selfies com visualização completa.
+OK - Alerta PUNCH_REVIEW inclui nome do colaborador e normaliza alertas não resolvidos antigos na leitura.
+OK - Cálculo marca falta automática em dia programado sem jornada aprovada; jornada pendente não gera falta prematura.
+OK - Latitude/longitude da unidade são referência visual; geocerca permanece desativada.
+OK - Backend principal preserva códigos 4xx do serviço em vez de convertê-los em 502.
+
+OBSERVAÇÃO: o `npm install` integral não concluiu dentro do limite do ambiente de validação, portanto o build Docker na máquina/VPS continua sendo a validação final de resolução de dependências e tipos.

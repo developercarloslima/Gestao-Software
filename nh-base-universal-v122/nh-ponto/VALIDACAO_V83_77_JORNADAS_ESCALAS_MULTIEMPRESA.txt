@@ -1,0 +1,40 @@
+VALIDACAO V83.77 - JORNADAS/ESCALAS + BLOQUEIO DE HORARIO + LEANDRO MULTIEMPRESA
+
+[OK] Constante de abertura antecipada fixada em 15 minutos
+[OK] Servico calcula abertura como inicio menos 15 minutos
+[OK] 08:00 menos 15 minutos resulta em 07:45
+[OK] Servico bloqueia ausencia de escala
+[OK] Servico bloqueia entrada antecipada
+[OK] Servico bloqueia depois do encerramento
+[OK] Servico bloqueia dia nao escalado
+[OK] Servico respeita feriado fechado
+[OK] Precheck de CLOCK_IN valida a escala no backend
+[OK] Challenge da selfie valida a escala no backend
+[OK] Gravacao final do ponto valida a escala no backend
+[OK] Interface desabilita CLOCK_IN fora da janela retornada pelo servidor
+[OK] UI explica exemplo 08:00 -> 07:45
+[OK] Schema de jornada possui todos os sete dias
+[OK] SUPER_ADMIN/ADMIN podem criar jornadas
+[OK] SUPER_ADMIN/ADMIN podem editar jornadas
+[OK] SUPER_ADMIN/ADMIN podem excluir jornadas
+[OK] SUPER_ADMIN/ADMIN podem vincular jornada aos colaboradores
+[OK] Edicao do modelo sincroniza horarios dos vinculados
+[OK] Tela possui vinculo em lote de jornada/escala
+[OK] Tela de gestao mostra aba Jornadas e escalas apenas para canShiftAdmin
+[OK] Domingos agora seguem a escala e nao fechamento global
+[OK] Leandro/TIME_REVIEWER recebe lista de empresas operacionais
+[OK] Middleware permite TIME_REVIEWER trocar apenas para tenant operacional existente
+[OK] Rotas de seguranca/aprovacao respeitam tenant selecionado do TIME_REVIEWER
+[OK] Frontend mostra Empresa para conferencia ao TIME_REVIEWER
+[OK] Frontend envia X-Tenant-Id nas rotas tenant-scoped
+[OK] Leandro continua com somente Presenca hoje, Aprovacao e Espelho
+[OK] TIME_REVIEWER nao recebeu permissao de editar jornadas/escalas
+[OK] PWA atualizada para V83.77
+[OK] Health identifica V83.77
+[OK] Novo servico compilado existe em dist
+[OK] Schema Prisma nao mudou em relacao a V83.76
+
+Resultado: 33/33 verificacoes aprovadas.
+[OK] Sintaxe/transpile de 15 arquivos TypeScript/TSX modificados validada separadamente por TypeScript transpileModule.
+[OK] JavaScript atualizado em apps/api/dist e validado com node --check.
+[INFO] O npm install/build completo nao foi concluido neste ambiente; o pacote de producao continua executando instalacao, Prisma e build no deploy.

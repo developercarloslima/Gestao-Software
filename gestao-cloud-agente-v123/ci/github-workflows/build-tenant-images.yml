@@ -1,0 +1,55 @@
+# Copie para .github/workflows/build-tenant-images.yml no repositório da BASE UNIVERSAL.
+# NÃO funciona sem auditoria e sem os seis Dockerfiles homologados.
+name: Tenant base - build and publish images
+on:
+  workflow_dispatch:
+  push:
+    tags: [ 'tenant-certified-v*' ]
+permissions:
+  contents: read
+  packages: write
+jobs:
+  verify-brand-isolation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Block legacy brand and credentials
+        run: python3 ci/auditar_template.py --root .
+      - name: Static scripts check
+        run: |
+          python3 -m compileall -q ci
+          test -f backend/Dockerfile && test -f web/Dockerfile
+          test -f nh-ponto/Dockerfile.api && test -f nh-ponto/Dockerfile.web
+          test -f hinova-api/Dockerfile && test -f face-attendance-api/Dockerfile
+  build:
+    needs: verify-brand-isolation
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - {name: backend, context: backend, file: backend/Dockerfile}
+          - {name: web, context: web, file: web/Dockerfile}
+          - {name: ponto-api, context: nh-ponto, file: nh-ponto/Dockerfile.api}
+          - {name: ponto-web, context: nh-ponto, file: nh-ponto/Dockerfile.web}
+          - {name: hinova, context: hinova-api, file: hinova-api/Dockerfile}
+          - {name: face, context: face-attendance-api, file: face-attendance-api/Dockerfile}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.context }}
+          file: ./${{ matrix.file }}
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/gestao-tenant-${{ matrix.name }}:${{ github.ref_name }}
+          provenance: true
+          sbom: true

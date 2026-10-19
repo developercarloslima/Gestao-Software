@@ -1,0 +1,20 @@
+VALIDACAO V83.76 - LEANDRO / RESPONSAVEL DE PONTO
+
+[OK] Role TIME_REVIEWER adicionada ao schema Prisma.
+[OK] Seed garante usuario leandro no tenant Novo Horizonte.
+[OK] Leandro nao recebe Employee e nao bate ponto.
+[OK] Troca de senha temporaria obrigatoria no primeiro acesso.
+[OK] Tela de gestao do TIME_REVIEWER possui somente: Presenca hoje, Aprovacao de jornadas, Espelho de pontos.
+[OK] Presenca hoje autorizada para TIME_REVIEWER no backend.
+[OK] Detalhes e selfies da presenca autorizados apenas para o fluxo de conferencia.
+[OK] Fila e detalhes de aprovacao de jornada autorizados para TIME_REVIEWER.
+[OK] Aprovar/reprovar exige passkey individual e gera auditoria.
+[OK] Cadastro de passkey liberado para TIME_REVIEWER.
+[OK] Login passa a exigir a passkey depois que ela existir.
+[OK] Espelho individual liberado para TIME_REVIEWER sem compensation/salario.
+[OK] Endpoint de lista de espelhos nao retorna salario.
+[OK] TIME_REVIEWER NAO foi incluido em ADMIN_ROLES.
+[OK] TIME_REVIEWER NAO foi incluido em MANAGEMENT_ROLES.
+[OK] Sintaxe dos arquivos TS/TSX alterados validada por TypeScript transpileModule.
+[OK] dist da API atualizado para os arquivos modificados.
+[INFO] npm install completo excedeu o tempo limite neste ambiente; o Docker de producao executa npm install + prisma generate + build antes de iniciar.

@@ -1,0 +1,15 @@
+V83.93 — VALIDACAO AJUSTES DE MARCACOES CENTRALIZADOS
+
+- Base: V83.92 cumulativa.
+- Nova central Ajustes da equipe por dia/colaborador.
+- Correcao direta de horario por marcacao, sem lancamento manual de horas pela interface.
+- Inclusao de marcacao faltante.
+- Registro original preservado e marcado como substituido pelo ajuste aprovado.
+- Banco recalculado apos correcao.
+- Saldo do dia, banco mensal e acumulado visiveis durante o ajuste.
+- Espelho de ponto registra horario anterior, horario ajustado, motivo e responsavel.
+- Snapshot do aceite mensal inclui os ajustes de marcacao.
+- Formulario Adicionar ou retirar horas removido da interface do banco.
+- Compensacao/abono permanece.
+- Cache PWA atualizado para V83.93.
+- 107 arquivos TS/TSX (excluindo .d.ts) validados sintaticamente sem erros.

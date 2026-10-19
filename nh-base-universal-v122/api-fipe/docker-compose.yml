@@ -1,0 +1,32 @@
+# Projeto separado: use docker compose -p api-fipe-independente
+services:
+  api-fipe:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    command: ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers $${API_WORKERS:-2} --no-access-log"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - dados-fipe:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=268435456
+    security_opt:
+      - no-new-privileges:true
+
+  atualizador-fipe:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    command: ["python", "-m", "scripts.autoatualizar"]
+    volumes:
+      - dados-fipe:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=268435456
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  dados-fipe:

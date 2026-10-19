@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:8}
+      minimum-idle: ${DB_MIN_IDLE:2}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jpa:
+    properties:
+      hibernate:
+        show_sql: false
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+    org.flywaydb: INFO

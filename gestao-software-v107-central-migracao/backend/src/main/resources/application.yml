@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: gestao-software-control-plane
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/gestao_control}
+    username: ${DATABASE_USERNAME:gestao}
+    password: ${DATABASE_PASSWORD:gestao123}
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  error:
+    include-message: never
+    include-stacktrace: never
+app:
+  auth:
+    token-secret: ${AUTH_TOKEN_SECRET:gestao-software-local-secret-change-me-2026}
+    token-hours: ${AUTH_TOKEN_HOURS:12}
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3100,http://127.0.0.1:3100,http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,https://gestaosoftware.com.br,https://www.gestaosoftware.com.br}
+
+  provisioning:
+    asaas-key: ${GESTAO_ASAAS_API_KEY:}
+    asaas-base: ${GESTAO_ASAAS_BASE_URL:https://api-sandbox.asaas.com/v3}
+    webhook-secret: ${GESTAO_ASAAS_WEBHOOK_SECRET:}
+    worker-token: ${PROVISIONER_WORKER_TOKEN:}
+    auto-enabled: ${AUTO_PROVISION_ENABLED:false}
+    host-suffix: ${PROVISIONING_HOST_SUFFIX:gestaosoftware.com.br}
+    tenant-certified: ${TENANT_TEMPLATE_CERTIFIED:false}
+    cloud-routing-enabled: ${CLOUD_ROUTING_ENABLED:false}
+
+  cloud:
+    orchestrator-enabled: ${CLOUD_ORCHESTRATOR_ENABLED:false}
+    dns-provider: ${CLOUD_DNS_PROVIDER:MANUAL}
+    cloudflare-token: ${CLOUDFLARE_DNS_TOKEN:}
+    cloudflare-zone-id: ${CLOUDFLARE_ZONE_ID:}

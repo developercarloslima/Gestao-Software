@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#070c40" />
+  <title>NH Checklist | Empresa Cliente</title>
+  <link rel="icon" type="image/png" href="/assets/identidade-pendente.svg" />
+  <link rel="stylesheet" href="/shared/portal.css?v=20260923-v73" />
+  <link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24" />
+  <link rel="stylesheet" href="/shared/brand-system.css?v=20260923-v73" />
+  <link rel="stylesheet" href="/checklist/checklist.css?v=20260924-v79" />
+
+  <script defer src="/shared/portal-nav.js?v=20260923-v77"></script>
+  <script src="/shared/gestao-branding.js" defer></script>
+</head>
+<body>
+  <header class="portal-header">
+    <a class="portal-brand" href="/">
+      <img src="/assets/identidade-pendente.svg" alt="Empresa Cliente" />
+      <span><strong>Empresa Cliente</strong><small>NH Checklist</small></span>
+    </a>
+    <button class="nh-portal-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="nh-portal-menu"><span></span><span></span><span></span></button><div id="nh-portal-menu" class="header-actions nh-standard-header-actions">
+        <a href="/">Site principal</a>
+        <a href="/colaborador/">Área do Colaborador</a>
+        <a href="/ponto/">Apontamento Digital</a>
+        <a href="/analise/">Analista</a>
+        <a href="/guincho/">Reboque / Guincho</a>
+        <a href="/oficina/">Área da Oficina</a>
+        <a href="/financeiro/">Área do Financeiro</a>
+        <a href="/supervisao/">Supervisor</a>
+        <a href="/admin/">Administrador</a>
+        <button id="logout" type="button" hidden>Sair</button>
+      </div>
+  </header>
+
+  <section id="access-view" class="login-wrap">
+    <div class="card login-card">
+      <span class="eyebrow" style="color:#070c40">ACESSO RESTRITO</span>
+      <h1>Eventos</h1>
+      <p>Use o acesso da equipe de Eventos ou do Administrador. Os demais perfis são direcionados automaticamente para o painel correto.</p>
+      <form id="event-login-form" class="form-grid">
+        <label class="span-2">Usuário<input id="event-login-username" autocomplete="username" required /></label>
+        <label class="span-2">Senha<input id="event-login-password" type="password" autocomplete="current-password" required /></label>
+        <button class="primary span-2" type="submit">Entrar com segurança</button>
+      </form>
+      <div id="event-login-message"></div>
+    </div>
+  </section>
+
+  <main id="app" class="shell" hidden>
+    <section class="hero-panel checklist-hero">
+      <span class="eyebrow">CENTRAL DE EVENTOS</span>
+      <h1>Eventos / NH Checklist</h1>
+      <p>Cadastre o evento, anexe fotos e documentos no mesmo fluxo e acompanhe o checklist técnico preenchido exclusivamente pela oficina.</p>
+    </section>
+
+    <section id="dashboard-view">
+      <div class="section-head">
+        <div>
+          <h2>Eventos cadastrados</h2>
+          <p>Consulte os registros ou inicie um novo evento.</p>
+        </div>
+        <button id="new-event" class="primary" type="button">+ Registrar evento</button>
+      </div>
+
+      <div class="kpi-grid checklist-kpis">
+        <div class="kpi"><span>Total</span><strong id="kpi-total">0</strong></div>
+        <div class="kpi"><span>Aguardando documentos / oficina</span><strong id="kpi-waiting">0</strong></div>
+        <div class="kpi"><span>Em análise</span><strong id="kpi-analysis">0</strong></div>
+        <div class="kpi"><span>Finalizados</span><strong id="kpi-finalized">0</strong></div>
+      </div>
+
+      <div class="card compact-card" style="margin-top:18px">
+        <div class="checklist-filter-grid">
+          <label>Pesquisar<input id="event-search" placeholder="Protocolo, associado, placa ou modelo" /></label>
+          <label>Status<select id="event-status"><option value="">Todos</option></select></label>
+          <button id="events-refresh" class="secondary" type="button">Atualizar</button>
+        </div>
+        <div id="events-message"></div>
+        <div class="table-wrap" style="margin-top:16px">
+          <table class="checklist-events-table">
+            <thead><tr><th>Protocolo</th><th>Tipo</th><th>Associado</th><th>Placa</th><th>Veículo</th><th>Categoria</th><th>Status</th><th>Cadastro</th></tr></thead>
+            <tbody id="events-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="event-view" hidden></section>
+
+    <p class="footer-note">Empresa Cliente Proteção Veicular · NH Checklist · Sua segurança, nosso compromisso!</p>
+  </main>
+
+  <dialog id="new-event-dialog" class="admin-dialog wide-dialog checklist-dialog">
+    <form id="new-event-form" class="dialog-card" method="dialog">
+      <div class="dialog-head">
+        <div><span class="eyebrow">NOVO EVENTO</span><h2>Registrar ocorrência</h2></div>
+        <button class="dialog-close" type="button" data-close-dialog="new-event-dialog" aria-label="Fechar">×</button>
+      </div>
+      <div id="new-event-message"></div>
+      <div id="new-event-content"></div>
+      <div class="dialog-actions checklist-sticky-actions">
+        <button type="button" class="outline" data-close-dialog="new-event-dialog">Cancelar</button>
+        <button id="save-new-event" type="submit" class="primary">Registrar evento</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="edit-event-dialog" class="admin-dialog wide-dialog checklist-dialog">
+    <form id="edit-event-form" class="dialog-card" method="dialog">
+      <div class="dialog-head">
+        <div><span class="eyebrow">EDITAR EVENTO</span><h2>Atualizar dados do evento</h2></div>
+        <button class="dialog-close" type="button" data-close-dialog="edit-event-dialog" aria-label="Fechar">×</button>
+      </div>
+      <div id="edit-event-message"></div>
+      <div id="edit-event-content"></div>
+      <div class="dialog-actions checklist-sticky-actions">
+        <button type="button" class="outline" data-close-dialog="edit-event-dialog">Cancelar</button>
+        <button id="save-edit-event" type="submit" class="primary">Salvar alterações</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="third-party-dialog" class="admin-dialog wide-dialog checklist-dialog">
+    <form id="third-party-form" class="dialog-card" method="dialog">
+      <div class="dialog-head">
+        <div><span class="eyebrow">TERCEIRO ENVOLVIDO</span><h2>Novo terceiro envolvido</h2></div>
+        <button class="dialog-close" type="button" data-close-dialog="third-party-dialog" aria-label="Fechar">×</button>
+      </div>
+      <div id="third-party-message"></div>
+      <div id="third-party-content"></div>
+      <div class="dialog-actions checklist-sticky-actions">
+        <button type="button" class="outline" data-close-dialog="third-party-dialog">Cancelar</button>
+        <button id="save-third-party" type="submit" class="primary">Salvar terceiro</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/shared/config.js?v=20260923-v77"></script>
+    <script src="/shared/face-auth.js?v=20260928-v86"></script>
+  <script src="/checklist/checklist.js?v=20260924-v79"></script>
+  <script defer src="/shared/developer-footer.js?v=20260929-v83-37"></script>
+</body>
+</html>

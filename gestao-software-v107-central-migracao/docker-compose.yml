@@ -1,0 +1,49 @@
+services:
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gestao_control}
+      POSTGRES_USER: ${POSTGRES_USER:-gestao}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gestao123}
+    volumes:
+      - gestao_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gestao} -d ${POSTGRES_DB:-gestao_control}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: jdbc:postgresql://database:5432/${POSTGRES_DB:-gestao_control}
+      DATABASE_USERNAME: ${POSTGRES_USER:-gestao}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-gestao123}
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:-gestao-software-local-secret-change-me-2026}
+      AUTH_TOKEN_HOURS: ${AUTH_TOKEN_HOURS:-12}
+      GESTAO_ASAAS_API_KEY: ${GESTAO_ASAAS_API_KEY:-}
+      GESTAO_ASAAS_BASE_URL: ${GESTAO_ASAAS_BASE_URL:-https://api-sandbox.asaas.com/v3}
+      GESTAO_ASAAS_WEBHOOK_SECRET: ${GESTAO_ASAAS_WEBHOOK_SECRET:-}
+      PROVISIONER_WORKER_TOKEN: ${PROVISIONER_WORKER_TOKEN:-}
+      AUTO_PROVISION_ENABLED: ${AUTO_PROVISION_ENABLED:-false}
+      PROVISIONING_HOST_SUFFIX: ${PROVISIONING_HOST_SUFFIX:-gestaosoftware.com.br}
+      TENANT_TEMPLATE_CERTIFIED: ${TENANT_TEMPLATE_CERTIFIED:-false}
+      CLOUD_ROUTING_ENABLED: ${CLOUD_ROUTING_ENABLED:-false}
+      CLOUD_ORCHESTRATOR_ENABLED: ${CLOUD_ORCHESTRATOR_ENABLED:-false}
+      CLOUD_DNS_PROVIDER: ${CLOUD_DNS_PROVIDER:-MANUAL}
+      CLOUDFLARE_DNS_TOKEN: ${CLOUDFLARE_DNS_TOKEN:-}
+      CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID:-}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3100,http://127.0.0.1:3100,http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,https://gestaosoftware.com.br,https://www.gestaosoftware.com.br}
+    depends_on:
+      database:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    ports:
+      - "${WEB_PORT:-3100}:80"
+    depends_on:
+      - backend
+
+volumes:
+  gestao_db:
