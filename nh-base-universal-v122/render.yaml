@@ -11,7 +11,7 @@ services:
     runtime: docker
     plan: free
     region: virginia
-    rootDir: backend
+    rootDir: nh-base-universal-v122/backend
     dockerfilePath: ./Dockerfile.tenant
     dockerContext: .
     autoDeployTrigger: "off"
@@ -80,7 +80,7 @@ services:
     runtime: docker
     plan: free
     region: virginia
-    rootDir: web
+    rootDir: nh-base-universal-v122/web
     dockerfilePath: ./Dockerfile.render
     dockerContext: .
     autoDeployTrigger: "off"
