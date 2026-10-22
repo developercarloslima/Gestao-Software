@@ -15,3 +15,8 @@
 **/*.pyc
 **/.idea/
 **/.vscode/
+
+# Estado exclusivo de desenvolvimento local
+.dev/
+web/site-src/dist/
+web/site-src/*.tsbuildinfo
