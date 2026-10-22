@@ -1,3 +1,55 @@
+# Desenvolvimento local do Control Plane
+
+Este diretório é a aplicação Gestão Software que autentica `carlos.lima` e
+`pedro.henrique`. A pasta `nh-base-universal-v122` contém outra aplicação.
+
+Requisitos: JDK 21 completo (`java` e `javac`), Maven 3.9+, Node 20+,
+pnpm 11.25, Python 3 e PostgreSQL 16+ (`initdb`, `pg_ctl`, `psql` no PATH).
+Use as variáveis `GESTAO_BOOTSTRAP_CARLOS_PASSWORD` e
+`GESTAO_BOOTSTRAP_PEDRO_PASSWORD` já configuradas, com no mínimo 8 caracteres.
+Não grave os valores no Git, na linha de comando ou em logs.
+
+```bash
+scripts/setup-dev.sh
+scripts/start-dev.sh
+# Em outro terminal, com as mesmas variáveis:
+python3 tests/cloud/local_environment_test.py
+python3 tests/cloud/local_browser_test.py
+python3 tests/cloud/real_browser_test.py
+```
+
+Os testes de navegador precisam de Playwright para Python e Chromium
+(`/usr/bin/chromium`; o teste local aceita `CHROMIUM_PATH`).
+O script de setup executa os testes Java, o build React/TypeScript,
+as verificações estáticas e os testes de interface sem navegador.
+
+Site/admin: `http://127.0.0.1:3100`; API: `http://127.0.0.1:8080`.
+O PostgreSQL exclusivo escuta em `127.0.0.1:55432`, banco `gestao_dev`.
+Dados, logs e chave de token local ficam em `.dev/`, ignorado pelo Git.
+A autenticação PostgreSQL local usa `trust`, limitada ao loopback e ao socket
+privado do workspace; este script é apenas para desenvolvimento isolado.
+Ctrl+C encerra os processos iniciados pelo script e preserva os dados locais.
+Portas ocupadas interrompem a inicialização, sem encerrar outros serviços.
+
+O script não carrega `.env` e força datasource e Flyway para o banco local,
+mesmo com `DATABASE_URL`/`SPRING_DATASOURCE_URL` externos herdados.
+Provisionamento automático, orquestração e DNS ficam desativados.
+As migrações criam somente os dados locais. Usuários já inicializados mantêm
+suas senhas: as variáveis de bootstrap não redefinem contas existentes.
+O primeiro acesso exige troca de senha; os smoke tests apenas verificam esse
+bloqueio e **não** fazem a troca.
+
+Para editar React com recarga automática, mantenha `start-dev.sh` ativo e rode
+`pnpm --dir web/site-src dev`. O Vite em `http://localhost:3000` encaminha
+`/api`, `/admin`, `/contract`, `/shared` e `/assets` ao servidor local em 3100.
+
+Alternativa Docker local: configure as duas variáveis de bootstrap no ambiente
+ou em `.env` antes de `docker compose up -d --build`. O Compose agora repassa
+essas variáveis ao backend. Não execute os arquivos Compose de produção para
+validar desenvolvimento. Veja [o relatório de validação](DESENVOLVIMENTO_VALIDACAO.md).
+
+---
+
 # Gestão Software v99 — Cadastro comercial, contratos e identidade visual
 
 Versão consolidada da plataforma Gestão Software baseada exatamente na v98 enviada pelo usuário.
@@ -58,8 +110,8 @@ Este projeto é o **site institucional + Control Plane** da Gestão Software. El
 - API: `http://localhost:3100/api`
 
 ## Usuários iniciais
-- `carlos.lima` / `nh2027`
-- `pedro.henrique` / `nh2027`
+- `carlos.lima`: variável `GESTAO_BOOTSTRAP_CARLOS_PASSWORD`
+- `pedro.henrique`: variável `GESTAO_BOOTSTRAP_PEDRO_PASSWORD`
 
 No primeiro acesso a troca de senha é obrigatória.
 

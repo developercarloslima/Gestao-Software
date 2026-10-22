@@ -20,6 +20,8 @@ services:
       DATABASE_USERNAME: ${POSTGRES_USER:-gestao}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-gestao123}
       AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:-gestao-software-local-secret-change-me-2026}
+      GESTAO_BOOTSTRAP_CARLOS_PASSWORD: ${GESTAO_BOOTSTRAP_CARLOS_PASSWORD:?Configure a senha inicial de Carlos}
+      GESTAO_BOOTSTRAP_PEDRO_PASSWORD: ${GESTAO_BOOTSTRAP_PEDRO_PASSWORD:?Configure a senha inicial de Pedro}
       AUTH_TOKEN_HOURS: ${AUTH_TOKEN_HOURS:-12}
       GESTAO_ASAAS_API_KEY: ${GESTAO_ASAAS_API_KEY:-}
       GESTAO_ASAAS_BASE_URL: ${GESTAO_ASAAS_BASE_URL:-https://api-sandbox.asaas.com/v3}
