@@ -49,7 +49,7 @@ public class PlatformUserService {
 
     @Transactional
     public UserSession changePassword(String username, String currentPassword, String newPassword) {
-        if (newPassword == null || newPassword.length() < 8) throw new IllegalArgumentException("A nova senha precisa ter pelo menos 8 caracteres.");
+        if (!meetsMinimumPasswordLength(newPassword)) throw new IllegalArgumentException("A nova senha precisa ter pelo menos 8 caracteres.");
         UserSession current = authenticate(username, currentPassword);
         jdbc.update("UPDATE gs_users SET password_hash=?, must_change_password=FALSE, updated_at=NOW() WHERE username=?", encoder.encode(newPassword), current.username());
         return session(current.username());
@@ -69,9 +69,9 @@ public class PlatformUserService {
                 && !encoder.matches("nh2027", rows.getFirst())) return;
 
         String secret = System.getenv(envName);
-        if (secret == null || secret.length() < 16 || "nh2027".equals(secret)) {
+        if (!meetsMinimumPasswordLength(secret) || "nh2027".equals(secret)) {
             throw new IllegalStateException("A conta inicial " + username
-                    + " exige um segredo exclusivo de 16+ caracteres: " + envName);
+                    + " exige uma senha inicial de pelo menos 8 caracteres: " + envName);
         }
         if (rows.isEmpty()) {
             jdbc.update("INSERT INTO gs_users(username, display_name, password_hash, must_change_password, active, created_at, updated_at) VALUES (?,?,?,TRUE,TRUE,NOW(),NOW())",
@@ -80,6 +80,11 @@ public class PlatformUserService {
             jdbc.update("UPDATE gs_users SET password_hash=?, must_change_password=TRUE, active=TRUE, updated_at=NOW() WHERE username=?",
                     encoder.encode(secret), username);
         }
+    }
+
+    /** Uma unica regra para cadastro inicial e troca de senha, sem maximo artificial. */
+    static boolean meetsMinimumPasswordLength(String password) {
+        return password != null && password.length() >= 8;
     }
 
     private String normalize(String value) { return value == null ? "" : value.trim().toLowerCase(Locale.ROOT); }
