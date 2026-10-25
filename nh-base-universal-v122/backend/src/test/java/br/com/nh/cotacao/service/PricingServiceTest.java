@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 class PricingServiceTest {
 
     @Test
-    void robberyAndTheftNationalCarPlanIsAlwaysTenPercentCheaperThanEconomicPlan() {
+    void shouldCalculateRegionalPriceAndMandatoryTrackerForNationalCar() {
         PriceRangeRepository priceRangeRepository = mock(PriceRangeRepository.class);
         PromotionalMotorcyclePriceRepository promotionalRepository = mock(PromotionalMotorcyclePriceRepository.class);
         PlanRepository planRepository = mock(PlanRepository.class);
@@ -29,37 +29,29 @@ class PricingServiceTest {
         VehicleCategory category = mock(VehicleCategory.class);
         when(category.getCode()).thenReturn("CAR_NATIONAL");
 
-        Plan economic = mock(Plan.class);
-        when(economic.getId()).thenReturn(1L);
-        when(economic.getCode()).thenReturn("CAR_ECONOMICO");
-        when(economic.getCategory()).thenReturn(category);
-        when(economic.getTrackerRequiredAbove()).thenReturn(null);
-
-        Plan robberyTheft = mock(Plan.class);
-        when(robberyTheft.getId()).thenReturn(15L);
-        when(robberyTheft.getName()).thenReturn("Plano Roubo e Furto Carros Nacionais");
-        when(robberyTheft.getCategory()).thenReturn(category);
-        when(robberyTheft.getTrackerRequiredAbove()).thenReturn(new BigDecimal("1.00"));
-        when(robberyTheft.getTrackerMonthlyFee()).thenReturn(new BigDecimal("20.00"));
-        when(robberyTheft.getTrackerInstallationFee()).thenReturn(new BigDecimal("200.00"));
+        Plan plan = mock(Plan.class);
+        when(plan.getId()).thenReturn(15L);
+        when(plan.getCategory()).thenReturn(category);
+        when(plan.getTrackerRequiredAbove()).thenReturn(new BigDecimal("1.00"));
+        when(plan.getTrackerMonthlyFee()).thenReturn(new BigDecimal("20.00"));
+        when(plan.getTrackerInstallationFee()).thenReturn(new BigDecimal("200.00"));
 
         BigDecimal fipe = new BigDecimal("38990.00");
-        PriceRange economicRange = PriceRange.create(
-                economic,
+        PriceRange selectedRange = PriceRange.create(
+                plan,
                 new BigDecimal("35000.01"),
                 new BigDecimal("40000.00"),
                 new BigDecimal("100.00")
         );
 
-        when(planRepository.findAvailableByCode("CAR_ECONOMICO")).thenReturn(Optional.of(economic));
         when(priceRangeRepository.findFirstByPlanIdAndPricingRegionAndMinValueLessThanEqualAndMaxValueGreaterThanEqualOrderByMinValueAsc(
-                1L, PricingRegion.NORTHEAST, fipe, fipe
-        )).thenReturn(Optional.of(economicRange));
+                15L, PricingRegion.OUTSIDE_NORTHEAST, fipe, fipe
+        )).thenReturn(Optional.of(selectedRange));
 
-        PricingService.PricingResult result = service.calculateBreakdown(robberyTheft, fipe).orElseThrow();
+        PricingService.PricingResult result = service.calculateBreakdown(plan, fipe, PricingRegion.OUTSIDE_NORTHEAST).orElseThrow();
 
-        assertEquals(new BigDecimal("90.00"), result.totalMonthlyValue());
-        assertEquals(new BigDecimal("70.00"), result.tableMonthlyValue());
+        assertEquals(new BigDecimal("120.00"), result.totalMonthlyValue());
+        assertEquals(new BigDecimal("100.00"), result.tableMonthlyValue());
         assertEquals(new BigDecimal("20.00"), result.mandatoryMonthlyFee());
         assertEquals(new BigDecimal("200.00"), result.oneTimeFee());
 
