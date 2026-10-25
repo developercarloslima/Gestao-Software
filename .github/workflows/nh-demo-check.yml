@@ -4,6 +4,11 @@ on:
     paths:
       - "nh-base-universal-v122/**"
       - ".github/workflows/nh-demo-check.yml"
+  push:
+    branches: [main]
+    paths:
+      - "nh-base-universal-v122/**"
+      - ".github/workflows/nh-demo-check.yml"
   workflow_dispatch:
 permissions:
   contents: read
