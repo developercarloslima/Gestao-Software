@@ -2,8 +2,10 @@ package br.com.nh.cotacao.service;
 
 import br.com.nh.cotacao.entity.Plan;
 import br.com.nh.cotacao.entity.PriceRange;
+import br.com.nh.cotacao.entity.PricingRegion;
 import br.com.nh.cotacao.entity.VehicleCategory;
 import br.com.nh.cotacao.repository.PlanRepository;
+import br.com.nh.cotacao.repository.PlanRegionalPricingRuleRepository;
 import br.com.nh.cotacao.repository.PriceRangeRepository;
 import br.com.nh.cotacao.repository.PromotionalMotorcyclePriceRepository;
 import org.junit.jupiter.api.Test;
@@ -21,7 +23,8 @@ class PricingServiceTest {
         PriceRangeRepository priceRangeRepository = mock(PriceRangeRepository.class);
         PromotionalMotorcyclePriceRepository promotionalRepository = mock(PromotionalMotorcyclePriceRepository.class);
         PlanRepository planRepository = mock(PlanRepository.class);
-        PricingService service = new PricingService(priceRangeRepository, promotionalRepository, planRepository);
+        PlanRegionalPricingRuleRepository regionalRuleRepository = mock(PlanRegionalPricingRuleRepository.class);
+        PricingService service = new PricingService(priceRangeRepository, promotionalRepository, planRepository, regionalRuleRepository);
 
         VehicleCategory category = mock(VehicleCategory.class);
         when(category.getCode()).thenReturn("CAR_NATIONAL");
@@ -49,8 +52,8 @@ class PricingServiceTest {
         );
 
         when(planRepository.findAvailableByCode("CAR_ECONOMICO")).thenReturn(Optional.of(economic));
-        when(priceRangeRepository.findFirstByPlanIdAndMinValueLessThanEqualAndMaxValueGreaterThanEqualOrderByMinValueAsc(
-                1L, fipe, fipe
+        when(priceRangeRepository.findFirstByPlanIdAndPricingRegionAndMinValueLessThanEqualAndMaxValueGreaterThanEqualOrderByMinValueAsc(
+                1L, PricingRegion.NORTHEAST, fipe, fipe
         )).thenReturn(Optional.of(economicRange));
 
         PricingService.PricingResult result = service.calculateBreakdown(robberyTheft, fipe).orElseThrow();
@@ -61,6 +64,6 @@ class PricingServiceTest {
         assertEquals(new BigDecimal("200.00"), result.oneTimeFee());
 
         verify(priceRangeRepository, never())
-                .findFirstByPlanIdAndMinValueLessThanEqualAndMaxValueGreaterThanEqualOrderByMinValueAsc(15L, fipe, fipe);
+                .findFirstByPlanIdAndPricingRegionAndMinValueLessThanEqualAndMaxValueGreaterThanEqualOrderByMinValueAsc(15L, PricingRegion.NORTHEAST, fipe, fipe);
     }
 }
