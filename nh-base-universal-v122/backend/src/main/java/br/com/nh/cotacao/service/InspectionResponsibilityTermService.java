@@ -61,6 +61,7 @@ public class InspectionResponsibilityTermService {
     private final InspectionRequestRepository inspectionRepository;
     private final RetratoPdfService retratoPdfService;
     private final InspectionAssetStorageService storageService;
+    private final ResponsibilityTermAcceptanceAttemptService attemptService;
     private final ObjectMapper jsonMapper;
     private final SecureRandom secureRandom = new SecureRandom();
     private final String publicWebUrl;
@@ -71,6 +72,7 @@ public class InspectionResponsibilityTermService {
             InspectionRequestRepository inspectionRepository,
             RetratoPdfService retratoPdfService,
             InspectionAssetStorageService storageService,
+            ResponsibilityTermAcceptanceAttemptService attemptService,
             ObjectMapper jsonMapper,
             @Value("${app.public-web-url:https://aforma-demo.vercel.app}") String publicWebUrl
     ) {
@@ -79,6 +81,7 @@ public class InspectionResponsibilityTermService {
         this.inspectionRepository = inspectionRepository;
         this.retratoPdfService = retratoPdfService;
         this.storageService = storageService;
+        this.attemptService = attemptService;
         this.jsonMapper = jsonMapper;
         this.publicWebUrl = trimSlash(publicWebUrl);
     }
@@ -98,7 +101,7 @@ public class InspectionResponsibilityTermService {
                                webauthn_registration_challenge=null,webauthn_registration_expires_at=null,
                                webauthn_credential_id=null,webauthn_public_key=null,webauthn_algorithm=null,webauthn_sign_count=0,
                                webauthn_assertion_challenge=null,webauthn_assertion_expires_at=null,
-                               acceptance_evidence_hash=null,term_pdf_sha256=null,updated_at=now()
+                               acceptance_evidence_hash=null,term_pdf_sha256=null,term_content_sha256=null,updated_at=now()
                          where id=?
                         """, requested, existing.id());
                 return info(findById(existing.id(), false));
@@ -175,6 +178,7 @@ public class InspectionResponsibilityTermService {
         OriginInfo origin = resolveOrigin(request);
         byte[] termPdf = pdfService.generate(documentData(row, false));
         String termHash = sha256Hex(termPdf);
+        String contentHash = contentHash(row);
         String deviceJson = safeDeviceJson(device);
         String ip = resolveClientIp(request);
         String evidenceHash = evidenceHash(row, termHash, deviceJson, ip, device);
@@ -183,12 +187,12 @@ public class InspectionResponsibilityTermService {
         jdbc.update("""
                 update inspection_responsibility_terms
                    set webauthn_registration_challenge=?,webauthn_registration_expires_at=?,webauthn_origin=?,webauthn_rp_id=?,
-                       acceptance_evidence_hash=?,term_pdf_sha256=?,acceptance_device_metadata=?,acceptance_device_id=?,acceptance_ip=?,
+                       acceptance_evidence_hash=?,term_pdf_sha256=?,term_content_sha256=?,acceptance_device_metadata=?,acceptance_device_id=?,acceptance_ip=?,
                        acceptance_latitude=?,acceptance_longitude=?,acceptance_accuracy_meters=?,acceptance_location_captured_at=?,
                        webauthn_assertion_challenge=null,webauthn_assertion_expires_at=null,updated_at=now()
                  where id=?
                 """,
-                challenge, OffsetDateTime.now().plusMinutes(3), origin.origin(), origin.rpId(), evidenceHash, termHash,
+                challenge, OffsetDateTime.now().plusMinutes(3), origin.origin(), origin.rpId(), evidenceHash, termHash, contentHash,
                 deviceJson, device.deviceId(), ip, device.latitude(), device.longitude(), device.accuracyMeters(),
                 parseCapturedAt(device.capturedAt()), row.id()
         );
@@ -471,6 +475,16 @@ public class InspectionResponsibilityTermService {
         }
     }
 
+    private void assertPendingAssertionAt(TermRow row, OffsetDateTime receivedAt) {
+        if (row.assertionChallenge() == null || row.assertionExpiresAt() == null) {
+            throw new IllegalArgumentException("O desafio de confirmação WebAuthn não está disponível. Inicie novamente o aceite.");
+        }
+        OffsetDateTime effectiveReceivedAt = receivedAt == null ? OffsetDateTime.now() : receivedAt;
+        if (effectiveReceivedAt.isAfter(row.assertionExpiresAt())) {
+            throw new IllegalArgumentException("O desafio de confirmação WebAuthn já estava expirado quando a resposta foi recebida.");
+        }
+    }
+
     private InspectionSnapshot findInspection(UUID id) {
         InspectionSnapshot row = jdbc.query("""
                 select ir.id,ir.associate_name,ir.cpf,ir.whatsapp,ir.plate,ir.vehicle_model,ir.model_year,
@@ -519,7 +533,7 @@ public class InspectionResponsibilityTermService {
                        inspection_created_at,damage_details,created_at,coalesce(link_available_at,created_at) as link_available_at,whatsapp_sent_to,sent_at,accepted_at,
                        webauthn_registration_challenge,webauthn_registration_expires_at,webauthn_origin,webauthn_rp_id,webauthn_credential_id,
                        webauthn_public_key,webauthn_algorithm,webauthn_sign_count,webauthn_assertion_challenge,webauthn_assertion_expires_at,
-                       acceptance_evidence_hash,term_pdf_sha256,acceptance_proof_hash,acceptance_user_verified,
+                       acceptance_evidence_hash,term_pdf_sha256,term_content_sha256,acceptance_proof_hash,acceptance_user_verified,
                        acceptance_device_metadata,acceptance_device_id,acceptance_ip,acceptance_latitude,acceptance_longitude,
                        acceptance_accuracy_meters,acceptance_location_captured_at,acceptance_source,original_dossier_sha256
                   from inspection_responsibility_terms
@@ -536,7 +550,7 @@ public class InspectionResponsibilityTermService {
                 offset(rs, "webauthn_registration_expires_at"), rs.getString("webauthn_origin"), rs.getString("webauthn_rp_id"),
                 rs.getString("webauthn_credential_id"), rs.getBytes("webauthn_public_key"), (Integer) rs.getObject("webauthn_algorithm"),
                 rs.getLong("webauthn_sign_count"), rs.getString("webauthn_assertion_challenge"), offset(rs, "webauthn_assertion_expires_at"),
-                rs.getString("acceptance_evidence_hash"), rs.getString("term_pdf_sha256"), rs.getString("acceptance_proof_hash"),
+                rs.getString("acceptance_evidence_hash"), rs.getString("term_pdf_sha256"), rs.getString("term_content_sha256"), rs.getString("acceptance_proof_hash"),
                 rs.getBoolean("acceptance_user_verified"), rs.getString("acceptance_device_metadata"), rs.getString("acceptance_device_id"),
                 rs.getString("acceptance_ip"), (Double) rs.getObject("acceptance_latitude"), (Double) rs.getObject("acceptance_longitude"),
                 (Double) rs.getObject("acceptance_accuracy_meters"), offset(rs, "acceptance_location_captured_at"),
@@ -550,7 +564,7 @@ public class InspectionResponsibilityTermService {
                    set webauthn_registration_challenge=null,webauthn_registration_expires_at=null,
                        webauthn_credential_id=null,webauthn_public_key=null,webauthn_algorithm=null,webauthn_sign_count=0,
                        webauthn_assertion_challenge=null,webauthn_assertion_expires_at=null,
-                       acceptance_evidence_hash=null,term_pdf_sha256=null,updated_at=now()
+                       acceptance_evidence_hash=null,term_pdf_sha256=null,term_content_sha256=null,updated_at=now()
                  where id=?
                 """, id);
     }
@@ -697,6 +711,24 @@ public class InspectionResponsibilityTermService {
         } catch (Exception exception) {
             throw new IllegalArgumentException("Metadados do aparelho inválidos.", exception);
         }
+    }
+
+    private String contentHash(TermRow row) {
+        String canonical = String.join("\n",
+                "NH-RESPONSIBILITY-TERM-CONTENT-V1",
+                "termId=" + row.id(),
+                "inspectionId=" + row.inspectionId(),
+                "version=" + row.version(),
+                "associateName=" + normalizeText(row.associateName()),
+                "cpf=" + normalizeText(row.cpf()).replaceAll("\\D", ""),
+                "plate=" + normalizeText(row.plate()).toUpperCase(java.util.Locale.ROOT),
+                "vehicleModel=" + normalizeText(row.vehicleModel()),
+                "modelYear=" + String.valueOf(row.modelYear()),
+                "contractedPlan=" + normalizeText(row.contractedPlan()),
+                "inspectionCreatedAt=" + String.valueOf(row.inspectionCreatedAt()),
+                "damageDetails=" + normalizeText(row.damageDetails())
+        );
+        return sha256Hex(canonical.getBytes(StandardCharsets.UTF_8));
     }
 
     private String evidenceHash(TermRow row, String termHash, String deviceJson, String ip, DeviceMetadata device) {
@@ -929,6 +961,7 @@ public class InspectionResponsibilityTermService {
                            OffsetDateTime acceptedAt, String registrationChallenge, OffsetDateTime registrationExpiresAt,
                            String origin, String rpId, String credentialId, byte[] publicKey, Integer algorithm, long signCount,
                            String assertionChallenge, OffsetDateTime assertionExpiresAt, String evidenceHash, String termPdfSha256,
+                           String termContentSha256,
                            String proofHash, boolean userVerified, String acceptanceDeviceMetadata, String acceptanceDeviceId,
                            String acceptanceIp, Double acceptanceLatitude, Double acceptanceLongitude, Double acceptanceAccuracyMeters,
                            OffsetDateTime acceptanceLocationCapturedAt, String acceptanceSource, String originalDossierSha256) {}

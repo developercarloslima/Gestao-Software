@@ -1,5 +1,7 @@
 package br.com.nh.cotacao.entity;
 
+import br.com.nh.cotacao.platform.TenantIdentity;
+
 public enum RearWindowBranding {
     NOT_APPLICABLE("Não se aplica"),
     ANY_PERFORATED("Perfurado no vigia traseiro"),

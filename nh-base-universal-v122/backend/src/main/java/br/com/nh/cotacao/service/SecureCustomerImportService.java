@@ -50,7 +50,7 @@ public class SecureCustomerImportService {
         if(fileName==null || !fileName.toLowerCase(Locale.ROOT).endsWith(".csv"))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Envie um arquivo .csv UTF-8.");
         CustomerCsvParser.Parsed parsed;
         try{parsed=CustomerCsvParser.parse(csv);}catch(IllegalArgumentException e){throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage());}
-        Boolean exists=db.query("SELECT 1 FROM tenant_customer_import_batches WHERE sha256=? LIMIT 1",rs->rs.next(),parsed.sha256());
+        Boolean exists=db.query("SELECT 1 FROM tenant_customer_import_batches WHERE sha256=? LIMIT 1",(org.springframework.jdbc.core.ResultSetExtractor<Boolean>)rs->rs.next(),parsed.sha256());
         if(Boolean.TRUE.equals(exists))throw new ResponseStatusException(HttpStatus.CONFLICT,"Este arquivo já foi enviado anteriormente. Consulte o histórico de importação.");
         byte[] iv=new byte[12];random.nextBytes(iv);UUID id=UUID.randomUUID();
         byte[] cipher=encrypt(csv,iv,id);

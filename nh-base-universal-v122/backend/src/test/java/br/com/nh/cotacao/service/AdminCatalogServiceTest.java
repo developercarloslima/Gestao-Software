@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 class AdminCatalogServiceTest {
 
     @Test
-    void deletePlanRemovesCatalogChildrenBeforePlanAndPreservesSharedCoverage() {
+    void deletePlanRemovesItsAssignmentsButPreservesReusableBenefits() {
         PriceRangeRepository priceRepository = mock(PriceRangeRepository.class);
         PlanCoverageRepository planCoverageRepository = mock(PlanCoverageRepository.class);
         PlanRepository planRepository = mock(PlanRepository.class);
@@ -74,8 +74,10 @@ class AdminCatalogServiceTest {
         order.verify(planRepository).deleteById(planId);
         order.verify(planRepository).flush();
 
-        verify(coverageRuleRepository).deleteByCoverage_Id(100L);
-        verify(coverageRepository).deleteById(100L);
+        // Benefícios são catálogo independente: mesmo sem vínculos não devem
+        // ser excluídos ao remover o plano.
+        verify(coverageRuleRepository, never()).deleteByCoverage_Id(100L);
+        verify(coverageRepository, never()).deleteById(100L);
         verify(coverageRuleRepository, never()).deleteByCoverage_Id(200L);
         verify(coverageRepository, never()).deleteById(200L);
         verify(auditRepository).save(any());

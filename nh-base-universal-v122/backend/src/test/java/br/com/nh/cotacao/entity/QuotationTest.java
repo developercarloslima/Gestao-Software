@@ -3,6 +3,7 @@ package br.com.nh.cotacao.entity;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -218,14 +219,10 @@ class QuotationTest {
     }
 
     @Test
-    void shouldRequireTwoLogosForFifteenPercentDiscount() {
+    void shouldKeepCatalogSelectedBrandingForFifteenPercentDiscount() {
         Quotation quotation = quotationWithBaseValue("100.00");
 
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> quotation.applyDiscount(15, RearWindowBranding.NH_ONLY)
-        );
-
+        // Elegibilidade da modalidade é validada no DiscountRuleService.
         quotation.applyDiscount(15, RearWindowBranding.NH_AND_OTHER_COMPANY);
 
         assertEquals(new BigDecimal("85.00"), quotation.getMonthlyValue());
@@ -233,13 +230,8 @@ class QuotationTest {
     }
 
     @Test
-    void shouldRequireOnlyNhLogoForThirtyPercentDiscount() {
+    void shouldKeepCatalogSelectedBrandingForThirtyPercentDiscount() {
         Quotation quotation = quotationWithBaseValue("100.00");
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> quotation.applyDiscount(30, RearWindowBranding.NH_AND_OTHER_COMPANY)
-        );
 
         quotation.applyDiscount(30, RearWindowBranding.NH_ONLY);
 
@@ -248,7 +240,7 @@ class QuotationTest {
     }
 
     @Test
-    void shouldRejectRearWindowDiscountForMotorcyclesAndElectricScooters() {
+    void shouldKeepBrandingStateWhileCatalogValidatesScooterDiscountEligibility() {
         Consultant consultant = Consultant.create("Consultor", "TEST");
         Quotation scooter = Quotation.createForConsultant(
                 "NH-2026-SCOOTER001",
@@ -272,14 +264,10 @@ class QuotationTest {
                 null
         );
 
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> scooter.applyDiscount(15, RearWindowBranding.NH_AND_OTHER_COMPANY)
-        );
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> scooter.applyDiscount(30, RearWindowBranding.NH_ONLY)
-        );
+        scooter.applyDiscount(15, RearWindowBranding.NH_AND_OTHER_COMPANY);
+        assertEquals(RearWindowBranding.NH_AND_OTHER_COMPANY, scooter.getRearWindowBranding());
+        scooter.applyDiscount(30, RearWindowBranding.NH_ONLY);
+        assertEquals(RearWindowBranding.NH_ONLY, scooter.getRearWindowBranding());
     }
 
     @Test
@@ -290,7 +278,8 @@ class QuotationTest {
         quotation.addOptional("FUNERAL", "Auxílio funeral", null, new BigDecimal("10.00"));
 
         assertEquals(new BigDecimal("110.00"), quotation.getPreDiscountMonthlyValue());
-        assertEquals(new BigDecimal("99.00"), quotation.getMonthlyValue());
+        // Desconto incide somente sobre a base: 100 * 0,90 + 10 integral.
+        assertEquals(new BigDecimal("100.00"), quotation.getMonthlyValue());
     }
 
     @Test
@@ -392,7 +381,7 @@ class QuotationTest {
     }
 
     @Test
-    void shouldApplyFipeThirdPartyRuleWithoutReducingItWhenDiscounted() {
+    void shouldPreserveThirdPartySnapshotWhileAdministrativeRuleCalculatesLimit() {
         Quotation quotation = quotationWithBaseValue("100.00");
         quotation.addCoverageSnapshot("THIRD_PARTY_BASE", "Terceiros", CoverageStatus.INCLUDED, "Legado", null, 1);
         quotation.addCoverageSnapshot("THIRD_PARTY", "Terceiros adicional", CoverageStatus.OPTIONAL, "Legado", new BigDecimal("10.00"), 2);
@@ -407,15 +396,15 @@ class QuotationTest {
                 .filter(item -> "THIRD_PARTY".equals(item.getCoverageCode()))
                 .findFirst().orElseThrow();
         assertTrue(base.isFinalSelected());
-        assertEquals("Cobertura de até R$ 50 mil", base.getDetail());
+        assertEquals("Legado", base.getDetail());
         assertFalse(supplemental.isFinalSelected());
 
         quotation.updateFipeValue(new BigDecimal("51000.00"));
-        assertEquals("Cobertura de até R$ 50 mil", base.getDetail());
+        assertEquals("Legado", base.getDetail());
         assertTrue(base.isFinalSelected());
 
         quotation.applyDiscount(0, RearWindowBranding.NOT_APPLICABLE);
-        assertEquals("Cobertura de até R$ 100 mil", base.getDetail());
+        assertEquals("Legado", base.getDetail());
     }
 
     @Test
@@ -424,7 +413,13 @@ class QuotationTest {
         quotation.addCoverageSnapshot("NATURAL_PHENOMENA", "Fenômenos da natureza", CoverageStatus.INCLUDED, null, null, 1);
         quotation.addCoverageSnapshot("SMALL_REPAIRS", "Pequenos reparos", CoverageStatus.INCLUDED, null, null, 2);
 
-        quotation.applyDiscount(5, RearWindowBranding.NOT_APPLICABLE);
+        // O saneamento das coberturas ocorre na revisão comercial consolidada,
+        // preservando o snapshot de uma cotação já aceita até a revisão.
+        quotation.applyCommercialRevision(
+                quotation.getFipeValue(), new BigDecimal("95.00"), 5, RearWindowBranding.NOT_APPLICABLE,
+                Set.of("NATURAL_PHENOMENA", "SMALL_REPAIRS"),
+                new BigDecimal("100.00"), BigDecimal.ZERO, BigDecimal.ZERO, null, false
+        );
 
         assertFalse(quotation.getCoverageSnapshots().stream()
                 .filter(item -> "NATURAL_PHENOMENA".equals(item.getCoverageCode()))

@@ -33,7 +33,7 @@ public class SupervisionAnalysisController {
     }
 
     @GetMapping("/analysts")
-    public List<br.com.nh.cotacao.dto.AdminDtos.ConsultantResponse> analysts() {
+    public List<br.com.nh.cotacao.dto.PortalDtos.ConsultantResponse> analysts() {
         return consultantService.activeAnalysts();
     }
 

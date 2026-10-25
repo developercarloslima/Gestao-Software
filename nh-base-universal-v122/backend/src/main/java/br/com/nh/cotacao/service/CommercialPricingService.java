@@ -221,7 +221,7 @@ public class CommercialPricingService {
             // calculateBreakdown consulta as faixas cadastradas (ou a regra extra
             // acima da última faixa) e calcula o rastreador somente quando os
             // campos atuais do plano dizem que ele é obrigatório para esta FIPE.
-            catalogPricing = pricingService.calculateBreakdown(plan, requestedFipe);
+            catalogPricing = pricingService.calculateBreakdown(plan, requestedFipe, quotation.getPricingRegion());
         }
         return catalogPricing.orElseThrow(() -> new IllegalArgumentException(
                 "Não existe faixa de preço cadastrada para este plano e a FIPE informada."
