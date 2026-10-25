@@ -36,6 +36,7 @@ public class AdminActivityService {
     private final RetratoService retratoService;
     private final RetratoPdfService retratoPdfService;
     private final CommercialPricingService commercialPricingService;
+    private final QuoteService quoteService;
     private final DiscountRuleService discountRuleService;
     private final ThirdPartyRuleSettingsService thirdPartyRuleSettingsService;
     private final InspectionFipeSelectionService fipeSelectionService;
@@ -54,6 +55,7 @@ public class AdminActivityService {
             RetratoService retratoService,
             RetratoPdfService retratoPdfService,
             CommercialPricingService commercialPricingService,
+            QuoteService quoteService,
             DiscountRuleService discountRuleService,
             ThirdPartyRuleSettingsService thirdPartyRuleSettingsService,
             InspectionFipeSelectionService fipeSelectionService,
@@ -71,6 +73,7 @@ public class AdminActivityService {
         this.retratoService = retratoService;
         this.retratoPdfService = retratoPdfService;
         this.commercialPricingService = commercialPricingService;
+        this.quoteService = quoteService;
         this.discountRuleService = discountRuleService;
         this.thirdPartyRuleSettingsService = thirdPartyRuleSettingsService;
         this.fipeSelectionService = fipeSelectionService;
@@ -303,6 +306,66 @@ public class AdminActivityService {
                         || item.getStatus() == InspectionRequestStatus.REJECTED)
                 .map(item -> toInspection(item, true))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<InspectionPlanOption> plansForInspection(UUID id, String username, PortalRole actorRole) {
+        assertContractPricingAccess(id, username, actorRole);
+        InspectionRequest inspection = inspectionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Solicitação do Retrato NH não encontrada."));
+        assertContractValuesEditable(inspection, actorRole);
+        Quotation quotation = inspection.getQuotation();
+        if (quotation == null) return List.of();
+        return quoteService.eligiblePlansForInspection(quotation).stream()
+                .map(plan -> new InspectionPlanOption(plan.getCode(), plan.getName(),
+                        plan.getCode().equalsIgnoreCase(quotation.getSelectedPlanCode())))
+                .toList();
+    }
+
+    @Transactional
+    public AdminInspectionResponse updateInspectionPlan(
+            UUID id, UpdateInspectionPlanRequest request, String username, PortalRole actorRole
+    ) {
+        assertContractPricingAccess(id, username, actorRole);
+        InspectionRequest inspection = inspectionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Solicitação do Retrato NH não encontrada."));
+        assertContractValuesEditable(inspection, actorRole);
+        Quotation quotation = inspection.getQuotation();
+        if (quotation == null) {
+            throw new IllegalArgumentException("Esta vistoria não possui uma cotação vinculada para alterar o plano.");
+        }
+        assertNotExpiredWithoutPreservedFilesUnlessApprovedEditable(quotation, inspection, actorRole);
+        if (request == null || request.planCode() == null || request.planCode().isBlank()) {
+            throw new IllegalArgumentException("Selecione um plano válido.");
+        }
+        Plan plan = quoteService.eligiblePlansForInspection(quotation).stream()
+                .filter(candidate -> candidate.getCode().equalsIgnoreCase(request.planCode().trim()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("O plano solicitado não está disponível para a categoria, FIPE ou região desta vistoria."));
+        if (plan.getCode().equalsIgnoreCase(quotation.getSelectedPlanCode())) return toInspection(inspection, true);
+
+        String previousPlan = quotation.getSelectedPlanCode();
+        quotation.changePlanBeforeDigitalAcceptance(plan.getCode(), plan.getName());
+        quoteService.populateChangedPlanCoverages(quotation, plan);
+        Set<String> benefits = quotation.finalSelectedCoverageCodes();
+        var pricing = commercialPricingService.calculate(quotation, quotation.getFipeValue(), 0, benefits);
+        quotation.applyCommercialRevision(
+                quotation.getFipeValue(), pricing.finalMonthlyValue(), 0, RearWindowBranding.NOT_APPLICABLE,
+                benefits, pricing.planBaseMonthlyValue(), pricing.mandatoryMonthlyFee(), pricing.oneTimeFee(),
+                pricing.mandatoryFeeDescription(), false
+        );
+        quotationRepository.saveAndFlush(quotation);
+        if (inspection.hasPendingContractChange()) {
+            inspection.clearPendingContractChange();
+            inspectionRepository.flush();
+        }
+        auditRepository.save(CatalogChangeAudit.createText(
+                "INSPECTION_PLAN_CHANGE", null, id.toString(),
+                "Plano da vistoria de " + inspection.getAssociateName() + " alterado antes do aceite digital",
+                previousPlan, plan.getCode(), username
+        ));
+        refreshInspectionDossierAfterEdit(inspection);
+        return toInspection(inspection, true);
     }
 
     @Transactional(readOnly = true)
@@ -1356,9 +1419,9 @@ public class AdminActivityService {
         if (protectedThirdPartyRule) {
             locked = true;
             isSelected = true;
-            BigDecimal limit = quotation.thirdPartyLimitForFipe(fipe, discountPercent);
-            detail = limit != null && limit.compareTo(new BigDecimal("100000.00")) >= 0
-                    ? "Cobertura de até R$ 100 mil" : "Cobertura de até R$ 50 mil";
+            BigDecimal limit = thirdPartyRuleSettingsService.limitFor(quotation.getSelectedPlanCode(), fipe, discountPercent);
+            detail = limit == null ? benefit.detail() : "Cobertura de até R$ "
+                    + java.text.NumberFormat.getNumberInstance(new Locale("pt", "BR")).format(limit);
             lockReason = "Regra automática do plano por faixa FIPE e desconto.";
         }
 
