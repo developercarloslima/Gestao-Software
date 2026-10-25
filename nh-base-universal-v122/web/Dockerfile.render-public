@@ -1,0 +1,8 @@
+FROM nginx:1.27-alpine
+RUN apk add --no-cache gettext
+COPY nginx.render-public.conf.template /etc/nginx/templates/default.conf.template
+COPY docker-entrypoint-nh.sh /docker-entrypoint.d/40-nh-config.sh
+RUN chmod +x /docker-entrypoint.d/40-nh-config.sh
+COPY . /usr/share/nginx/html
+RUN rm -f /usr/share/nginx/html/Dockerfile /usr/share/nginx/html/Dockerfile.render /usr/share/nginx/html/Dockerfile.render-public /usr/share/nginx/html/nginx.conf /usr/share/nginx/html/nginx.render.conf.template /usr/share/nginx/html/nginx.render-public.conf.template /usr/share/nginx/html/docker-entrypoint-nh.sh
+EXPOSE 10000
