@@ -1,0 +1,37 @@
+name: NH Universal Demo - validar base e Render Free
+on:
+  pull_request:
+    paths:
+      - "nh-base-universal-v122/**"
+      - ".github/workflows/nh-demo-check.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integridade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validar layout, seguranca e isolamento da base universal
+        run: python3 nh-base-universal-v122/ci/test_v122_integrations.py
+      - name: Validar sintaxe e isolamento do Blueprint
+        run: |
+          python3 -m pip install pyyaml
+          python3 -c "import yaml; d=yaml.safe_load(open('nh-base-universal-v122/render.neon-demo.yaml',encoding='utf-8')); assert 'databases' not in d; assert len(d['services'])==2; assert all(s['plan']=='free' and s['type']=='web' for s in d['services']); print('Blueprint demo isolado: OK')"
+      - name: Compilar container Nginx com proxy HTTPS publico
+        run: docker build -f nh-base-universal-v122/web/Dockerfile.render-public nh-base-universal-v122/web
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: nh-base-universal-v122/backend/pom.xml
+      - name: Maven verify com perfil tenant isolado
+        run: mvn -B -ntp -Ptenant -f nh-base-universal-v122/backend/pom.xml clean verify
