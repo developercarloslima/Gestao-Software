@@ -47,6 +47,22 @@ h1, h2, h3, h4, h5, h6,
   }
 }
 
+/* Confirmações de ciclo de vida da empresa com identidade visual do Gestão. */
+.company-action-card { width:min(510px,calc(100vw - 28px)); }
+.company-action-brand { display:flex; align-items:center; gap:12px; padding-bottom:15px; margin-bottom:19px; border-bottom:1px solid #e4e8f1; }
+.company-action-brand img { width:48px; height:48px; object-fit:contain; background:#06164a; border-radius:12px; padding:6px; }
+.company-action-brand strong,.company-action-brand small { display:block; }
+.company-action-brand strong { color:#06164a; font-size:1.05rem; font-weight:800!important; }
+.company-action-brand small { color:#687083; margin-top:2px; }
+.company-action-description { line-height:1.65; color:#414a60; white-space:pre-line; }
+.company-action-name-block { background:#f8f9fc; padding:15px; border:1px solid #d9dfea; border-radius:12px; margin:18px 0; }
+.company-action-name-block[hidden] { display:none; }
+.company-action-name-block strong { display:block; padding:8px 0; color:#06164a; overflow-wrap:anywhere; }
+.company-action-name-block input { margin-top:5px; }
+.company-action-buttons { margin-top:22px; }
+.company-action-card.danger-mode { border-top-color:#c64040; }
+.company-action-card.danger-mode #company-action-confirm { background:#a52727; border-color:#a52727; }
+
 /* v95 — módulos e explicações de preço */
 .module-option { grid-template-columns: auto 1fr !important; }
 .margin-explanation, .asaas-explanation {

@@ -30,6 +30,17 @@ public class PlatformManagementController {
 
     private static final Set<String> PRICING_CALCULATOR_OWNERS = Set.of("carlos.lima", "pedro.henrique");
 
+    private static String companyLifecycleOwner(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof PlatformPrincipal principal)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ação restrita aos sócios Carlos Lima e Pedro Henrique.");
+        }
+        String username = principal.username() == null ? "" : principal.username().trim().toLowerCase(java.util.Locale.ROOT);
+        if (!PRICING_CALCULATOR_OWNERS.contains(username)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ação restrita aos sócios Carlos Lima e Pedro Henrique.");
+        }
+        return username;
+    }
+
     @GetMapping("/modules")
     public List<Map<String, Object>> modules() { return service.modules(); }
 
@@ -85,14 +96,19 @@ public class PlatformManagementController {
     }
 
     @PostMapping("/companies/{id}/deactivate")
-    public Map<String, Object> deactivateCompany(@PathVariable UUID id) {
-        return service.deactivateCompany(id);
+    public Map<String, Object> deactivateCompany(@PathVariable UUID id, Authentication authentication) {
+        return service.deactivateCompany(id, companyLifecycleOwner(authentication));
+    }
+
+    @PostMapping("/companies/{id}/reactivate")
+    public Map<String, Object> reactivateCompany(@PathVariable UUID id, Authentication authentication) {
+        return service.reactivateCompany(id, companyLifecycleOwner(authentication));
     }
 
     @DeleteMapping("/companies/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCompany(@PathVariable UUID id) {
-        service.deleteCompany(id);
+    public void deleteCompany(@PathVariable UUID id, Authentication authentication) {
+        service.deleteCompany(id, companyLifecycleOwner(authentication));
     }
 
     @PostMapping(value="/companies/{id}/files/{purpose}", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
