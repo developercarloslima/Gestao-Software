@@ -250,6 +250,15 @@ public class PlatformManagementService {
     @Transactional
     public Map<String, Object> updateCompany(UUID id, CompanyInput input) {
         validateCompany(input);
+        String storedStatus = jdbc.query("SELECT status FROM platform_companies WHERE id=? FOR UPDATE",
+                rs -> rs.next() ? rs.getString(1) : null, id);
+        if (storedStatus == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa não encontrada.");
+        String requestedStatus = companyStatus(input.status());
+        if (!storedStatus.equals(requestedStatus) &&
+                (Set.of("SUSPENDED", "CANCELLED").contains(storedStatus) || Set.of("SUSPENDED", "CANCELLED").contains(requestedStatus))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Para desativar, reativar ou excluir uma empresa, use os botões próprios com confirmação e auditoria.");
+        }
         int changed = jdbc.update("""
                 UPDATE platform_companies
                    SET group_name=?, legal_name=?, trade_name=?, document=?, contact_name=?, contact_email=?, contact_phone=?,
@@ -262,7 +271,7 @@ public class PlatformManagementService {
                 clean(input.groupName(), 160), required(input.legalName(), "Informe a razão social."),
                 required(input.tradeName(), "Informe o nome da empresa."), cleanDocument(input.document()),
                 clean(input.contactName(), 160), clean(input.contactEmail(), 180), clean(input.contactPhone(), 40),
-                companyStatus(input.status()), planCode(input.planCode()), cleanOr(input.planName(), "Personalizado", 120), contractTerm(input.contractTerm()), money(input.monthlyFee()),
+                requestedStatus, planCode(input.planCode()), cleanOr(input.planName(), "Personalizado", 120), contractTerm(input.contractTerm()), money(input.monthlyFee()),
                 dueDay(input.billingDueDay()), input.contractStartDate() == null ? LocalDate.now() : input.contractStartDate(),
                 input.contractEndDate(), paymentMethod(input.paymentMethod()),
                 cleanOr(input.platformDisplayName(), required(input.tradeName(), "Informe o nome da empresa."), 180),
@@ -470,31 +479,66 @@ public class PlatformManagementService {
         return getCompany(companyId);
     }
 
+    // Ações administrativas são sempre auditadas; a 'exclusão' do painel é um
+    // arquivamento lógico. Não apagar contratos, faturas, domínios, deploys ou
+    // dados de clientes mantidos em bancos de tenants externos.
+    private Map<String, String> lockedCompanyLifecycle(UUID companyId) {
+        return jdbc.query("SELECT trade_name, status FROM platform_companies WHERE id=? FOR UPDATE",
+                rs -> rs.next() ? Map.of("name", rs.getString(1), "status", rs.getString(2)) : null, companyId);
+    }
+
+    private void auditCompanyLifecycle(UUID companyId, String actor, String action, String detail) {
+        jdbc.update("""
+                INSERT INTO gs_cloud_audit(id,company_id,action,operator,message,created_at)
+                VALUES(?,?,?,?,?,NOW())
+                """, UUID.randomUUID(), companyId, action, actor, detail);
+    }
+
     @Transactional
-    public Map<String, Object> deactivateCompany(UUID companyId) {
-        int changed = jdbc.update("UPDATE platform_companies SET status='SUSPENDED', updated_at=NOW() WHERE id=?", companyId);
-        if (changed == 0) throw new IllegalArgumentException("Empresa-cliente não encontrada.");
+    public Map<String, Object> deactivateCompany(UUID companyId, String operator) {
+        Map<String, String> company = lockedCompanyLifecycle(companyId);
+        if (company == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa não encontrada.");
+        String status = company.get("status");
+        if ("CANCELLED".equals(status)) throw new ResponseStatusException(HttpStatus.CONFLICT, "Empresa excluída do cadastro ativo.");
+        if (!"SUSPENDED".equals(status)) {
+            jdbc.update("""
+                    UPDATE platform_companies SET status_before_suspend=status, status='SUSPENDED', updated_at=NOW() WHERE id=?
+                    """, companyId);
+            auditCompanyLifecycle(companyId, operator, "COMPANY_DEACTIVATED", "Empresa " + company.get("name") + " desativada (anterior: " + status + ").");
+        }
         return getCompany(companyId);
     }
 
     @Transactional
-    public void deleteCompany(UUID companyId) {
-        // v106: uma exclusão administrativa jamais pode apagar faturas, contratos,
-        // implantações, reserva cloud ou endereços usados por uma empresa real.
-        List<UUID> locked=jdbc.query("SELECT id FROM platform_companies WHERE id=? FOR UPDATE",
-            (rs,n)->rs.getObject(1,UUID.class),companyId);
-        if(locked.isEmpty())throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Empresa não encontrada.");
-        boolean historical=Boolean.TRUE.equals(jdbc.queryForObject("""
-            SELECT EXISTS(SELECT 1 FROM platform_company_invoices WHERE company_id=?)
-                OR EXISTS(SELECT 1 FROM platform_company_contracts WHERE company_id=?)
-                OR EXISTS(SELECT 1 FROM gs_deployments WHERE company_id=?)
-                OR EXISTS(SELECT 1 FROM gs_cloud_domains WHERE company_id=?)
-                OR EXISTS(SELECT 1 FROM platform_company_hosting WHERE company_id=? AND
-                  (vps_id IS NOT NULL OR NULLIF(app_url,'') IS NOT NULL OR NULLIF(api_url,'') IS NOT NULL))
-            """,Boolean.class,companyId,companyId,companyId,companyId,companyId));
-        if(historical)throw new ResponseStatusException(HttpStatus.CONFLICT,
-            "Esta empresa já possui histórico financeiro, contrato ou infraestrutura. Desative a empresa para preservar os registros; a exclusão exige auditoria e descarte supervisionado.");
-        jdbc.update("DELETE FROM platform_companies WHERE id=?", companyId);
+    public Map<String, Object> reactivateCompany(UUID companyId, String operator) {
+        Map<String, String> company = lockedCompanyLifecycle(companyId);
+        if (company == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa não encontrada.");
+        boolean archived = "CANCELLED".equals(company.get("status"));
+        if (!"SUSPENDED".equals(company.get("status")) && !archived) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Somente empresas suspensas ou arquivadas podem ser reativadas.");
+        }
+        jdbc.update("""
+                UPDATE platform_companies
+                   SET status=COALESCE(status_before_suspend,'ACTIVE'), status_before_suspend=NULL, updated_at=NOW()
+                 WHERE id=?
+                """, companyId);
+        auditCompanyLifecycle(companyId, operator, archived ? "COMPANY_RESTORED" : "COMPANY_REACTIVATED",
+                "Empresa " + company.get("name") + (archived ? " restaurada do arquivo." : " reativada."));
+        return getCompany(companyId);
+    }
+
+    @Transactional
+    public void deleteCompany(UUID companyId, String operator) {
+        Map<String, String> company = lockedCompanyLifecycle(companyId);
+        if (company == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa não encontrada.");
+        if ("CANCELLED".equals(company.get("status"))) return;
+        jdbc.update("""
+                UPDATE platform_companies
+                   SET status_before_suspend=CASE WHEN status IN ('ACTIVE','TRIAL') THEN status ELSE status_before_suspend END,
+                       status='CANCELLED', updated_at=NOW()
+                 WHERE id=?
+                """, companyId);
+        auditCompanyLifecycle(companyId, operator, "COMPANY_ARCHIVED", "Cadastro de " + company.get("name") + " excluído da lista ativa; contratos, faturas, domínios e deploys preservados.");
     }
 
     @Transactional
