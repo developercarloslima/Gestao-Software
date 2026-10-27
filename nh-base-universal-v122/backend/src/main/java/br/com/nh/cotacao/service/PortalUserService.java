@@ -576,7 +576,7 @@ public class PortalUserService {
     @Transactional
     public void bootstrapTenantAdmin(String username, String password, String tenantName, boolean approvedDemoPassword) {
         String normalized = PortalUser.normalizeUsername(username);
-        if (normalized.isBlank() || password == null || (password.length() < 16 && !approvedDemoPassword)
+        if (normalized.isBlank() || password == null || (password.length() < 8 && !approvedDemoPassword)
                 || tenantName == null || tenantName.isBlank()) {
             throw new IllegalStateException("Dados do administrador inicial são obrigatórios; senhas de demonstração exigem aprovação explícita.");
         }
