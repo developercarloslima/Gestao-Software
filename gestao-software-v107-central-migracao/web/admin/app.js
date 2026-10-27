@@ -173,7 +173,7 @@ function syncCompanyPricing(){
   if(help)help.textContent=plan?`${plan.name}: use a calculadora de planos para chegar ao valor e informe aqui a mensalidade final aprovada.`:'Plano personalizado: informe a mensalidade final aprovada.';
 }
 function resetCompanyForm(){
-  $('company-form').reset();$('company-id').value='';$('company-dialog-title').textContent='Nova empresa';populateCompanyPlanOptions();$('company-plan').value='START';$('company-contract-term').value='MONTHLY';$('company-payment-method').value='BOLETO';$('company-monthly').value='0';$('company-due-day').value='10';$('company-status').value='ACTIVE';$('company-status').disabled=false;$('company-start').value=today();$('company-platform-legal').value='Gestão Software LTDA';setCompanyBrandColors('#070c40','#f0f000','#ffffff');$('company-default-landing').value='/colaborador/';$('company-tenant-host').value='';$('company-logo-current').textContent='Nenhuma logo enviada.';$('company-identity-current').textContent='Nenhum PDF enviado.';formMessage('company-form-message');renderModuleOptions([]);syncCompanyPricing();
+  $('company-form').reset();$('company-id').value='';$('company-dialog-title').textContent='Nova empresa';populateCompanyPlanOptions();$('company-plan').value='START';$('company-contract-term').value='MONTHLY';$('company-payment-method').value='BOLETO';$('company-monthly').value='0';$('company-due-day').value='10';$('company-status').value='ACTIVE';$('company-status').disabled=false;$('company-start').value=today();$('company-platform-legal').value='Gestão Software LTDA';setCompanyBrandColors('#070c40','#f0f000','#ffffff');$('company-default-landing').value='/colaborador/';$('company-tenant-host').value='';currentCompanyFileStatus={files:[],logoUrl:''};updateCompanyFileStatus();formMessage('company-form-message');renderModuleOptions([]);syncCompanyPricing();
 }
 function renderModuleOptions(selected=[]){const byCode=new Map((selected||[]).map(m=>[m.code,m]));$('company-modules').innerHTML=modules.map(m=>{const s=byCode.get(m.code);return `<label class="module-option"><input type="checkbox" data-module-code="${esc(m.code)}" ${s?.enabled?'checked':''}><span><strong>${esc(m.name)}</strong><small>${esc(m.description||'')}</small></span></label>`}).join('')}
 function companyPayload(){const planCode=$('company-plan').value||'CUSTOM',plan=companyPlanByCode(planCode);return {groupName:$('company-group').value.trim()||null,legalName:$('company-legal').value.trim(),tradeName:$('company-trade').value.trim(),document:$('company-document').value.trim()||null,contactName:$('company-contact').value.trim()||null,contactEmail:$('company-email').value.trim()||null,contactPhone:$('company-phone').value.trim()||null,status:$('company-status').value,planCode,planName:plan?.name||'Personalizado',contractTerm:$('company-contract-term').value||'MONTHLY',monthlyFee:numberOrNull($('company-monthly').value)||0,billingDueDay:Number($('company-due-day').value||10),paymentMethod:$('company-payment-method').value||'BOLETO',contractStartDate:$('company-start').value||today(),contractEndDate:$('company-end').value||null,platformDisplayName:$('company-platform-display').value.trim()||$('company-trade').value.trim()||null,platformLegalName:$('company-platform-legal').value.trim()||'Gestão Software LTDA',logoUrl:$('company-logo-url').value.trim()||null,faviconUrl:$('company-favicon-url').value.trim()||null,primaryColor:$('company-primary-color').value||'#070c40',secondaryColor:$('company-secondary-color').value||'#f0f000',accentColor:$('company-accent-color').value||'#ffffff',siteTitle:$('company-site-title').value.trim()||$('company-trade').value.trim()||null,companyTagline:$('company-tagline').value.trim()||null,loginSubtitle:$('company-login-subtitle').value.trim()||null,defaultModuleLanding:$('company-default-landing').value.trim()||'/colaborador/',notes:$('company-notes').value.trim()||null,modules:[...document.querySelectorAll('[data-module-code]')].map(ch=>({code:ch.dataset.moduleCode,enabled:ch.checked,monthlyPrice:0}))}}
@@ -195,6 +195,21 @@ BRAND_FIELDS.forEach(([pickerId,hexId])=>{
 $('brand-nh-preset').addEventListener('click',()=>setCompanyBrandColors('#070c40','#f0f000','#ffffff'));
 
 function companyFileByPurpose(data,purpose){return (data.files||[]).find(f=>f.purpose===purpose)||null}
+let currentCompanyFileStatus={files:[],logoUrl:''};
+function updateCompanyFileStatus(){
+  const logoSelected=$('company-logo-file')?.files?.[0];
+  const pdfSelected=$('company-identity-file')?.files?.[0];
+  const hasLogo=!!companyFileByPurpose(currentCompanyFileStatus,'LOGO')||!!currentCompanyFileStatus.logoUrl;
+  const hasPdf=!!companyFileByPurpose(currentCompanyFileStatus,'VISUAL_IDENTITY_PDF');
+  $('company-logo-current').textContent=logoSelected
+    ? `Nova imagem selecionada: ${logoSelected.name}. Salve a empresa para enviar.`
+    : hasLogo ? '✓ Imagem recebida e salva.' : 'Nenhuma logo enviada.';
+  $('company-identity-current').textContent=pdfSelected
+    ? `Novo PDF selecionado: ${pdfSelected.name}. Salve a empresa para enviar.`
+    : hasPdf ? '✓ PDF recebido e salvo.' : 'Nenhum PDF enviado.';
+}
+$('company-logo-file').addEventListener('change',updateCompanyFileStatus);
+$('company-identity-file').addEventListener('change',updateCompanyFileStatus);
 async function saveCompanyTenantHosting(companyId){
   const host=$('company-tenant-host').value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/.*$/,'').replace(/:\d+$/,'');
   if(!host)return;
@@ -218,6 +233,12 @@ async function uploadCompanyFiles(companyId){
 }
 async function editCompany(id){
   const data=await api(`/api/platform/companies/${id}`);
+  // Os inputs nativos de arquivo nunca representam anexos já salvos.
+  // Limpar seleções anteriores evita reaproveitar o arquivo de outra empresa.
+  $('company-logo-file').value='';
+  $('company-identity-file').value='';
+  currentCompanyFileStatus={files:data.files||[],logoUrl:data.logoUrl||''};
+  updateCompanyFileStatus();
   populateCompanyPlanOptions();
   $('company-id').value=data.id;
   $('company-dialog-title').textContent=`Editar ${data.tradeName}`;
