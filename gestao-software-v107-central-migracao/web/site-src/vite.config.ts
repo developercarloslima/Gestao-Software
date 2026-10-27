@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   server: {
+    proxy: Object.fromEntries(
+      ['/api', '/admin', '/contract', '/shared', '/assets'].map(path =>
+        [path, { target: 'http://127.0.0.1:3100' }]),
+    ),
     allowedHosts: [
       '3000-ivh0npfred0pcg30tqt9x-e7330fab.us1.manus.computer',
       '8328-ivh0npfred0pcg30tqt9x-e7330fab.us1.manus.computer',

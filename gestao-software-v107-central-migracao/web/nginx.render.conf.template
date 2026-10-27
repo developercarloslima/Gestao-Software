@@ -21,7 +21,21 @@ server {
     proxy_read_timeout 120s;
   }
 
-  location /admin/ { try_files $uri $uri/ /admin/index.html; }
-  location /contract/ { try_files $uri $uri/ /contract/index.html; }
+  # Interfaces administrativas sempre revalidam arquivos após novos deploys.
+  location /admin/ {
+    add_header Cache-Control "no-cache, must-revalidate" always;
+    try_files $uri $uri/ /admin/index.html;
+  }
+  location /contract/ {
+    add_header Cache-Control "no-cache, must-revalidate" always;
+    try_files $uri $uri/ /contract/index.html;
+  }
+  location /shared/ {
+    add_header Cache-Control "no-cache, must-revalidate" always;
+    try_files $uri =404;
+  }
+  location = /index.html {
+    add_header Cache-Control "no-cache, must-revalidate" always;
+  }
   location / { try_files $uri $uri/ /index.html; }
 }

@@ -6,13 +6,14 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Gestão Software | Control Plane</title>
   <link rel="icon" href="/assets/logo-gestao-software.png">
-  <link rel="stylesheet" href="/shared/brand-system.css">
-  <link rel="stylesheet" href="/shared/responsive.css">
+  <meta name="theme-color" content="#030911">
+  <script src="/shared/gestao-theme.js?v=20261027"></script>
   <link rel="stylesheet" href="/admin/styles.css">
   <script src="/shared/config.js" defer></script>
   
   
   <link rel="stylesheet" href="/admin/cloud.css">
+  <link rel="stylesheet" href="/shared/gestao-theme.css?v=20261027">
   <script src="/admin/app.js" defer></script>
   <script src="/admin/onboarding.js" defer></script>
   <script src="/admin/cloud.js" defer></script>
@@ -26,6 +27,7 @@
       <div><strong>Gestão Software</strong><small>Control Plane • administração da plataforma</small></div>
     </div>
     <div class="header-actions">
+      <button class="gestao-theme-toggle" data-gestao-theme-toggle type="button" aria-label="Ativar modo claro"><span aria-hidden="true">◐</span> <span data-gestao-theme-label>Modo claro</span></button>
       <span id="owner-name" class="owner-chip">Sócio</span>
       <button id="logout" class="button ghost" type="button">Sair</button>
     </div>
@@ -91,7 +93,7 @@
   <section id="tab-companies" class="tab-panel">
     <article class="panel">
       <div class="panel-head wrap"><div><span class="section-kicker">CLIENTES</span><h2>Empresas cadastradas</h2><p>Cada empresa possui plano, módulos, financeiro e hospedagem próprios.</p></div><button id="new-company" class="button primary" type="button">+ Cadastrar empresa-cliente</button></div>
-      <div class="toolbar"><input id="company-search" type="search" placeholder="Buscar empresa, grupo, CNPJ ou contato"><select id="company-status-filter"><option value="">Todos os status</option><option value="ACTIVE">Ativas</option><option value="TRIAL">Teste</option><option value="SUSPENDED">Suspensas</option><option value="CANCELLED">Canceladas</option></select></div>
+      <div class="toolbar"><input id="company-search" type="search" placeholder="Buscar empresa, grupo, CNPJ ou contato"><select id="company-status-filter"><option value="">Empresas no cadastro ativo</option><option value="ACTIVE">Ativas</option><option value="TRIAL">Teste</option><option value="SUSPENDED">Suspensas</option><option value="CANCELLED">Excluídas (arquivo)</option></select></div>
       <div class="table-wrap"><table><thead><tr><th>Empresa</th><th>Grupo</th><th>Plano</th><th>Módulos</th><th>Mensalidade</th><th>Financeiro</th><th>Hospedagem</th><th></th></tr></thead><tbody id="companies-body"></tbody></table></div>
     </article>
   </section>
@@ -396,7 +398,7 @@
     <div class="form-grid two"><label>Grupo empresarial<input id="company-group" maxlength="160" placeholder="Ex.: Grupo Sampaio"></label><label>Nome da empresa / fantasia<input id="company-trade" maxlength="180" required></label></div>
     <div class="form-grid two"><label>Razão social<input id="company-legal" maxlength="200" required></label><label>CPF/CNPJ<input id="company-document" maxlength="20"></label></div>
     <div class="form-grid three"><label>Responsável<input id="company-contact" maxlength="160"></label><label>E-mail<input id="company-email" type="email" maxlength="180"></label><label>Telefone<input id="company-phone" maxlength="40"></label></div>
-    <div class="form-grid four"><label>Status<select id="company-status"><option value="ACTIVE">Ativa</option><option value="TRIAL">Teste</option><option value="SUSPENDED">Suspensa</option><option value="CANCELLED">Cancelada</option></select></label><label>Plano<select id="company-plan"><option value="CUSTOM">Personalizado</option></select></label><label>Prazo<select id="company-contract-term"><option value="MONTHLY">Mensal</option><option value="SEMIANNUAL">Semestral</option><option value="ANNUAL">Anual</option></select></label><label>Forma de pagamento<select id="company-payment-method"><option value="PIX_AUTOMATICO">Pix Automático</option><option value="DEBITO_AUTOMATICO">Débito Automático</option><option value="BOLETO">Boleto</option></select></label></div>
+    <div class="form-grid four"><label>Status<select id="company-status" title="Para suspender, reativar ou excluir, use as ações da lista de empresas."><option value="ACTIVE">Ativa</option><option value="TRIAL">Teste</option><option value="SUSPENDED" disabled>Suspensa</option><option value="CANCELLED" disabled>Excluída (arquivo)</option></select></label><label>Plano<select id="company-plan"><option value="CUSTOM">Personalizado</option></select></label><label>Prazo<select id="company-contract-term"><option value="MONTHLY">Mensal</option><option value="SEMIANNUAL">Semestral</option><option value="ANNUAL">Anual</option></select></label><label>Forma de pagamento<select id="company-payment-method"><option value="PIX_AUTOMATICO">Pix Automático</option><option value="DEBITO_AUTOMATICO">Débito Automático</option><option value="BOLETO">Boleto</option></select></label></div>
     <div class="form-grid four"><label>Mensalidade calculada<input id="company-monthly" type="number" min="0" step="0.01" value="0" required></label><label>Dia do vencimento<input id="company-due-day" type="number" min="1" max="28" value="10"></label><label>Início do contrato<input id="company-start" type="date" required></label><label>Fim do contrato<input id="company-end" type="date"></label></div>
     <small id="company-price-help" class="form-help">O plano define a categoria comercial. Informe em “Mensalidade calculada” o preço final aprovado para esta empresa.</small>
     <fieldset class="module-fieldset"><legend>Módulos contratados</legend><div id="company-modules" class="module-grid"></div></fieldset>
@@ -421,6 +423,23 @@
     <label>Observações<textarea id="company-notes" rows="3"></textarea></label>
     <div id="company-form-message" class="form-message"></div>
     <div class="form-actions end"><button class="button outline" type="button" data-close-dialog="company-dialog">Cancelar</button><button class="button primary" type="submit">Salvar empresa</button></div>
+  </form>
+</dialog>
+
+<dialog id="company-action-dialog" class="platform-dialog" aria-labelledby="company-action-title" aria-describedby="company-action-description">
+  <form id="company-action-form" class="dialog-card company-action-card" method="dialog">
+    <div class="company-action-brand"><img src="/assets/logo-gestao-software.png" alt=""><div><strong>Gestão Software</strong><small>Administração de empresas</small></div></div>
+    <div class="dialog-head"><div><span class="section-kicker" id="company-action-kicker">CONFIRMAÇÃO</span><h2 id="company-action-title">Confirmar operação</h2></div></div>
+    <p id="company-action-description" class="company-action-description"></p>
+    <div id="company-action-name-block" class="company-action-name-block" hidden>
+      <label for="company-action-name">Para confirmar, digite exatamente o nome da empresa:</label>
+      <strong id="company-action-expected-name"></strong>
+      <input id="company-action-name" type="text" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="form-actions end company-action-buttons">
+      <button class="button outline" type="submit" value="cancel" formnovalidate>Cancelar</button>
+      <button class="button primary" id="company-action-confirm" type="submit" value="confirm">Confirmar</button>
+    </div>
   </form>
 </dialog>
 

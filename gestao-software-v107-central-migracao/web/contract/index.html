@@ -5,13 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Contrato | Gestão Software</title>
   <link rel="icon" href="/assets/logo-gestao-software.png">
+  <meta name="theme-color" content="#030911">
+  <script src="/shared/gestao-theme.js?v=20261027"></script>
   <style>
     *{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#07163f;font-family:Inter,Arial,sans-serif}.shell{width:min(920px,calc(100% - 28px));margin:36px auto}.brand{display:flex;align-items:center;gap:14px;margin-bottom:22px}.brand img{width:58px;height:58px;object-fit:contain}.brand h1{margin:0;font-size:1.25rem}.brand p{margin:4px 0 0;color:#687086}.card{background:#fff;border:1px solid #dce4ef;border-top:5px solid #1264f4;border-radius:20px;padding:24px;box-shadow:0 18px 44px rgba(8,25,67,.08)}h2,h3{font-weight:800}.meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}.meta div{background:#f7f9fc;border-radius:12px;padding:12px}.meta span{display:block;color:#747d90;font-size:.78rem;margin-bottom:5px}.contract-text{line-height:1.65;color:#343c50}.signatures{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}.sig{border:1px solid #dce4ef;border-radius:14px;padding:14px}.sig span{display:block;color:#747d90;font-size:.78rem;margin-bottom:5px}.form{margin-top:22px;border-top:1px solid #e4e9f0;padding-top:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:grid;gap:6px;font-size:.86rem}input{width:100%;border:1px solid #ccd6e4;border-radius:10px;padding:11px}.check{display:flex;gap:9px;align-items:flex-start;margin:16px 0}.check input{width:auto;margin-top:3px}.button{border:0;border-radius:11px;background:#07163f;color:#fff;padding:12px 18px;cursor:pointer}.message{margin-top:12px;padding:11px;border-radius:10px;display:none}.message.ok{display:block;background:#eaf8f0;color:#17613a}.message.bad{display:block;background:#fff0ef;color:#922f28}.status{display:inline-flex;padding:5px 9px;border-radius:999px;background:#fff4c7;color:#755800;font-size:.8rem}.status.signed{background:#eaf8f0;color:#17613a}@media(max-width:650px){.meta,.signatures,.grid{grid-template-columns:1fr}.shell{margin:18px auto}.card{padding:18px}}
   </style>
+  <link rel="stylesheet" href="/shared/gestao-theme.css?v=20261027">
 </head>
-<body>
+<body class="gestao-contract">
   <main class="shell">
-    <div class="brand"><img src="/assets/logo-gestao-software.png" alt="Gestão Software"><div><h1>Gestão Software LTDA</h1><p>Contrato de prestação de serviços e licenciamento da plataforma</p></div></div>
+    <div class="brand"><img src="/assets/logo-gestao-software.png" alt="Gestão Software"><div><h1>Gestão Software LTDA</h1><p>Contrato de prestação de serviços e licenciamento da plataforma</p></div><button class="gestao-theme-toggle" data-gestao-theme-toggle type="button"><span aria-hidden="true">◐</span> <span data-gestao-theme-label>Modo claro</span></button></div>
     <section class="card">
       <div id="loading">Carregando contrato...</div>
       <div id="content" hidden>

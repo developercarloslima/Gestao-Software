@@ -17,16 +17,14 @@ services:
     autoDeployTrigger: "off"
     healthCheckPath: /api/health
     envVars:
-      - key: DATABASE_HOST
-        fromDatabase: {name: gs107-hml-db, property: host}
-      - key: DATABASE_PORT
-        fromDatabase: {name: gs107-hml-db, property: port}
-      - key: DATABASE_NAME
-        fromDatabase: {name: gs107-hml-db, property: database}
+      # Conexao Neon da demonstracao: preenchida somente no Dashboard do Render.
+      # sync:false solicita valores na criacao; servicos existentes usam configuracao manual.
+      - key: DATABASE_URL
+        sync: false
       - key: DATABASE_USERNAME
-        fromDatabase: {name: gs107-hml-db, property: user}
+        sync: false
       - key: DATABASE_PASSWORD
-        fromDatabase: {name: gs107-hml-db, property: password}
+        sync: false
       - key: AUTH_TOKEN_SECRET
         generateValue: true
       - key: GESTAO_BOOTSTRAP_CARLOS_PASSWORD
@@ -34,7 +32,7 @@ services:
       - key: GESTAO_BOOTSTRAP_PEDRO_PASSWORD
         generateValue: true
       - key: ALLOWED_ORIGINS
-        value: https://gs107-hml-web.onrender.com
+        value: https://gs107-hml-web-rewg.onrender.com
       - key: AUTO_PROVISION_ENABLED
         value: "false"
       - key: CLOUD_ROUTING_ENABLED

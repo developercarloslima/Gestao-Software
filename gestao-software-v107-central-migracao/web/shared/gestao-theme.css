@@ -1,0 +1,155 @@
+/* Identidade Gestão Software: azul da marca G, preto, branco. Não altera tenants NH. */
+:root {
+  --gs-blue: #087fff;
+  --gs-blue-hover: #006fe6;
+  --gs-blue-soft: rgba(8, 127, 255, .12);
+  --gs-blue-line: rgba(8, 127, 255, .34);
+  --gs-page: #f3f7fd;
+  --gs-card: #ffffff;
+  --gs-card-alt: #edf4fc;
+  --gs-field: #ffffff;
+  --gs-text: #091827;
+  --gs-muted: #586b80;
+  --gs-border: #cdd9e8;
+  --gs-shadow: 0 10px 32px rgba(5, 22, 51, .07);
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  --gs-blue: #168eff;
+  --gs-blue-hover: #35a5ff;
+  --gs-blue-soft: rgba(20, 142, 255, .16);
+  --gs-blue-line: rgba(47, 161, 255, .48);
+  --gs-page: #030911;
+  --gs-card: #101b29;
+  --gs-card-alt: #18283b;
+  --gs-field: #0a1421;
+  --gs-text: #f1f7ff;
+  --gs-muted: #b5c6da;
+  --gs-border: #30445e;
+  --gs-shadow: 0 16px 42px rgba(0, 0, 0, .24);
+  color-scheme: dark;
+}
+
+.gestao-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: auto;
+  min-height: 37px;
+  margin: 0;
+  padding: 8px 13px;
+  border: 1px solid var(--gs-blue-line);
+  border-radius: 11px;
+  background: var(--gs-blue-soft);
+  color: var(--gs-text);
+  font: 650 13px/1.2 Inter, Arial, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.gestao-theme-toggle:hover { border-color: var(--gs-blue); }
+.gestao-theme-toggle:focus-visible { outline: 3px solid var(--gs-blue); outline-offset: 2px; }
+
+/* Control Plane: superfícies e componentes usam a mesma paleta em todas as abas. */
+body:has(.platform-shell) {
+  background: var(--gs-page);
+  color: var(--gs-text);
+}
+body:has(.platform-shell) :is(h1, h2, h3, h4, h5, h6),
+body:has(.platform-shell) :is(.metric-card strong, .partner-card strong, .capacity-stats strong, .detail-item strong, .calculator-breakdown-grid strong) {
+  color: var(--gs-text);
+}
+.platform-header { background: var(--gs-card); border-bottom-color: var(--gs-blue); box-shadow: var(--gs-shadow); }
+.brand-lockup, .brand-lockup strong { color: var(--gs-text) !important; }
+.brand-lockup small { color: var(--gs-blue); }
+.owner-chip { color: var(--gs-text); background: var(--gs-blue-soft); border-color: var(--gs-blue-line); }
+.platform-header .button.ghost { color: var(--gs-text); border-color: var(--gs-border); }
+.platform-hero { background: var(--gs-card); border-color: var(--gs-blue-line); box-shadow: var(--gs-shadow); color: var(--gs-text); }
+.platform-hero::before { background: var(--gs-blue); }
+.platform-hero h1 { color: var(--gs-text) !important; }
+.platform-hero p, .month-control label { color: var(--gs-muted); }
+.eyebrow, .section-kicker { color: var(--gs-blue) !important; }
+.platform-tabs button { background: var(--gs-card); color: var(--gs-text); border-color: var(--gs-border); }
+.platform-tabs button.active { background: var(--gs-blue); border-color: var(--gs-blue); color: #fff; box-shadow: 0 7px 18px rgba(8, 127, 255, .18); }
+.panel, .metric-card, .dialog-card, .partner-card, .vps-card, .contract-card, .hosting-box,
+.calc-module-option, .calculator-advanced, .calculator-plan-card, .cloud-server-card, .cloud-domain-card,
+.cloud-overview > div, .cloud-orchestrator-box, .cloud-ranking-row, .onboarding-summary,
+.onboarding-kpis div, .onboarding-check, .onboarding-deployment, .onboarding-provider-notice,
+.contract-create-note, .signature-grid > div, .company-action-name-block, .onboarding-steps span {
+  background: var(--gs-card);
+  color: var(--gs-text);
+  border-color: var(--gs-border);
+  box-shadow: var(--gs-shadow);
+}
+.panel, .metric-card, .dialog-card { border-top-color: var(--gs-blue); }
+.metric-card.emphasis, .calculator-plan-card { background: var(--gs-card-alt); color: var(--gs-text); }
+.metric-card.emphasis strong, .calculator-plan-card :is(h2, strong), .calculator-price strong { color: var(--gs-blue) !important; }
+.metric-card.emphasis :is(span, small), .calculator-plan-card :is(p, span, small) { color: var(--gs-muted); }
+.capacity-stats div, .detail-item, .detail-grid > div, .vps-meta div, .calculator-breakdown-grid div,
+.cloud-metrics > div, .onboarding-next-action, .onboarding-state, .cloud-address-preview,
+.margin-explanation, .asaas-explanation, .module-option, .cloud-guide,
+.company-action-name-block, .onboarding-kpis div { background: var(--gs-card-alt); border-color: var(--gs-border); color: var(--gs-text); }
+.toolbar, .table-wrap, .module-fieldset, .module-option, .sig { border-color: var(--gs-border); }
+table th { background: var(--gs-card-alt); color: var(--gs-text); }
+table td { background: var(--gs-card); color: var(--gs-text); border-bottom-color: var(--gs-border); }
+tbody tr:hover td { background: var(--gs-card-alt); }
+.button.primary, .progress > span, .onboarding-next-action { border-color: var(--gs-blue); }
+.button.primary { background: var(--gs-blue); color: #fff; }
+.button.primary:hover { background: var(--gs-blue-hover); }
+.button.outline, .icon-close, .button.ghost, .button.danger-soft { background: var(--gs-card); color: var(--gs-text); border-color: var(--gs-border); }
+.button.outline:hover { border-color: var(--gs-blue); }
+.progress > span { background: var(--gs-blue); }
+.progress.warning > span { background: #2189f8; }
+body:has(.platform-shell) :is(input, textarea, select) {
+  background: var(--gs-field);
+  color: var(--gs-text);
+  border-color: var(--gs-border);
+}
+body:has(.platform-shell) :is(input, textarea, select)::placeholder { color: var(--gs-muted); }
+body:has(.platform-shell) :is(label, legend, .calculator-advanced summary, .company-action-brand strong,
+  .company-action-name-block strong, .cloud-server-card strong, .cloud-domain-card strong,
+  .cloud-metrics b, .cloud-overview strong, .cloud-ranking-row strong,
+  .onboarding-kpis strong, .hosting-values div > span:last-child) { color: var(--gs-text); }
+body:has(.platform-shell) :is(.muted, .form-help, .panel-head p, .metric-card span, .metric-card small,
+  .partner-card small, .detail-item span, .dialog-head p, .company-action-description, .company-name small,
+  .contract-create-note p, .cloud-metrics, .cloud-guide ol, .cloud-domain-card small, .cloud-server-card small,
+  .cloud-ranking-row small, .company-action-brand small, .vps-card p, .onboarding-kpis small,
+  .capacity-stats span, .cloud-overview span, .cloud-orchestrator-title > span,
+  .signature-grid > div > span, .calculator-breakdown-grid span) { color: var(--gs-muted); }
+.platform-footer { border-top-color: var(--gs-border); color: var(--gs-muted); }
+.platform-footer a, .form-help a, .cloud-domain-card code { color: var(--gs-blue); }
+.cloud-pill, .badge.warn, .capacity-status.warn, .capacity-banner.warn,
+.onboarding-steps span.is-blocked, .onboarding-provider-notice.is-unavailable, .vps-card.attention {
+  background: var(--gs-blue-soft);
+  border-color: var(--gs-blue-line);
+  color: var(--gs-blue);
+}
+.badge.off { background: var(--gs-card-alt); border-color: var(--gs-border); color: var(--gs-muted); }
+.onboarding-next-action { border-left-color: var(--gs-blue); color: var(--gs-text); }
+.onboarding-steps span.is-current { border-color: var(--gs-blue); background: var(--gs-blue-soft); color: var(--gs-text); }
+.cloud-address-preview { border-color: var(--gs-blue-line); }
+.company-action-brand { border-bottom-color: var(--gs-border); }
+.company-action-card.danger-mode { border-top-color: #dd5656; }
+.company-action-card.danger-mode #company-action-confirm { background: #b62b39; color: #fff; }
+.platform-dialog::backdrop { background: rgba(0, 0, 0, .72); }
+:root[data-theme='dark'] .badge.ok, :root[data-theme='dark'] .capacity-status.ok { background: #0c332a; color: #9debc8; border-color: #1c6e51; }
+:root[data-theme='dark'] .badge.bad, :root[data-theme='dark'] .page-message.error, :root[data-theme='dark'] .form-message.error { background: #351923; color: #ffd2d2; border-color: #81414c; }
+:root[data-theme='dark'] .form-message.success, :root[data-theme='dark'] .page-message.success { background: #12372a; color: #bbf2d8; border-color: #1d6b4d; }
+
+/* Login e aceite contratual: herdam a preferência sem depender do painel. */
+body.gestao-login, body.gestao-contract { background: var(--gs-page); color: var(--gs-text); }
+body.gestao-login .login, body.gestao-contract .card { background: var(--gs-card); color: var(--gs-text); border-color: var(--gs-border); box-shadow: var(--gs-shadow); }
+body.gestao-login :is(h1, label), body.gestao-contract :is(h1, h2, h3, label) { color: var(--gs-text); }
+body.gestao-login :is(p, .back, .security), body.gestao-contract :is(.brand p, .meta span, .sig span, .contract-text) { color: var(--gs-muted); }
+body.gestao-login :is(input), body.gestao-contract :is(input) { background: var(--gs-field); color: var(--gs-text); border-color: var(--gs-border); }
+body.gestao-login .security, body.gestao-contract :is(.sig, .form) { border-color: var(--gs-border); }
+body.gestao-login .kicker { color: var(--gs-blue); }
+body.gestao-login button[type='submit'], body.gestao-contract button[type='submit'] { background: var(--gs-blue); color: #fff; }
+body.gestao-login .back { color: var(--gs-blue); }
+body.gestao-login .gestao-login-toolbar { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+body.gestao-contract .brand { flex-wrap: wrap; }
+body.gestao-contract .brand .gestao-theme-toggle { margin-left: auto; }
+body.gestao-contract .meta div { background: var(--gs-card-alt); }
+body.gestao-contract .contract-text { color: var(--gs-text); }
+body.gestao-contract .status:not(.signed) { background: var(--gs-blue-soft); color: var(--gs-blue); }
+@media(max-width: 520px) { .gestao-theme-toggle { padding: 8px; font-size: 12px; } }

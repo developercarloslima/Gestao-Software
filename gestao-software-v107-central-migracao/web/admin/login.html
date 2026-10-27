@@ -6,11 +6,15 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Área Administrativa | Gestão Software</title>
   <link rel="icon" href="/assets/logo-gestao-software.png">
+  <meta name="theme-color" content="#030911">
+  <script src="/shared/gestao-theme.js?v=20261027"></script>
   <style>
     :root{--navy:#06164a;--blue:#1264f4;--muted:#667695;--line:#dfe7f4}*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:linear-gradient(150deg,#f7fbff,#eaf2ff);color:#0c1838;display:grid;place-items:center;padding:24px}.login{width:min(100%,450px);background:white;border:1px solid var(--line);border-radius:26px;box-shadow:0 28px 75px rgba(6,22,74,.16);padding:34px}.login img{width:235px;max-height:88px;object-fit:contain;object-position:left center}.kicker{display:block;margin-top:24px;font-size:11px;letter-spacing:.15em;color:var(--blue);font-weight:900}.login h1{font-size:32px;line-height:1.05;letter-spacing:-.035em;color:var(--navy);margin:9px 0 10px}.login p{color:var(--muted);margin:0 0 25px}.login label{display:grid;gap:7px;font-weight:750;font-size:13px;margin-top:15px}.login input{width:100%;border:1px solid var(--line);border-radius:12px;padding:14px 15px;font:inherit;outline:none}.login input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(18,100,244,.1)}button{width:100%;margin-top:23px;border:0;border-radius:13px;padding:15px;background:linear-gradient(135deg,var(--blue),#064bc2);color:white;font-weight:850;font-size:15px;cursor:pointer}.message{margin-top:14px;padding:11px 13px;border-radius:10px;background:#fff1f1;color:#9b2020;font-size:13px;display:none}.back{display:block;text-align:center;margin-top:18px;font-size:13px;color:#506180}.security{margin-top:22px;border-top:1px solid var(--line);padding-top:17px;font-size:12px;color:#7887a2}</style>
+  <link rel="stylesheet" href="/shared/gestao-theme.css?v=20261027">
 </head>
-<body>
+<body class="gestao-login">
   <form class="login" id="login-form">
+    <div class="gestao-login-toolbar"><button class="gestao-theme-toggle" data-gestao-theme-toggle type="button"><span aria-hidden="true">◐</span> <span data-gestao-theme-label>Modo claro</span></button></div>
     <img src="/assets/logo-gestao-software.png" alt="Gestão Software">
     <span class="kicker">ÁREA ADMINISTRATIVA</span>
     <h1>Control Plane</h1>

@@ -23,6 +23,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#030911' : '#eef4fa');
     try {
       window.localStorage.setItem(themeStorageKey, theme);
@@ -30,6 +31,14 @@ export default function App() {
       // A página continua funcional mesmo se o navegador bloquear o armazenamento local.
     }
   }, [theme]);
+
+  useEffect(() => {
+    const syncThemeFromOtherTab = (event: StorageEvent) => {
+      if (event.key === themeStorageKey) setTheme(getInitialTheme());
+    };
+    window.addEventListener('storage', syncThemeFromOtherTab);
+    return () => window.removeEventListener('storage', syncThemeFromOtherTab);
+  }, []);
 
   useEffect(() => {
     if (!notice) return;

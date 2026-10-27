@@ -1,0 +1,91 @@
+# Laboratorio NH universal v122: Render Free + PostgreSQL Neon independente.
+# Arquivo opcional. NAO vincular ao Blueprint do Gestao, nem a NH em producao.
+# Os URLs efetivos de ambos os novos servicos devem ser copiados do Dashboard.
+# Segredos e identificadores sao informados no Dashboard, nunca neste arquivo.
+services:
+  - type: web
+    name: nh122-demo-api
+    runtime: docker
+    plan: free
+    region: virginia
+    rootDir: nh-base-universal-v122/backend
+    dockerfilePath: ./Dockerfile.tenant
+    dockerContext: .
+    autoDeployTrigger: "off"
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: SPRING_PROFILES_ACTIVE
+        value: tenant
+      - key: GS_TENANT_MODE
+        value: "true"
+      - key: GESTAO_COMPANY_ID
+        sync: false
+      - key: GESTAO_TENANT_HOST
+        sync: false
+      - key: GESTAO_CONTROL_URL
+        sync: false
+      - key: GESTAO_CONTROL_PUBLIC_URL
+        sync: false
+      - key: PUBLIC_WEB_URL
+        sync: false
+      - key: PUBLIC_API_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: TENANT_DISPLAY_NAME
+        value: Empresa Exemplo NH - Demo
+      - key: TENANT_LEGAL_NAME
+        value: Empresa Exemplo NH Ltda
+      - key: TENANT_DOCUMENT
+        value: "11222333000181"
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: AUTH_TOKEN_SECRET
+        generateValue: true
+      - key: INITIAL_PORTAL_PASSWORD
+        generateValue: true
+      - key: IMPORT_AES_KEY_BASE64
+        sync: false
+      - key: TENANT_DEMO_SHARED_PASSWORD_ENABLED
+        value: "false"
+      - key: TENANT_REQUIRES_COMMERCIAL_CATALOG
+        value: "false"
+      - key: TENANT_REQUIRES_PAYMENT_INTEGRATION
+        value: "false"
+      - key: TENANT_REQUIRES_PONTO_SETUP
+        value: "false"
+      - key: TENANT_CATALOG_CERTIFIED
+        value: "false"
+      - key: FIPE_DATASET_SYNC_ENABLED
+        value: "false"
+      - key: DEMO_ASSOCIATE_ENABLED
+        value: "false"
+      - key: ASAAS_ENABLED
+        value: "false"
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Dfile.encoding=UTF-8 -XX:MaxRAMPercentage=65.0"
+  - type: web
+    name: nh122-demo-web
+    runtime: docker
+    plan: free
+    region: virginia
+    rootDir: nh-base-universal-v122/web
+    dockerfilePath: ./Dockerfile.render-public
+    dockerContext: .
+    autoDeployTrigger: "off"
+    healthCheckPath: /health
+    envVars:
+      # Somente hostname publico da API (sem https:// e sem caminho).
+      - key: BACKEND_HOST
+        sync: false
+      # O navegador permanece na mesma origem; nginx encaminha /api/ via HTTPS.
+      - key: BACKEND_API_URL
+        value: ""

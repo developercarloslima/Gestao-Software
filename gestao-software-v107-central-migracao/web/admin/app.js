@@ -19,7 +19,7 @@ function numberOrNull(value){const s=String(value??'').trim();if(!s)return null;
 function dateOnly(value){if(!value)return '—';const [y,m,d]=String(value).slice(0,10).split('-');return y&&m&&d?`${d}/${m}/${y}`:'—'}
 function monthLabel(value){if(!value)return '—';const [y,m]=String(value).slice(0,7).split('-');return `${m}/${y}`}
 function safeUrl(value){try{const u=new URL(String(value||''));return ['http:','https:'].includes(u.protocol)?u.href:null}catch(_){return null}}
-function statusLabel(value){return ({ACTIVE:'Ativa',TRIAL:'Teste',SUSPENDED:'Suspensa',CANCELLED:'Cancelada',PENDING:'Pendente',PAID:'Pago',OVERDUE:'Vencido',PENDING_SIGNATURES:'Aguardando assinaturas',PARTIALLY_SIGNED:'Parcialmente assinado',SIGNED:'Assinado'})[value]||value||'—'}
+function statusLabel(value){return ({ACTIVE:'Ativa',TRIAL:'Teste',SUSPENDED:'Suspensa',CANCELLED:'Excluída (arquivo)',PENDING:'Pendente',PAID:'Pago',OVERDUE:'Vencido',PENDING_SIGNATURES:'Aguardando assinaturas',PARTIALLY_SIGNED:'Parcialmente assinado',SIGNED:'Assinado'})[value]||value||'—'}
 function statusClass(value){return ({ACTIVE:'ok',PAID:'ok',SIGNED:'ok',TRIAL:'warn',PENDING:'warn',PENDING_SIGNATURES:'warn',PARTIALLY_SIGNED:'warn',OVERDUE:'bad',SUSPENDED:'off',CANCELLED:'off'})[value]||'off'}
 function badge(value){return `<span class="badge ${statusClass(value)}">${esc(statusLabel(value))}</span>`}
 function emptyRow(cols,text){return `<tr><td class="empty" colspan="${cols}">${esc(text)}</td></tr>`}
@@ -29,6 +29,32 @@ function currentMonth(){return $('reference-month').value||new Date().toISOStrin
 function today(){return new Date().toISOString().slice(0,10)}
 function paymentMethodLabel(value){return ({PIX_AUTOMATICO:'Pix Automático',DEBITO_AUTOMATICO:'Débito Automático',BOLETO:'Boleto'})[value]||value||'—'}
 function contractTermLabel(value){return ({MONTHLY:'Mensal',SEMIANNUAL:'Semestral',ANNUAL:'Anual'})[value]||value||'—'}
+function canManageCompanyLifecycle(){return PLAN_CALCULATOR_USERS.has(String(currentUser?.username||'').trim().toLowerCase())}
+
+function confirmCompanyAction({title,description,confirmLabel,companyName='',requireName=false,danger=false}){
+  return new Promise(resolve=>{
+    const dialog=$('company-action-dialog'),card=$('company-action-form'),confirmButton=$('company-action-confirm');
+    if(!dialog||dialog.open){resolve(false);return}
+    dialog.returnValue='';
+    card.classList.toggle('danger-mode',danger);
+    $('company-action-kicker').textContent=danger?'EXCLUSÃO ADMINISTRATIVA':'ADMINISTRAÇÃO DE EMPRESAS';
+    $('company-action-title').textContent=title;
+    $('company-action-description').textContent=description;
+    confirmButton.textContent=confirmLabel;
+    $('company-action-name-block').hidden=!requireName;
+    $('company-action-expected-name').textContent=companyName;
+    const input=$('company-action-name');input.value='';
+    const validate=()=>{confirmButton.disabled=requireName&&input.value.trim()!==companyName};
+    input.addEventListener('input',validate);
+    validate();
+    dialog.addEventListener('close',()=>{
+      input.removeEventListener('input',validate);
+      resolve(dialog.returnValue==='confirm'&&!confirmButton.disabled);
+    },{once:true});
+    dialog.showModal();
+    if(requireName)input.focus();
+  });
+}
 
 async function api(path,options={}){
   const headers=new Headers(options.headers||{});if(token())headers.set('Authorization',`Bearer ${token()}`);
@@ -109,8 +135,18 @@ function renderPartners(target,items=[]){$(target).innerHTML=items.map(p=>`<div 
 
 function renderCompanies(){
   const q=String($('company-search').value||'').toLocaleLowerCase('pt-BR'),status=$('company-status-filter').value;
-  const filtered=companies.filter(c=>(!status||c.status===status)&&(!q||[c.tradeName,c.legalName,c.groupName,c.document,c.contactName].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(q))));
-  $('companies-body').innerHTML=filtered.length?filtered.map(c=>`<tr><td class="company-name"><strong>${esc(c.tradeName)}</strong><small>${esc(c.legalName)}${c.document?` · ${esc(c.document)}`:''}</small><small>${esc(c.platformDisplayName||c.tradeName)} · ${esc(c.platformLegalName||'Gestão Software LTDA')}</small></td><td>${esc(c.groupName||'—')}${c.pointSuperAdminEligible?'<br><span class="badge ok">Super Admin Ponto</span>':''}</td><td>${esc(c.planName||'—')}</td><td>${c.moduleCount||0}</td><td><strong>${money(c.monthlyFee)}</strong><br><small>dia ${c.billingDueDay}</small></td><td>${c.delinquent?'<span class="badge bad">Inadimplente</span>':badge(c.status)}</td><td>${c.vpsName?`<strong>${esc(c.vpsName)}</strong><br><small>${esc(c.vpsProvider||'')} · ${esc(c.vpsPlan||'')}</small>`:'<span class="badge warn">Não vinculada</span>'}</td><td><div class="table-actions"><button class="button outline small" data-open-company="${c.id}" type="button">Ver empresa</button><button class="button outline small" data-edit-company-row="${c.id}" type="button">Editar</button>${c.status!=='SUSPENDED'?`<button class="button outline small danger-soft" data-deactivate-company="${c.id}" type="button">Desativar</button>`:''}<button class="button outline small danger-soft" data-delete-company="${c.id}" data-company-name="${esc(c.tradeName)}" type="button">Excluir</button></div></td></tr>`).join(''):emptyRow(8,'Nenhuma empresa encontrada.');
+  const filtered=companies.filter(c=>(status?c.status===status:c.status!=='CANCELLED')&&(!q||[c.tradeName,c.legalName,c.groupName,c.document,c.contactName].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(q))));
+  $('companies-body').innerHTML=filtered.length?filtered.map(c=>{
+    const actions=canManageCompanyLifecycle()
+      ? (c.status==='SUSPENDED'
+          ? `<button class="button outline small" data-reactivate-company="${c.id}" type="button">Reativar</button>`
+          : c.status==='CANCELLED'
+            ? `<button class="button outline small" data-reactivate-company="${c.id}" type="button">Restaurar cadastro</button>`
+            : `<button class="button outline small danger-soft" data-deactivate-company="${c.id}" type="button">Desativar</button>`)
+        +(c.status==='CANCELLED'?'':`<button class="button outline small danger-soft" data-delete-company="${c.id}" type="button">Excluir</button>`)
+      : '';
+    return `<tr><td class="company-name"><strong>${esc(c.tradeName)}</strong><small>${esc(c.legalName)}${c.document?` · ${esc(c.document)}`:''}</small><small>${esc(c.platformDisplayName||c.tradeName)} · ${esc(c.platformLegalName||'Gestão Software LTDA')}</small></td><td>${esc(c.groupName||'—')}${c.pointSuperAdminEligible?'<br><span class="badge ok">Super Admin Ponto</span>':''}</td><td>${esc(c.planName||'—')}</td><td>${c.moduleCount||0}</td><td><strong>${money(c.monthlyFee)}</strong><br><small>dia ${c.billingDueDay}</small></td><td>${c.status==='CANCELLED'?badge(c.status):c.delinquent?'<span class="badge bad">Inadimplente</span>':badge(c.status)}</td><td>${c.vpsName?`<strong>${esc(c.vpsName)}</strong><br><small>${esc(c.vpsProvider||'')} · ${esc(c.vpsPlan||'')}</small>`:'<span class="badge warn">Não vinculada</span>'}</td><td><div class="table-actions"><button class="button outline small" data-open-company="${c.id}" type="button">Ver empresa</button><button class="button outline small" data-edit-company-row="${c.id}" type="button">Editar</button>${actions}</div></td></tr>`;
+  }).join(''):emptyRow(8,'Nenhuma empresa encontrada.');
 }
 
 function renderExpenses(){
@@ -137,7 +173,7 @@ function syncCompanyPricing(){
   if(help)help.textContent=plan?`${plan.name}: use a calculadora de planos para chegar ao valor e informe aqui a mensalidade final aprovada.`:'Plano personalizado: informe a mensalidade final aprovada.';
 }
 function resetCompanyForm(){
-  $('company-form').reset();$('company-id').value='';$('company-dialog-title').textContent='Nova empresa';populateCompanyPlanOptions();$('company-plan').value='START';$('company-contract-term').value='MONTHLY';$('company-payment-method').value='BOLETO';$('company-monthly').value='0';$('company-due-day').value='10';$('company-status').value='ACTIVE';$('company-start').value=today();$('company-platform-legal').value='Gestão Software LTDA';setCompanyBrandColors('#070c40','#f0f000','#ffffff');$('company-default-landing').value='/colaborador/';$('company-tenant-host').value='';$('company-logo-current').textContent='Nenhuma logo enviada.';$('company-identity-current').textContent='Nenhum PDF enviado.';formMessage('company-form-message');renderModuleOptions([]);syncCompanyPricing();
+  $('company-form').reset();$('company-id').value='';$('company-dialog-title').textContent='Nova empresa';populateCompanyPlanOptions();$('company-plan').value='START';$('company-contract-term').value='MONTHLY';$('company-payment-method').value='BOLETO';$('company-monthly').value='0';$('company-due-day').value='10';$('company-status').value='ACTIVE';$('company-status').disabled=false;$('company-start').value=today();$('company-platform-legal').value='Gestão Software LTDA';setCompanyBrandColors('#070c40','#f0f000','#ffffff');$('company-default-landing').value='/colaborador/';$('company-tenant-host').value='';$('company-logo-current').textContent='Nenhuma logo enviada.';$('company-identity-current').textContent='Nenhum PDF enviado.';formMessage('company-form-message');renderModuleOptions([]);syncCompanyPricing();
 }
 function renderModuleOptions(selected=[]){const byCode=new Map((selected||[]).map(m=>[m.code,m]));$('company-modules').innerHTML=modules.map(m=>{const s=byCode.get(m.code);return `<label class="module-option"><input type="checkbox" data-module-code="${esc(m.code)}" ${s?.enabled?'checked':''}><span><strong>${esc(m.name)}</strong><small>${esc(m.description||'')}</small></span></label>`}).join('')}
 function companyPayload(){const planCode=$('company-plan').value||'CUSTOM',plan=companyPlanByCode(planCode);return {groupName:$('company-group').value.trim()||null,legalName:$('company-legal').value.trim(),tradeName:$('company-trade').value.trim(),document:$('company-document').value.trim()||null,contactName:$('company-contact').value.trim()||null,contactEmail:$('company-email').value.trim()||null,contactPhone:$('company-phone').value.trim()||null,status:$('company-status').value,planCode,planName:plan?.name||'Personalizado',contractTerm:$('company-contract-term').value||'MONTHLY',monthlyFee:numberOrNull($('company-monthly').value)||0,billingDueDay:Number($('company-due-day').value||10),paymentMethod:$('company-payment-method').value||'BOLETO',contractStartDate:$('company-start').value||today(),contractEndDate:$('company-end').value||null,platformDisplayName:$('company-platform-display').value.trim()||$('company-trade').value.trim()||null,platformLegalName:$('company-platform-legal').value.trim()||'Gestão Software LTDA',logoUrl:$('company-logo-url').value.trim()||null,faviconUrl:$('company-favicon-url').value.trim()||null,primaryColor:$('company-primary-color').value||'#070c40',secondaryColor:$('company-secondary-color').value||'#f0f000',accentColor:$('company-accent-color').value||'#ffffff',siteTitle:$('company-site-title').value.trim()||$('company-trade').value.trim()||null,companyTagline:$('company-tagline').value.trim()||null,loginSubtitle:$('company-login-subtitle').value.trim()||null,defaultModuleLanding:$('company-default-landing').value.trim()||'/colaborador/',notes:$('company-notes').value.trim()||null,modules:[...document.querySelectorAll('[data-module-code]')].map(ch=>({code:ch.dataset.moduleCode,enabled:ch.checked,monthlyPrice:0}))}}
@@ -180,7 +216,42 @@ async function uploadCompanyFiles(companyId){
   const uploads=[['company-logo-file','LOGO'],['company-identity-file','VISUAL_IDENTITY_PDF']];
   for(const [inputId,purpose] of uploads){const input=$(inputId);const file=input?.files?.[0];if(!file)continue;const form=new FormData();form.append('file',file);await api(`/api/platform/companies/${companyId}/files/${purpose}`,{method:'POST',body:form});}
 }
-async function editCompany(id){const data=await api(`/api/platform/companies/${id}`);populateCompanyPlanOptions();$('company-id').value=data.id;$('company-dialog-title').textContent=`Editar ${data.tradeName}`;$('company-group').value=data.groupName||'';$('company-trade').value=data.tradeName||'';$('company-legal').value=data.legalName||'';$('company-document').value=data.document||'';$('company-contact').value=data.contactName||'';$('company-email').value=data.contactEmail||'';$('company-phone').value=data.contactPhone||'';$('company-status').value=data.status;$('company-plan').value=data.planCode||'CUSTOM';$('company-contract-term').value=data.contractTerm||'MONTHLY';$('company-monthly').value=Number(data.monthlyFee||0).toFixed(2);$('company-due-day').value=data.billingDueDay||10;$('company-start').value=data.contractStartDate||today();$('company-end').value=data.contractEndDate||'';$('company-platform-display').value=data.platformDisplayName||data.tradeName||'';$('company-platform-legal').value=data.platformLegalName||'Gestão Software LTDA';$('company-logo-url').value=data.logoUrl||'';$('company-favicon-url').value=data.faviconUrl||'';setCompanyBrandColors(data.primaryColor||'#070c40',data.secondaryColor||'#f0f000',data.accentColor||'#ffffff');$('company-site-title').value=data.siteTitle||data.tradeName||'';$('company-tagline').value=data.companyTagline||'';$('company-login-subtitle').value=data.loginSubtitle||'';$('company-default-landing').value=data.defaultModuleLanding||'/colaborador/';$('company-tenant-host').value=data.hosting?.subdomain||'';$('company-notes').value=data.notes||'';renderModuleOptions(data.modules||[]);syncCompanyPricing();$('company-dialog').showModal()}
+async function editCompany(id){
+  const data=await api(`/api/platform/companies/${id}`);
+  populateCompanyPlanOptions();
+  $('company-id').value=data.id;
+  $('company-dialog-title').textContent=`Editar ${data.tradeName}`;
+  $('company-group').value=data.groupName||'';
+  $('company-trade').value=data.tradeName||'';
+  $('company-legal').value=data.legalName||'';
+  $('company-document').value=data.document||'';
+  $('company-contact').value=data.contactName||'';
+  $('company-email').value=data.contactEmail||'';
+  $('company-phone').value=data.contactPhone||'';
+  $('company-status').value=data.status;
+  $('company-status').disabled=['SUSPENDED','CANCELLED'].includes(data.status);
+  $('company-plan').value=data.planCode||'CUSTOM';
+  $('company-contract-term').value=data.contractTerm||'MONTHLY';
+  $('company-payment-method').value=data.paymentMethod||'BOLETO';
+  $('company-monthly').value=Number(data.monthlyFee||0).toFixed(2);
+  $('company-due-day').value=data.billingDueDay||10;
+  $('company-start').value=data.contractStartDate||today();
+  $('company-end').value=data.contractEndDate||'';
+  $('company-platform-display').value=data.platformDisplayName||data.tradeName||'';
+  $('company-platform-legal').value=data.platformLegalName||'Gestão Software LTDA';
+  $('company-logo-url').value=data.logoUrl||'';
+  $('company-favicon-url').value=data.faviconUrl||'';
+  setCompanyBrandColors(data.primaryColor||'#070c40',data.secondaryColor||'#f0f000',data.accentColor||'#ffffff');
+  $('company-site-title').value=data.siteTitle||data.tradeName||'';
+  $('company-tagline').value=data.companyTagline||'';
+  $('company-login-subtitle').value=data.loginSubtitle||'';
+  $('company-default-landing').value=data.defaultModuleLanding||'/colaborador/';
+  $('company-tenant-host').value=data.hosting?.subdomain||'';
+  $('company-notes').value=data.notes||'';
+  renderModuleOptions(data.modules||[]);
+  syncCompanyPricing();
+  $('company-dialog').showModal();
+}
 
 
 async function openCompany(id){
@@ -230,8 +301,27 @@ $('cancel-expense').addEventListener('click',resetExpense);
 document.addEventListener('click',async e=>{
   const open=e.target.closest('[data-open-company]');if(open){await openCompany(open.dataset.openCompany);return}
   const editRow=e.target.closest('[data-edit-company-row]');if(editRow){await editCompany(editRow.dataset.editCompanyRow);return}
-  const deactivate=e.target.closest('[data-deactivate-company]');if(deactivate){if(confirm('Desativar esta empresa? Os módulos deixam de ser disponibilizados, mas o histórico é preservado.'))try{await api(`/api/platform/companies/${deactivate.dataset.deactivateCompany}/deactivate`,{method:'POST'});await reloadAll();setMessage('Empresa desativada.','success')}catch(error){setMessage(error.message)}return}
-  const delCompany=e.target.closest('[data-delete-company]');if(delCompany){const name=delCompany.dataset.companyName||'esta empresa';if(confirm(`Excluir o cadastro de ${name}? Apenas cadastros sem histórico de faturas, contratos ou infraestrutura podem ser removidos. Para empresas em operação, use Desativar.`))try{await api(`/api/platform/companies/${delCompany.dataset.deleteCompany}`,{method:'DELETE'});if(currentCompany?.id===delCompany.dataset.deleteCompany){currentCompany=null;$('company-detail-dialog')?.close()}await reloadAll();setMessage('Empresa excluída.','success')}catch(error){setMessage(error.message)}return}
+  const deactivate=e.target.closest('[data-deactivate-company]');if(deactivate){
+    const company=companies.find(c=>c.id===deactivate.dataset.deactivateCompany);
+    if(await confirmCompanyAction({title:'Desativar empresa',description:`Desativar “${company?.tradeName||'esta empresa'}” no Gestão? A empresa ficará suspensa e sairá da capacidade ativa, mas contratos, mensalidades, bancos de dados e recursos de hospedagem serão preservados.`,confirmLabel:'Desativar empresa',companyName:company?.tradeName||''})){
+      try{await api(`/api/platform/companies/${deactivate.dataset.deactivateCompany}/deactivate`,{method:'POST'});await reloadAll();setMessage('Empresa desativada. O histórico e a infraestrutura foram preservados.','success')}catch(error){setMessage(error.message)}
+    }
+    return;
+  }
+  const reactivate=e.target.closest('[data-reactivate-company]');if(reactivate){
+    const company=companies.find(c=>c.id===reactivate.dataset.reactivateCompany),archived=company?.status==='CANCELLED';
+    if(await confirmCompanyAction({title:archived?'Restaurar empresa excluída':'Reativar empresa',description:archived?`Restaurar “${company?.tradeName||'esta empresa'}” ao cadastro ativo? O cadastro e seu histórico serão mantidos, mas serviços na VPS devem ser verificados separadamente.`:`Reativar “${company?.tradeName||'esta empresa'}” no Gestão? O cadastro volta ao status anterior à suspensão. Confira também o estado real da aplicação e da VPS.`,confirmLabel:archived?'Restaurar cadastro':'Reativar empresa'})){
+      try{await api(`/api/platform/companies/${reactivate.dataset.reactivateCompany}/reactivate`,{method:'POST'});await reloadAll();setMessage(archived?'Cadastro restaurado com auditoria.':'Empresa reativada com auditoria.','success')}catch(error){setMessage(error.message)}
+    }
+    return;
+  }
+  const delCompany=e.target.closest('[data-delete-company]');if(delCompany){
+    const company=companies.find(c=>c.id===delCompany.dataset.deleteCompany),name=company?.tradeName||'';
+    if(await confirmCompanyAction({title:'Excluir empresa do cadastro',description:`Você está prestes a excluir “${name||'esta empresa'}” da lista ativa do Gestão. Esta operação arquiva o cadastro com registro do responsável; não apaga faturas, contratos, bancos de dados ou serviços da VPS. Para restaurar, use o filtro “Excluídas (arquivo)”.`,confirmLabel:'Excluir do cadastro',companyName:name,requireName:true,danger:true})){
+      try{await api(`/api/platform/companies/${delCompany.dataset.deleteCompany}`,{method:'DELETE'});if(currentCompany?.id===delCompany.dataset.deleteCompany){currentCompany=null;$('company-detail-dialog')?.close()}await reloadAll();setMessage('Empresa excluída do cadastro ativo com auditoria. Consulte o arquivo para restaurá-la.','success')}catch(error){setMessage(error.message)}
+    }
+    return;
+  }
   const edit=e.target.closest('[data-edit-company-detail]');if(edit){$('company-detail-dialog').close();await editCompany(edit.dataset.editCompanyDetail);return}
   const signContract=e.target.closest('[data-sign-management-contract]');if(signContract){if(confirm('Assinar este contrato digitalmente pela Gestão Software?'))try{await api(`/api/platform/companies/${currentCompany.id}/contracts/${signContract.dataset.signManagementContract}/sign-management`,{method:'POST'});await refreshCompanyDetail();setMessage('Contrato assinado pela Gestão Software.','success')}catch(error){setMessage(error.message)}return}
   const copyContract=e.target.closest('[data-copy-contract-link]');if(copyContract){const path=copyContract.dataset.copyContractLink;const url=new URL(path,location.origin).href;await navigator.clipboard.writeText(url);setMessage('Link de assinatura copiado.','success');return}
