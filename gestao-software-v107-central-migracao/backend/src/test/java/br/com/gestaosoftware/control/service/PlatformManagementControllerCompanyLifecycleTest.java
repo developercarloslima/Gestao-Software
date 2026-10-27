@@ -43,6 +43,21 @@ class PlatformManagementControllerCompanyLifecycleTest {
     }
 
     @Test
+    void bothOwnersCanSaveCompanyEditsUsingTheirAuthenticatedIdentity() {
+        PlatformManagementService service = mock(PlatformManagementService.class);
+        PlatformManagementController controller = new PlatformManagementController(service);
+        UUID id = UUID.randomUUID();
+        PlatformManagementService.CompanyInput input = mock(PlatformManagementService.CompanyInput.class);
+
+        controller.updateCompany(id, input, auth("carlos.lima"));
+        controller.updateCompany(id, input, auth("pedro.henrique"));
+
+        verify(service).updateCompany(id, input, "carlos.lima");
+        verify(service).updateCompany(id, input, "pedro.henrique");
+        assertThrows(ResponseStatusException.class, () -> controller.updateCompany(id, input, null));
+    }
+
+    @Test
     void otherAdministratorsCannotChangeCompanyLifecycle() {
         PlatformManagementService service = mock(PlatformManagementService.class);
         PlatformManagementController controller = new PlatformManagementController(service);

@@ -229,7 +229,9 @@ async function editCompany(id){
   $('company-email').value=data.contactEmail||'';
   $('company-phone').value=data.contactPhone||'';
   $('company-status').value=data.status;
-  $('company-status').disabled=['SUSPENDED','CANCELLED'].includes(data.status);
+  // Empresas suspensas podem ser reativadas também pelo formulário de edição.
+  // Cadastros arquivados continuam exigindo a ação explícita Restaurar cadastro.
+  $('company-status').disabled=data.status==='CANCELLED'||!canManageCompanyLifecycle();
   $('company-plan').value=data.planCode||'CUSTOM';
   $('company-contract-term').value=data.contractTerm||'MONTHLY';
   $('company-payment-method').value=data.paymentMethod||'BOLETO';
@@ -287,7 +289,13 @@ $('company-form').addEventListener('change',e=>{if(e.target.id==='company-plan')
 $('new-vps').addEventListener('click',()=>{resetVpsForm();$('vps-dialog').showModal()});
 document.querySelectorAll('[data-close-dialog]').forEach(b=>b.addEventListener('click',()=>$(b.dataset.closeDialog)?.close()));
 
-$('company-form').addEventListener('submit',async e=>{e.preventDefault();const id=$('company-id').value;try{let saved=await api(id?`/api/platform/companies/${id}`:'/api/platform/companies',{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(companyPayload())});$('company-id').value=saved.id;
+$('company-form').addEventListener('submit',async e=>{e.preventDefault();const id=$('company-id').value;try{
+    const previous=companies.find(company=>company.id===id);
+    if(id&&previous?.status!=='SUSPENDED'&&$('company-status').value==='SUSPENDED'){
+      const confirmed=await confirmCompanyAction({title:'Confirmar desativação',description:`Deseja desativar “${previous?.tradeName||'esta empresa'}”? O cadastro ficará suspenso, mas contratos, faturas e infraestrutura serão preservados.`,confirmLabel:'Sim, desativar empresa',companyName:previous?.tradeName||''});
+      if(!confirmed)return;
+    }
+    let saved=await api(id?`/api/platform/companies/${id}`:'/api/platform/companies',{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(companyPayload())});$('company-id').value=saved.id;
     try { await saveCompanyTenantHosting(saved.id);await uploadCompanyFiles(saved.id); }
     catch(uploadError){ await reloadAll();formMessage('company-form-message',`Empresa salva com sucesso, mas o anexo não foi enviado: ${uploadError.message} Tente novamente em Editar empresa.`);return; }
     saved=await api(`/api/platform/companies/${saved.id}`);$('company-dialog').close();await reloadAll();if(id){await openCompany(saved.id);setMessage('Empresa atualizada com sucesso.','success')}else{setMessage('Empresa cadastrada. Agora vamos dimensionar e liberar os módulos.','success');window.dispatchEvent(new CustomEvent('gestao:company-created',{detail:{id:saved.id}}))}}catch(error){formMessage('company-form-message',error.message)}});

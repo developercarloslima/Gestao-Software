@@ -91,8 +91,12 @@ public class PlatformManagementController {
     }
 
     @PutMapping("/companies/{id}")
-    public Map<String, Object> updateCompany(@PathVariable UUID id, @RequestBody PlatformManagementService.CompanyInput input) {
-        return service.updateCompany(id, input);
+    public Map<String, Object> updateCompany(@PathVariable UUID id, @RequestBody PlatformManagementService.CompanyInput input,
+                                             Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof PlatformPrincipal principal)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sessão administrativa inválida.");
+        }
+        return service.updateCompany(id, input, principal.username());
     }
 
     @PostMapping("/companies/{id}/deactivate")

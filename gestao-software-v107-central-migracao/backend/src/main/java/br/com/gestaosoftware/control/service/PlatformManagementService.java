@@ -19,6 +19,7 @@ import java.util.*;
 @Service
 public class PlatformManagementService {
     private static final Set<String> COMPANY_STATUSES = Set.of("TRIAL", "ACTIVE", "SUSPENDED", "CANCELLED");
+    private static final Set<String> PLATFORM_OWNERS = Set.of("carlos.lima", "pedro.henrique");
     private static final Set<String> INVOICE_STATUSES = Set.of("PENDING", "PAID", "OVERDUE", "CANCELLED");
     private static final Set<String> PAYMENT_METHODS = Set.of("PIX_AUTOMATICO", "DEBITO_AUTOMATICO", "BOLETO");
     private static final Set<String> FILE_PURPOSES = Set.of("LOGO", "VISUAL_IDENTITY_PDF");
@@ -248,16 +249,19 @@ public class PlatformManagementService {
     }
 
     @Transactional
-    public Map<String, Object> updateCompany(UUID id, CompanyInput input) {
+    public Map<String, Object> updateCompany(UUID id, CompanyInput input, String operator) {
         validateCompany(input);
         String storedStatus = jdbc.query("SELECT status FROM platform_companies WHERE id=? FOR UPDATE",
                 rs -> rs.next() ? rs.getString(1) : null, id);
         if (storedStatus == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa não encontrada.");
         String requestedStatus = companyStatus(input.status());
-        if (!storedStatus.equals(requestedStatus) &&
-                (Set.of("SUSPENDED", "CANCELLED").contains(storedStatus) || Set.of("SUSPENDED", "CANCELLED").contains(requestedStatus))) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Para desativar, reativar ou excluir uma empresa, use os botões próprios com confirmação e auditoria.");
+        String owner = operator == null ? "" : operator.trim().toLowerCase(Locale.ROOT);
+        String transition = updateLifecycleTransition(storedStatus, requestedStatus, owner);
+        if (!"NONE".equals(transition)) {
+            // Mesma regra e auditoria dos botões da listagem. Toda a edição ocorre
+            // numa transação: se salvar falhar, a transição também é revertida.
+            if ("DEACTIVATE".equals(transition)) deactivateCompany(id, owner);
+            else reactivateCompany(id, owner);
         }
         int changed = jdbc.update("""
                 UPDATE platform_companies
@@ -290,6 +294,21 @@ public class PlatformManagementService {
                  WHERE company_id=? AND status='PENDING' AND reference_month>=?
                 """, money(input.monthlyFee()), id, YearMonth.now().atDay(1));
         return getCompany(id);
+    }
+
+    /** Regra testável para edição do status, sem autorização implícita por payload. */
+    static String updateLifecycleTransition(String current, String requested, String actor) {
+        if (Objects.equals(current, requested)) return "NONE";
+        if ("CANCELLED".equals(current) || "CANCELLED".equals(requested)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Para arquivar ou restaurar um cadastro excluído, utilize os botões próprios.");
+        }
+        if (!"SUSPENDED".equals(current) && !"SUSPENDED".equals(requested)) return "NONE";
+        if (!PLATFORM_OWNERS.contains(actor == null ? "" : actor.trim().toLowerCase(Locale.ROOT))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Somente Carlos Lima e Pedro Henrique podem desativar ou reativar empresas.");
+        }
+        return "SUSPENDED".equals(requested) ? "DEACTIVATE" : "REACTIVATE";
     }
 
     @Transactional
