@@ -21,7 +21,7 @@ public class CompanySiteEditorService {
         "stepsEyebrow","stepsTitle","stepsItems",
         "appTitle","appDescription","appImageUrl","iosUrl","androidUrl",
         "contactEyebrow","contactTitle","contactDescription","contactPhone","contactWhatsapp","contactEmail","contactFormRecipient",
-        "footerDescription"
+        "footerDescription","footerAddress","footerHours","footerLegalText","socialInstagramUrl"
     );
     private static final Set<String> FLAGS=Set.of(
         "showHero","showBenefits","showSteps","showApp","showContact","showQuoteButton","showContactForm"
