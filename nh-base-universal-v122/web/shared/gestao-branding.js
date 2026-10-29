@@ -90,6 +90,7 @@
     document.querySelectorAll('.developer-credit').forEach(el=>el.textContent=`Tecnologia: ${c.platformLegalName||'Gestão Software LTDA'}`);
 
     const enabled=new Set((c.enabledModules||[]).map(String));
+    if(!enabled.has('COTA'))document.querySelectorAll('.cotacao-trigger, #cotacaoModal').forEach(el=>{el.hidden=true;el.style.setProperty('display','none','important')});
     document.querySelectorAll('[data-module-code]').forEach(el=>{if(!enabled.has(el.dataset.moduleCode))el.hidden=true});
     document.querySelectorAll('a[href]').forEach(a=>{
       const href=a.getAttribute('href')||'';
