@@ -93,6 +93,10 @@ def validate_job(job):
     if (not isinstance(modules,list) or not modules or any(not isinstance(m,str) or m not in TENANT_MODULES for m in modules)
         or len(modules)!=len(set(modules))):
         raise ValueError('Lista de módulos vazia, repetida ou não suportada pelo template universal.')
+    admin_username = str(job.get('tenantAdminUsername') or '').strip().lower()
+    if (not re.fullmatch(r'[a-z0-9][a-z0-9._@-]{2,119}', admin_username)
+        or admin_username == 'admin@nh.local'):
+        raise ValueError('Usuário administrador do tenant inválido ou ausente.')
     if job['provider'] != 'MANAGED_VPS':
         raise ValueError('Este agente aceita somente VPS gerenciada.')
     assessment = job.get('assessment', {}).get('estimate', {})
@@ -153,7 +157,7 @@ def _install_locked(job,cid,host,doc):
             'TENANT_DOCUMENT':doc,'TENANT_EMAIL':'','TENANT_WHATSAPP':'',
             'TENANT_DISPLAY_NAME':value(job.get('branding',{}).get('displayName') or job.get('branding',{}).get('tradeName')),
             'TENANT_LEGAL_NAME':value(job.get('branding',{}).get('legalName') or job.get('branding',{}).get('displayName') or job.get('branding',{}).get('tradeName')),
-            'ADMIN_USERNAME':'admin@'+host,
+            'ADMIN_USERNAME':value(job['tenantAdminUsername'].strip().lower()),
             'CONSULTANT_USERNAME':'consultor','ANALYST_USERNAME':'analista','TOW_USERNAME':'guincho',
             'WORKSHOP_USERNAME':'oficina','EVENT_USERNAME':'eventos','BUYER_USERNAME':'financeiro',
             'PONTO_TENANT_ADMIN_USERNAME':'admin@'+host,
