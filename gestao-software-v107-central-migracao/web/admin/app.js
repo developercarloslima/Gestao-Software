@@ -173,9 +173,43 @@ function syncCompanyPricing(){
   if(help)help.textContent=plan?`${plan.name}: use a calculadora de planos para chegar ao valor e informe aqui a mensalidade final aprovada.`:'Plano personalizado: informe a mensalidade final aprovada.';
 }
 function resetCompanyForm(){
-  $('company-form').reset();$('company-id').value='';$('company-tenant-admin').value='';$('company-dialog-title').textContent='Nova empresa';populateCompanyPlanOptions();$('company-plan').value='START';$('company-contract-term').value='MONTHLY';$('company-payment-method').value='BOLETO';$('company-monthly').value='0';$('company-due-day').value='10';$('company-status').value='ACTIVE';$('company-status').disabled=false;$('company-start').value=today();$('company-platform-legal').value='Gestão Software LTDA';setCompanyBrandColors('#070c40','#f0f000','#ffffff');$('company-default-landing').value='/colaborador/';$('company-tenant-host').value='';currentCompanyFileStatus={files:[],logoUrl:''};updateCompanyFileStatus();formMessage('company-form-message');renderModuleOptions([]);syncCompanyPricing();
+  $('company-form').reset();$('company-id').value='';$('company-tenant-admin').value='';$('company-dialog-title').textContent='Nova empresa';populateCompanyPlanOptions();$('company-plan').value='START';$('company-contract-term').value='MONTHLY';$('company-payment-method').value='BOLETO';$('company-monthly').value='0';$('company-due-day').value='10';$('company-status').value='ACTIVE';$('company-status').disabled=false;$('company-start').value=today();$('company-platform-legal').value='Gestão Software LTDA';setCompanyBrandColors('#070c40','#f0f000','#ffffff');$('company-default-landing').value='/colaborador/';$('company-tenant-host').value='';currentCompanyFileStatus={files:[],logoUrl:''};updateCompanyFileStatus();formMessage('company-form-message');renderModuleOptions([]);resetSiteEditor();syncCompanyPricing();
 }
-function renderModuleOptions(selected=[]){const byCode=new Map((selected||[]).map(m=>[m.code,m]));$('company-modules').innerHTML=modules.map(m=>{const s=byCode.get(m.code);return `<label class="module-option"><input type="checkbox" data-module-code="${esc(m.code)}" ${s?.enabled?'checked':''}><span><strong>${esc(m.name)}</strong><small>${esc(m.description||'')}</small></span></label>`}).join('')}
+function syncSiteEditorVisibility(){
+  const checkbox=document.querySelector('#company-modules [data-module-code="SITE_PRINCIPAL"]');
+  $('company-site-editor').hidden=!checkbox?.checked;
+}
+function resetSiteEditor(){
+  document.querySelectorAll('#company-site-editor [data-site-field]').forEach(x=>x.value='');
+  document.querySelectorAll('#company-site-editor [data-site-flag]').forEach(x=>x.checked=true);
+  document.querySelectorAll('#company-site-editor [data-site-upload]').forEach(x=>x.value='');
+}
+async function loadCompanySiteEditor(id){
+  resetSiteEditor();
+  const config=await api('/api/platform/companies/'+id+'/site-content');
+  document.querySelectorAll('#company-site-editor [data-site-field]').forEach(x=>{
+    if(typeof config[x.dataset.siteField]==='string')x.value=config[x.dataset.siteField];
+  });
+  document.querySelectorAll('#company-site-editor [data-site-flag]').forEach(x=>{
+    if(typeof config[x.dataset.siteFlag]==='boolean')x.checked=config[x.dataset.siteFlag];
+  });
+}
+async function saveCompanySiteEditor(id){
+  if($('company-site-editor').hidden)return;
+  const content={};
+  document.querySelectorAll('#company-site-editor [data-site-field]').forEach(x=>content[x.dataset.siteField]=x.value.trim());
+  document.querySelectorAll('#company-site-editor [data-site-flag]').forEach(x=>content[x.dataset.siteFlag]=x.checked);
+  for(const x of document.querySelectorAll('#company-site-editor [data-site-upload]')){
+    if(!x.files?.[0])continue;
+    const form=new FormData();form.append('file',x.files[0]);
+    const response=await api('/api/platform/companies/'+id+'/site-assets',{method:'POST',body:form});
+    content[x.dataset.siteUpload]=response.url;
+  }
+  await api('/api/platform/companies/'+id+'/site-content',{
+    method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(content)
+  });
+}
+function renderModuleOptions(selected=[]){const byCode=new Map((selected||[]).map(m=>[m.code,m]));$('company-modules').innerHTML=modules.map(m=>{const s=byCode.get(m.code);return `<label class="module-option"><input type="checkbox" data-module-code="${esc(m.code)}" ${s?.enabled?'checked':''}><span><strong>${esc(m.name)}</strong><small>${esc(m.description||'')}</small></span></label>`}).join('');syncSiteEditorVisibility()}
 function companyPayload(){const planCode=$('company-plan').value||'CUSTOM',plan=companyPlanByCode(planCode);return {groupName:$('company-group').value.trim()||null,legalName:$('company-legal').value.trim(),tradeName:$('company-trade').value.trim(),document:$('company-document').value.trim()||null,contactName:$('company-contact').value.trim()||null,contactEmail:$('company-email').value.trim()||null,contactPhone:$('company-phone').value.trim()||null,tenantAdminUsername:$('company-tenant-admin').value.trim().toLowerCase()||null,status:$('company-status').value,planCode,planName:plan?.name||'Personalizado',contractTerm:$('company-contract-term').value||'MONTHLY',monthlyFee:numberOrNull($('company-monthly').value)||0,billingDueDay:Number($('company-due-day').value||10),paymentMethod:$('company-payment-method').value||'BOLETO',contractStartDate:$('company-start').value||today(),contractEndDate:$('company-end').value||null,platformDisplayName:$('company-platform-display').value.trim()||$('company-trade').value.trim()||null,platformLegalName:$('company-platform-legal').value.trim()||'Gestão Software LTDA',logoUrl:$('company-logo-url').value.trim()||null,faviconUrl:$('company-favicon-url').value.trim()||null,primaryColor:$('company-primary-color').value||'#070c40',secondaryColor:$('company-secondary-color').value||'#f0f000',accentColor:$('company-accent-color').value||'#ffffff',siteTitle:$('company-site-title').value.trim()||$('company-trade').value.trim()||null,companyTagline:$('company-tagline').value.trim()||null,loginSubtitle:$('company-login-subtitle').value.trim()||null,defaultModuleLanding:$('company-default-landing').value.trim()||'/colaborador/',notes:$('company-notes').value.trim()||null,modules:[...document.querySelectorAll('[data-module-code]')].map(ch=>({code:ch.dataset.moduleCode,enabled:ch.checked,monthlyPrice:0}))}}
 const BRAND_FIELDS=[['company-primary-color','company-primary-hex'],['company-secondary-color','company-secondary-hex'],['company-accent-color','company-accent-hex']];
 function setCompanyBrandColors(primary,secondary,accent){
@@ -273,6 +307,7 @@ async function editCompany(id){
   $('company-tenant-host').value=data.hosting?.subdomain||'';
   $('company-notes').value=data.notes||'';
   renderModuleOptions(data.modules||[]);
+  await loadCompanySiteEditor(id);
   syncCompanyPricing();
   $('company-dialog').showModal();
 }
@@ -307,7 +342,7 @@ document.querySelectorAll('.platform-tabs button').forEach(b=>b.addEventListener
 $('reference-month').addEventListener('change',async()=>{$('expense-month').value=currentMonth();await reloadAll()});
 $('company-search').addEventListener('input',renderCompanies);$('company-status-filter').addEventListener('change',renderCompanies);
 $('new-company').addEventListener('click',()=>{resetCompanyForm();$('company-dialog').showModal()});
-$('company-form').addEventListener('change',e=>{if(e.target.id==='company-plan')syncCompanyPricing()});
+$('company-form').addEventListener('change',e=>{if(e.target.id==='company-plan')syncCompanyPricing();if(e.target.matches('#company-modules [data-module-code]'))syncSiteEditorVisibility()});
 $('new-vps').addEventListener('click',()=>{resetVpsForm();$('vps-dialog').showModal()});
 document.querySelectorAll('[data-close-dialog]').forEach(b=>b.addEventListener('click',()=>$(b.dataset.closeDialog)?.close()));
 
@@ -318,7 +353,7 @@ $('company-form').addEventListener('submit',async e=>{e.preventDefault();const i
       if(!confirmed)return;
     }
     let saved=await api(id?`/api/platform/companies/${id}`:'/api/platform/companies',{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(companyPayload())});$('company-id').value=saved.id;
-    try { await saveCompanyTenantHosting(saved.id);await uploadCompanyFiles(saved.id); }
+    try { await saveCompanyTenantHosting(saved.id);await uploadCompanyFiles(saved.id);await saveCompanySiteEditor(saved.id); }
     catch(uploadError){ await reloadAll();formMessage('company-form-message',`Empresa salva com sucesso, mas o anexo não foi enviado: ${uploadError.message} Tente novamente em Editar empresa.`);return; }
     saved=await api(`/api/platform/companies/${saved.id}`);$('company-dialog').close();await reloadAll();if(id){await openCompany(saved.id);setMessage('Empresa atualizada com sucesso.','success')}else{setMessage('Empresa cadastrada. Agora vamos dimensionar e liberar os módulos.','success');window.dispatchEvent(new CustomEvent('gestao:company-created',{detail:{id:saved.id}}))}}catch(error){formMessage('company-form-message',error.message)}});
 $('hosting-form').addEventListener('submit',async e=>{e.preventDefault();const id=$('hosting-company-id').value;try{await api(`/api/platform/companies/${id}/hosting`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({vpsId:$('hosting-vps').value||null,environmentName:$('hosting-environment').value.trim()||null,domain:$('hosting-domain').value.trim()||null,subdomain:$('hosting-subdomain').value.trim()||null,dnsMode:$('hosting-dns-mode').value||'SUBDOMAIN',appUrl:$('hosting-app-url').value.trim()||null,apiUrl:$('hosting-api-url').value.trim()||null,databaseName:$('hosting-database').value.trim()||null,deploymentPath:$('hosting-path').value.trim()||null,deploymentMethod:$('hosting-deployment-method').value.trim()||null,hostingNotes:$('hosting-notes').value.trim()||null})});$('hosting-dialog').close();await reloadAll();if(currentCompany?.id===id)await refreshCompanyDetail();setMessage('Hospedagem atualizada.','success')}catch(error){formMessage('hosting-message',error.message)}});
