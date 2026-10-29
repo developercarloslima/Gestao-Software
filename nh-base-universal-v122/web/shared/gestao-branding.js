@@ -9,7 +9,27 @@
 
   function currentModule(){ const p=location.pathname||'/'; for(const [re,m] of MODULE_BY_PATH) if(re.test(p)) return m; return null; }
   function setText(selector,value){ if(!value)return; document.querySelectorAll(selector).forEach(el=>el.textContent=value); }
-  function safeLogo(url){ return String(url||'').trim() || '/assets/identidade-pendente.svg'; }
+  function tenantLogo(url){
+    const value=String(url||'').trim();
+    // Nunca exibir a marca da Gestão como se fosse a marca do cliente.
+    return value && !/\/assets\/logo-gestao-software\.png(?:[?#]|$)/i.test(value) ? value : '';
+  }
+  function companyInitials(c){
+    const name=String(c.platformDisplayName||c.companyName||'Empresa').trim();
+    const words=name.split(/\s+/).filter(Boolean);
+    return (words.length>1 ? words.slice(0,2).map(w=>w[0]) : [name.slice(0,2)]).join('').toLocaleUpperCase('pt-BR');
+  }
+  function logoFallback(img,c){
+    if(img.dataset.tenantLogoFallback==='done')return;
+    img.dataset.tenantLogoFallback='done';
+    img.hidden=true;
+    img.style.display='none';
+    const badge=document.createElement('span');
+    badge.className='tenant-brand-monogram';
+    badge.textContent=companyInitials(c);
+    badge.setAttribute('aria-label','Identidade visual de '+String(c.platformDisplayName||c.companyName||'Empresa'));
+    img.insertAdjacentElement('afterend',badge);
+  }
 
   function apply(c){
     window.GESTAO_TENANT_CONFIG=c;
@@ -29,21 +49,20 @@
     root.style.setProperty('--navy',c.primaryColor||'#263247');
     root.style.setProperty('--navy-950',c.primaryColor||'#263247');
     if(c.siteTitle) document.title=document.title.replace(/Empresa Cliente/gi,c.siteTitle);
+    const logo=tenantLogo(c.logoUrl);
     const favicon=document.querySelector('link[rel="icon"]');
-    if(favicon){
-      const customFavicon=String(c.faviconUrl||'').trim();
-      const isGestaoFallback=/\/assets\/logo-gestao-software\.png(?:[?#]|$)/i.test(customFavicon);
-      favicon.href=(!customFavicon||isGestaoFallback) ? safeLogo(c.logoUrl) : customFavicon;
+    if(favicon) {
+      const custom=tenantLogo(c.faviconUrl);
+      if(custom||logo) favicon.href=custom||logo;
     }
     document.querySelectorAll('img').forEach(img=>{
       const src=img.getAttribute('src')||'';
-      if(!/logo-nh|favicon-nh|simbolo-fundo-azul|identidade-pendente\.svg/i.test(src)) return;
-      const logo=safeLogo(c.logoUrl);
-      // O cabeçalho do site institucional mostra o escudo e o nome separadamente.
-      // Evita duplicar uma marca horizontal padrão dentro do ícone.
-      if(img.classList.contains('brand-symbol') && /(?:\/|^)logo-nh-oficial\.png(?:[?#]|$)/i.test(logo)) return;
+      if(!/logo-nh|favicon-nh|simbolo-fundo-azul|identidade-pendente\.svg/i.test(src))return;
+      if(!logo){logoFallback(img,c);return;}
+      img.onerror=()=>logoFallback(img,c);
       img.src=logo;
       img.alt=c.platformDisplayName||c.companyName||'Empresa';
+      img.style.visibility='visible';
     });
     setText('.portal-brand strong, [data-company-brand], .brand-name strong',c.platformDisplayName||c.companyName);
     // Substituir placeholders em páginas antigas sem exibir o nome de outro cliente.
