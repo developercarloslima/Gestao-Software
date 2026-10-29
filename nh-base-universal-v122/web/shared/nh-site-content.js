@@ -94,7 +94,7 @@
       const link=$('.hero-section .primary-button');
       if(link){link.href=heroHref;link.classList.remove('cotacao-trigger');}
     }
-    toggle('.hero-section .hero-actions .cotacao-trigger, .site-header .header-cta',config.showQuoteButton);
+    toggle('.hero-section .hero-actions .primary-button, .site-header .header-cta',config.showQuoteButton);
     toggle('.benefits-section',config.showBenefits);
     text('.benefits-section .section-heading span',config.benefitsEyebrow);
     text('.benefits-section .section-heading h2',config.benefitsTitle);
