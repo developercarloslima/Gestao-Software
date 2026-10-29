@@ -115,6 +115,9 @@ public class ProvisioningService {
         int moduleCount=jdbc.queryForObject("SELECT COUNT(*) FROM platform_company_modules WHERE company_id=? AND enabled=TRUE",Integer.class,id);
         String companyStatus=jdbc.queryForObject("SELECT status FROM platform_companies WHERE id=?",String.class,id);
         boolean modules=moduleCount>0,allowed=List.of("ACTIVE","TRIAL").contains(companyStatus);
+        boolean adminConfigured=Boolean.TRUE.equals(jdbc.queryForObject(
+                "SELECT tenant_admin_username IS NOT NULL AND BTRIM(tenant_admin_username)<>'' FROM platform_companies WHERE id=?",
+                Boolean.class,id));
         boolean supportedProvider=false;
         boolean startTier=false;
         if(assessment){
@@ -124,10 +127,10 @@ public class ProvisioningService {
             startTier="START".equals(plan.path("tier").asText()) && !plan.path("requiresArchitectureReview").asBoolean();
         }
         out.put("capacityConfigured",assessment);out.put("contractSigned",contract);out.put("paymentProviderVerified",payment);
-        out.put("hasModules",modules);out.put("companyAllowed",allowed);
+        out.put("hasModules",modules);out.put("companyAllowed",allowed);out.put("adminConfigured",adminConfigured);
         out.put("providerSupported",supportedProvider);out.put("capacityApproved",startTier);
         out.put("environmentCertified",tenantTemplateCertified);
-        out.put("canQueue",assessment&&contract&&payment&&modules&&allowed&&supportedProvider&&startTier&&tenantTemplateCertified);
+        out.put("canQueue",assessment&&contract&&payment&&modules&&allowed&&adminConfigured&&supportedProvider&&startTier&&tenantTemplateCertified);
         out.put("warning","Marcar uma mensalidade como PAGA manualmente não habilita implantação. É obrigatória verificação independente junto ao provedor de pagamento.");
         return out;
     }
@@ -251,6 +254,9 @@ public class ProvisioningService {
         UUID cid=(UUID)result.get("company_id");
         result.put("assessment",getAssessment(cid));
         result.put("modules",jdbc.query("SELECT module_code FROM platform_company_modules WHERE company_id=? AND enabled=TRUE",(rs,n)->rs.getString(1),cid));
+        // Campo exclusivo do agente autenticado. Nunca incluir em branding público.
+        result.put("tenantAdminUsername",jdbc.queryForObject(
+                "SELECT tenant_admin_username FROM platform_companies WHERE id=?",String.class,cid));
         result.put("branding",jdbc.query("SELECT trade_name,platform_display_name,primary_color,secondary_color,accent_color,document FROM platform_companies WHERE id=?",rs->{
             rs.next();Map<String,Object> brand=new LinkedHashMap<>();
             brand.put("tradeName",rs.getString(1));brand.put("displayName",rs.getString(2));brand.put("primaryColor",rs.getString(3));brand.put("secondaryColor",rs.getString(4));brand.put("accentColor",rs.getString(5));brand.put("document",rs.getString(6));return brand;
