@@ -90,6 +90,14 @@ public class GestaoTenantConfigService {
                 // cliente carregue a logo/favicons a partir do domínio da Gestão Software.
                 absolutizeAssetUrl(data, "logoUrl");
                 absolutizeAssetUrl(data, "faviconUrl");
+                Object siteObject = data.get("siteContent");
+                if (siteObject instanceof Map<?,?> siteValues) {
+                    Map<String,Object> site = new LinkedHashMap<>();
+                    siteValues.forEach((key,value) -> {if(key instanceof String k) site.put(k,value);});
+                    absolutizeAssetUrl(site,"heroImageUrl");
+                    absolutizeAssetUrl(site,"appImageUrl");
+                    data.put("siteContent",site);
+                }
                 // Respostas sem empresa vinculada não substituem uma licença já confirmada.
                 if (data.get("companyId") == null && !Boolean.FALSE.equals(data.get("active"))) return null;
                 return data;
