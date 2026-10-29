@@ -138,11 +138,11 @@
       if(connectionPanel){connectionPanel.remove();connectionPanel=null;}
       apply(data);
     } catch(err) {
-      const message=attempts<12
-        ? 'A API está indisponível temporariamente ('+String(err.message||'falha de conexão')+'). Tentativa automática '+attempts+' de 12. Esta falha não indica, por si só, suspensão da licença.'
+      const message=attempts<24
+        ? 'A API está indisponível temporariamente ('+String(err.message||'falha de conexão')+'). Tentativa automática '+attempts+' de 24. Esta falha não indica, por si só, suspensão da licença.'
         : 'Não foi possível consultar a API após várias tentativas. Confira o serviço nh122-demo-api no Render e tente novamente.';
       connectionView('Aguardando conexão com a API',message);
-      if(attempts<12)nextRetry=setTimeout(loadConfig,Math.min(22000,3000+attempts*2000));
+      if(attempts<24)nextRetry=setTimeout(loadConfig,Math.min(25000,3000+attempts*2000));
     }
   }
   loadConfig();
