@@ -15,6 +15,7 @@ def job():
         'provider':'MANAGED_VPS',
         'assessment':{'estimate':{'tier':'START','requiresArchitectureReview':False}},
         'branding':{'document':'11.222.333/0001-81','displayName':'Empresa Exemplo'},
+        'tenantAdminUsername':'admin@exemplo.com.br',
         'modules':['COTA']
     }
 
@@ -67,6 +68,13 @@ class AgentValidationTest(unittest.TestCase):
         for m in agent.TENANT_MODULES:
             j=job();j['modules']=[m]
             with self.subTest(module=m):self.assertEqual(agent.validate_job(j)[1],'exemplo.gestaosoftware.com.br')
+    def test_rejects_missing_or_legacy_tenant_admin(self):
+        for username in (None, '', 'admin@nh.local', 'in valido'):
+            j=job()
+            j['tenantAdminUsername']=username
+            with self.subTest(username=username), self.assertRaises(ValueError):
+                agent.validate_job(j)
+
     def test_dotenv_escapes_branding_names(self):
         import json
         for raw in ('Cliente #1','Empresa "Teste"',"Cliente's Brasil",'C:\\temp'):
