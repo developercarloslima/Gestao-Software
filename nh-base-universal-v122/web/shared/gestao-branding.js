@@ -50,10 +50,16 @@
     root.style.setProperty('--navy-950',c.primaryColor||'#263247');
     if(c.siteTitle) document.title=document.title.replace(/Empresa Cliente/gi,c.siteTitle);
     const logo=tenantLogo(c.logoUrl);
-    const favicon=document.querySelector('link[rel="icon"]');
-    if(favicon) {
-      const custom=tenantLogo(c.faviconUrl);
-      if(custom||logo) favicon.href=custom||logo;
+    // A marca do cliente tem prioridade no ícone da aba. Favicon genérico da
+    // Gestão não substitui a logo do tenant.
+    const customized=tenantLogo(c.faviconUrl);
+    const browserIcon=customized||logo;
+    if(browserIcon){
+      document.querySelectorAll('link[rel="icon"],link[rel="shortcut icon"],link[rel="apple-touch-icon"]').forEach(link=>{
+        link.href=browserIcon;
+        if(link.getAttribute('rel')==='apple-touch-icon')return;
+        link.removeAttribute('type'); // conteúdo PNG, JPG e WebP de cada cliente
+      });
     }
     document.querySelectorAll('img').forEach(img=>{
       const src=img.getAttribute('src')||'';
@@ -80,6 +86,7 @@
       if(/^https:\/\//.test(href)){a.href=href;a.hidden=false;}
     });
     setText('.portal-brand small, [data-platform-legal-name]',c.platformLegalName||'Gestão Software LTDA');
+    if(window.NH_SITE_EDITOR_APPLY)window.NH_SITE_EDITOR_APPLY(c.siteContent||{},c);
     document.querySelectorAll('.developer-credit').forEach(el=>el.textContent=`Tecnologia: ${c.platformLegalName||'Gestão Software LTDA'}`);
 
     const enabled=new Set((c.enabledModules||[]).map(String));
