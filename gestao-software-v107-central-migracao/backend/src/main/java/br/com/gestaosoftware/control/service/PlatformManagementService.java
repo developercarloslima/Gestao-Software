@@ -120,7 +120,7 @@ public class PlatformManagementService {
         refreshOverdue();
         return jdbc.query("""
                 SELECT c.id, c.group_name, c.legal_name, c.trade_name, c.document, c.contact_name,
-                       c.contact_email, c.contact_phone, c.status, c.plan_code, c.plan_name, c.contract_term, c.monthly_fee,
+                       c.contact_email, c.contact_phone, c.tenant_admin_username, c.status, c.plan_code, c.plan_name, c.contract_term, c.monthly_fee,
                        c.billing_due_day, c.contract_start_date, c.contract_end_date, c.payment_method, c.created_at, c.updated_at,
                        c.platform_display_name, c.platform_legal_name, c.logo_url, c.favicon_url,
                        c.primary_color, c.secondary_color, c.accent_color, c.site_title, c.company_tagline,
@@ -221,17 +221,17 @@ public class PlatformManagementService {
         UUID id = UUID.randomUUID();
         jdbc.update("""
                 INSERT INTO platform_companies(
-                    id, group_name, legal_name, trade_name, document, contact_name, contact_email, contact_phone,
+                    id, group_name, legal_name, trade_name, document, contact_name, contact_email, contact_phone, tenant_admin_username,
                     status, plan_code, plan_name, contract_term, monthly_fee, billing_due_day, contract_start_date, contract_end_date, payment_method,
                     platform_display_name, platform_legal_name, logo_url, favicon_url, primary_color, secondary_color, accent_color,
                     site_title, company_tagline, login_subtitle, default_module_landing,
                     notes, created_at, updated_at
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())
                 """,
                 id, clean(input.groupName(), 160), required(input.legalName(), "Informe a razão social."),
                 required(input.tradeName(), "Informe o nome da empresa."), cleanDocument(input.document()),
                 clean(input.contactName(), 160), clean(input.contactEmail(), 180), clean(input.contactPhone(), 40),
-                companyStatus(input.status()), planCode(input.planCode()), cleanOr(input.planName(), "Personalizado", 120), contractTerm(input.contractTerm()), money(input.monthlyFee()),
+                validatedTenantAdminUsername(input.tenantAdminUsername(), true), companyStatus(input.status()), planCode(input.planCode()), cleanOr(input.planName(), "Personalizado", 120), contractTerm(input.contractTerm()), money(input.monthlyFee()),
                 dueDay(input.billingDueDay()), input.contractStartDate() == null ? LocalDate.now() : input.contractStartDate(),
                 input.contractEndDate(), paymentMethod(input.paymentMethod()),
                 cleanOr(input.platformDisplayName(), required(input.tradeName(), "Informe o nome da empresa."), 180),
@@ -265,7 +265,7 @@ public class PlatformManagementService {
         }
         int changed = jdbc.update("""
                 UPDATE platform_companies
-                   SET group_name=?, legal_name=?, trade_name=?, document=?, contact_name=?, contact_email=?, contact_phone=?,
+                   SET group_name=?, legal_name=?, trade_name=?, document=?, contact_name=?, contact_email=?, contact_phone=?, tenant_admin_username=?,
                        status=?, plan_code=?, plan_name=?, contract_term=?, monthly_fee=?, billing_due_day=?, contract_start_date=?, contract_end_date=?, payment_method=?,
                        platform_display_name=?, platform_legal_name=?, logo_url=?, favicon_url=?,
                        primary_color=?, secondary_color=?, accent_color=?, site_title=?, company_tagline=?, login_subtitle=?,
@@ -275,7 +275,7 @@ public class PlatformManagementService {
                 clean(input.groupName(), 160), required(input.legalName(), "Informe a razão social."),
                 required(input.tradeName(), "Informe o nome da empresa."), cleanDocument(input.document()),
                 clean(input.contactName(), 160), clean(input.contactEmail(), 180), clean(input.contactPhone(), 40),
-                requestedStatus, planCode(input.planCode()), cleanOr(input.planName(), "Personalizado", 120), contractTerm(input.contractTerm()), money(input.monthlyFee()),
+                validatedTenantAdminUsername(input.tenantAdminUsername(), false), requestedStatus, planCode(input.planCode()), cleanOr(input.planName(), "Personalizado", 120), contractTerm(input.contractTerm()), money(input.monthlyFee()),
                 dueDay(input.billingDueDay()), input.contractStartDate() == null ? LocalDate.now() : input.contractStartDate(),
                 input.contractEndDate(), paymentMethod(input.paymentMethod()),
                 cleanOr(input.platformDisplayName(), required(input.tradeName(), "Informe o nome da empresa."), 180),
@@ -800,10 +800,23 @@ public class PlatformManagementService {
         return fallback;
     }
 
+    private static String validatedTenantAdminUsername(String value, boolean required) {
+        String username = value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+        if (username.isEmpty()) {
+            if (required) throw new IllegalArgumentException("Informe o usuário administrador da empresa.");
+            return null; // Empresas legadas podem completar o cadastro posteriormente.
+        }
+        if (username.length() > 120 || !username.matches("[a-z0-9][a-z0-9._@-]{2,119}")
+                || "admin@nh.local".equals(username))
+            throw new IllegalArgumentException("Usuário administrador inválido. Use 3 a 120 caracteres: letras, números, ponto, hífen, @ ou sublinhado; não use o login legado.");
+        return username;
+    }
+
     private void validateCompany(CompanyInput input) {
         if (input == null) throw new IllegalArgumentException("Dados da empresa não informados.");
         required(input.legalName(), "Informe a razão social.");
         required(input.tradeName(), "Informe o nome da empresa.");
+        validatedTenantAdminUsername(input.tenantAdminUsername(), false);
         money(input.monthlyFee());
         dueDay(input.billingDueDay());
         companyStatus(input.status());
@@ -946,6 +959,7 @@ public class PlatformManagementService {
                 "legalName", rs.getString("legal_name"), "tradeName", rs.getString("trade_name"),
                 "document", rs.getString("document"), "contactName", rs.getString("contact_name"),
                 "contactEmail", rs.getString("contact_email"), "contactPhone", rs.getString("contact_phone"),
+                "tenantAdminUsername", rs.getString("tenant_admin_username"),
                 "status", rs.getString("status"), "planCode", rs.getString("plan_code"), "planName", rs.getString("plan_name"), "contractTerm", rs.getString("contract_term"),
                 "monthlyFee", money(rs.getBigDecimal("monthly_fee")), "billingDueDay", rs.getInt("billing_due_day"),
                 "contractStartDate", localDate(rs,"contract_start_date"), "contractEndDate", localDate(rs,"contract_end_date"),
@@ -969,6 +983,7 @@ public class PlatformManagementService {
                 "legalName", rs.getString("legal_name"), "tradeName", rs.getString("trade_name"),
                 "document", rs.getString("document"), "contactName", rs.getString("contact_name"),
                 "contactEmail", rs.getString("contact_email"), "contactPhone", rs.getString("contact_phone"),
+                "tenantAdminUsername", rs.getString("tenant_admin_username"),
                 "status", rs.getString("status"), "planCode", rs.getString("plan_code"), "planName", rs.getString("plan_name"), "contractTerm", rs.getString("contract_term"),
                 "monthlyFee", money(rs.getBigDecimal("monthly_fee")), "billingDueDay", rs.getInt("billing_due_day"),
                 "contractStartDate", localDate(rs,"contract_start_date"), "contractEndDate", localDate(rs,"contract_end_date"),
@@ -1112,7 +1127,7 @@ public class PlatformManagementService {
 
     public record ModuleInput(String code, boolean enabled, BigDecimal monthlyPrice) {}
     public record CompanyInput(String groupName, String legalName, String tradeName, String document,
-                               String contactName, String contactEmail, String contactPhone, String status,
+                               String contactName, String contactEmail, String contactPhone, String tenantAdminUsername, String status,
                                String planCode, String planName, String contractTerm, BigDecimal monthlyFee, Integer billingDueDay, String paymentMethod,
                                LocalDate contractStartDate, LocalDate contractEndDate,
                                String platformDisplayName, String platformLegalName, String logoUrl, String faviconUrl,
