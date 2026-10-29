@@ -408,6 +408,80 @@
     <div class="form-grid four"><label>Mensalidade calculada<input id="company-monthly" type="number" min="0" step="0.01" value="0" required></label><label>Dia do vencimento<input id="company-due-day" type="number" min="1" max="28" value="10"></label><label>Início do contrato<input id="company-start" type="date" required></label><label>Fim do contrato<input id="company-end" type="date"></label></div>
     <small id="company-price-help" class="form-help">O plano define a categoria comercial. Informe em “Mensalidade calculada” o preço final aprovado para esta empresa.</small>
     <fieldset class="module-fieldset"><legend>Módulos contratados</legend><div id="company-modules" class="module-grid"></div></fieldset>
+    <fieldset class="module-fieldset" id="company-site-editor" hidden>
+      <legend>Configurar Site Principal — conteúdo exclusivo desta empresa</legend>
+      <p class="form-help">Escolha o que aparecerá em cada seção. Os campos vazios mantêm os textos padrão do modelo. As imagens podem ser enviadas por aqui (PNG, JPEG, WebP até 5 MB) ou informadas por URL HTTPS.</p>
+      <details open><summary><strong>1. Cabeçalho e navegação</strong></summary>
+        <div class="form-grid two">
+          <label>Texto abaixo do nome da empresa<input data-site-field="headerSubtitle" maxlength="160" placeholder="Ex.: Proteção Veicular"></label>
+          <label>Texto da assistência 24h<input data-site-field="assistanceText" maxlength="160" placeholder="Ex.: Acionar Assistência 24h"></label>
+          <label>Telefone da assistência<input data-site-field="assistancePhone" maxlength="50" placeholder="Ex.: +558009999999"></label>
+        </div>
+        <label>Links do menu (um por linha: Nome | endereço)
+          <textarea data-site-field="navigationLinks" rows="4" maxlength="6000" placeholder="Início | #inicio&#10;Vantagens | #vantagens&#10;Contato | #contato"></textarea>
+        </label>
+      </details>
+      <details open><summary><strong>2. Banner principal / Hero</strong></summary>
+        <label><input data-site-flag="showHero" type="checkbox" checked> Exibir seção de destaque</label>
+        <div class="form-grid two">
+          <label>Título principal<textarea data-site-field="heroTitle" rows="3" maxlength="1200" placeholder="Ex.: Proteção para você e sua família"></textarea></label>
+          <label>Descrição do banner<textarea data-site-field="heroDescription" rows="3" maxlength="1200"></textarea></label>
+          <label>Imagem de fundo (URL HTTPS)<input data-site-field="heroImageUrl" type="url" maxlength="1200" placeholder="https://..."></label>
+          <label>Ou enviar imagem do banner<input data-site-upload="heroImageUrl" type="file" accept="image/png,image/jpeg,image/webp"></label>
+          <label>Texto do botão principal<input data-site-field="heroButtonText" maxlength="160" placeholder="Faça sua cotação"></label>
+          <label>Destino do botão (URL ou rota)<input data-site-field="heroButtonUrl" maxlength="1200" placeholder="Ex.: /cota/"></label>
+        </div>
+        <label><input data-site-flag="showQuoteButton" type="checkbox" checked> Exibir botão de cotação</label>
+      </details>
+      <details><summary><strong>3. Benefícios / Serviços</strong></summary>
+        <label><input data-site-flag="showBenefits" type="checkbox" checked> Exibir seção de benefícios</label>
+        <div class="form-grid two">
+          <label>Chamada da seção<input data-site-field="benefitsEyebrow" maxlength="160" placeholder="Nossos benefícios"></label>
+          <label>Título da seção<input data-site-field="benefitsTitle" maxlength="400"></label>
+        </div>
+        <label>Cards de benefícios (um por linha: Título | Descrição | URL do ícone)
+          <textarea data-site-field="benefitsItems" rows="6" maxlength="6000" placeholder="Colisão | Proteção contra colisões | https://...&#10;Furto e roubo | Atendimento especializado | https://..."></textarea>
+        </label>
+        <small>Preencha para substituir os benefícios padrão. Ícones opcionais; são aceitas apenas URLs HTTPS.</small>
+      </details>
+      <details><summary><strong>4. Como funciona / Etapas</strong></summary>
+        <label><input data-site-flag="showSteps" type="checkbox" checked> Exibir seção Como Funciona</label>
+        <div class="form-grid two">
+          <label>Chamada<input data-site-field="stepsEyebrow" maxlength="160" placeholder="Como funciona"></label>
+          <label>Título<input data-site-field="stepsTitle" maxlength="400"></label>
+        </div>
+        <label>Etapas (uma por linha: Título | Descrição | URL do ícone)
+          <textarea data-site-field="stepsItems" rows="5" maxlength="6000" placeholder="Faça sua cotação | Preencha os seus dados | https://...&#10;Escolha seu plano | Compare a cobertura | https://..."></textarea>
+        </label>
+      </details>
+      <details><summary><strong>5. Aplicativo da empresa</strong></summary>
+        <label><input data-site-flag="showApp" type="checkbox" checked> Exibir seção do aplicativo</label>
+        <div class="form-grid two">
+          <label>Título<input data-site-field="appTitle" maxlength="400" placeholder="Baixe nosso aplicativo"></label>
+          <label>Descrição<input data-site-field="appDescription" maxlength="400"></label>
+          <label>Imagem / celular (URL HTTPS)<input data-site-field="appImageUrl" type="url" maxlength="1200" placeholder="https://..."></label>
+          <label>Ou enviar imagem do aplicativo<input data-site-upload="appImageUrl" type="file" accept="image/png,image/jpeg,image/webp"></label>
+          <label>Link App Store<input data-site-field="iosUrl" type="url" maxlength="1200" placeholder="https://apps.apple.com/..."></label>
+          <label>Link Google Play<input data-site-field="androidUrl" type="url" maxlength="1200" placeholder="https://play.google.com/..."></label>
+        </div>
+      </details>
+      <details><summary><strong>6. Contato / Captação</strong></summary>
+        <label><input data-site-flag="showContact" type="checkbox" checked> Exibir seção de contato</label>
+        <div class="form-grid two">
+          <label>Chamada<input data-site-field="contactEyebrow" maxlength="160"></label>
+          <label>Título<input data-site-field="contactTitle" maxlength="400"></label>
+          <label>Descrição<textarea data-site-field="contactDescription" rows="3" maxlength="1200"></textarea></label>
+          <label>Telefone comercial<input data-site-field="contactPhone" maxlength="60"></label>
+          <label>WhatsApp (número com DDI)<input data-site-field="contactWhatsapp" maxlength="60" placeholder="Ex.: 5582999999999"></label>
+          <label>E-mail de atendimento<input data-site-field="contactEmail" type="email" maxlength="180"></label>
+          <label>E-mail que recebe formulário<input data-site-field="contactFormRecipient" type="email" maxlength="180"></label>
+        </div>
+        <label><input data-site-flag="showContactForm" type="checkbox" checked> Exibir formulário de contato</label>
+      </details>
+      <details><summary><strong>7. Rodapé</strong></summary>
+        <label>Texto institucional no rodapé<textarea data-site-field="footerDescription" rows="3" maxlength="1200"></textarea></label>
+      </details>
+    </fieldset>
     <fieldset class="module-fieldset"><legend>Identidade visual white-label</legend>
       <div class="form-grid two"><label>Nome exibido no sistema<input id="company-platform-display" maxlength="180" placeholder="Ex.: Novo Horizonte"></label><label>Texto abaixo da marca<input id="company-platform-legal" maxlength="180" value="Gestão Software LTDA"></label></div>
       <div class="form-grid two"><label>Enviar logo da empresa<input id="company-logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"><small id="company-logo-current" class="form-help">Nenhuma logo enviada.</small></label><label>PDF da identidade visual<input id="company-identity-file" type="file" accept="application/pdf"><small id="company-identity-current" class="form-help">Nenhum PDF enviado.</small></label></div>
