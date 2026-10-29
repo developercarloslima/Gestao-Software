@@ -41,6 +41,7 @@
     if(!companyId){el.textContent='Comece escolhendo uma empresa cadastrada ou clique em Cadastrar empresa.';return;}
     if(active){el.innerHTML=`<strong>Implantação concluída e endereço validado.</strong> Use o histórico abaixo para abrir o endereço verificado.`;return;}
     if(pending){el.innerHTML=pending.status==='VERIFYING'?'<strong>Aplicação instalada, mas ainda não liberada.</strong> Abra as configurações da nova empresa no histórico, conclua catálogo, identidade visual, regulamento e testes. Depois clique em Verificar implantação. A URL continua bloqueada para o cliente.':`<strong>Implantação em andamento.</strong> Situação: ${esc(labels[pending.status])}. A URL só será liberada após validação de HTTPS, identidade e configuração.`;return;}
+    if(!ready.adminConfigured){el.innerHTML='<strong>Próximo passo:</strong> edite a empresa e informe o usuário do administrador que será criado no ambiente do cliente.';return;}
     if(!ready.hasModules){el.innerHTML='<strong>Próximo passo:</strong> edite a empresa e escolha os módulos do contrato.';return;}
     if(!ready.capacityConfigured){el.innerHTML='<strong>Próximo passo:</strong> responda às perguntas à esquerda, clique em Analisar capacidade e depois em Confirmar e salvar análise.';return;}
     if(!ready.contractSigned){el.innerHTML='<strong>Próximo passo:</strong> abra a empresa em Empresas e finalize as assinaturas do cliente e da Gestão Software.';return;}
@@ -54,6 +55,7 @@
   function renderReadiness(ready){
     lastReady=ready;
     const checks=[
+      ['Administrador da empresa configurado',ready.adminConfigured,'Informe o usuário administrador no cadastro da empresa.'],
       ['Módulos contratados',ready.hasModules,'Escolha os módulos na ficha da empresa.'],
       ['Capacidade calculada e salva',ready.capacityConfigured,'A análise deve usar os módulos do contrato atual.'],
       ['Contrato assinado pelas duas partes',ready.contractSigned,'As duas assinaturas devem constar no contrato.'],
