@@ -29,10 +29,15 @@
     root.style.setProperty('--navy',c.primaryColor||'#263247');
     root.style.setProperty('--navy-950',c.primaryColor||'#263247');
     if(c.siteTitle) document.title=document.title.replace(/Empresa Cliente/gi,c.siteTitle);
-    const favicon=document.querySelector('link[rel="icon"]'); if(favicon&&c.faviconUrl) favicon.href=c.faviconUrl;
+    const favicon=document.querySelector('link[rel="icon"]');
+    if(favicon){
+      const customFavicon=String(c.faviconUrl||'').trim();
+      const isGestaoFallback=/\/assets\/logo-gestao-software\.png(?:[?#]|$)/i.test(customFavicon);
+      favicon.href=(!customFavicon||isGestaoFallback) ? safeLogo(c.logoUrl) : customFavicon;
+    }
     document.querySelectorAll('img').forEach(img=>{
       const src=img.getAttribute('src')||'';
-      if(!/logo-nh|favicon-nh|simbolo-fundo-azul/i.test(src)) return;
+      if(!/logo-nh|favicon-nh|simbolo-fundo-azul|identidade-pendente\.svg/i.test(src)) return;
       const logo=safeLogo(c.logoUrl);
       // O cabeçalho do site institucional mostra o escudo e o nome separadamente.
       // Evita duplicar uma marca horizontal padrão dentro do ícone.
