@@ -101,8 +101,49 @@
     }
   }
 
-  fetch('/api/public/tenant-config',{cache:'no-store'})
-    .then(r=>r.ok?r.json():Promise.reject(new Error('config')))
-    .then(apply)
-    .catch(()=>{document.body.innerHTML='<main style="font:16px system-ui;margin:6vh auto;padding:40px;max-width:620px"><h1>Configuração pendente</h1><p>Este ambiente ainda não recebeu sua identidade visual e licença da Gestão Software. Contate o administrador.</p></main>';});
+  // A API Render Free pode hibernar ou reiniciar. Erros de rede não são
+  // evidência de suspensão da licença: mantenha o conteúdo coberto até
+  // recebermos uma configuração validada.
+  let attempts=0, nextRetry=null, connectionPanel=null;
+  function connectionView(title,message){
+    if(!connectionPanel){
+      connectionPanel=document.createElement('main');
+      connectionPanel.id='nh-tenant-connection-panel';
+      connectionPanel.setAttribute('role','status');
+      connectionPanel.setAttribute('aria-live','polite');
+      connectionPanel.style.cssText='position:fixed;inset:0;z-index:2147483647;display:grid;place-items:start center;padding:clamp(50px,11vh,130px) 20px 30px;overflow:auto;background:#f5f7fc;color:#070c40;font:16px system-ui,sans-serif';
+      const card=document.createElement('section');
+      card.style.cssText='width:min(100%,520px);padding:clamp(24px,5vw,38px);border-radius:18px;background:#fff;box-shadow:0 20px 60px rgba(7,12,64,.10)';
+      const h=document.createElement('h1');h.id='nh-connect-title';h.style.cssText='margin:0 0 12px;font:700 25px/1.3 system-ui';
+      const p=document.createElement('p');p.id='nh-connect-message';p.style.cssText='line-height:1.6;margin:0 0 20px';
+      const button=document.createElement('button');button.type='button';button.textContent='Tentar novamente';button.style.cssText='border:0;border-radius:10px;background:#070c40;color:#fff;padding:12px 18px;cursor:pointer;font:600 14px system-ui';
+      button.addEventListener('click',()=>{clearTimeout(nextRetry);attempts=0;loadConfig();});
+      card.append(h,p,button);connectionPanel.append(card);
+      document.body.append(connectionPanel);
+    }
+    connectionPanel.querySelector('#nh-connect-title').textContent=title;
+    connectionPanel.querySelector('#nh-connect-message').textContent=message;
+  }
+  async function loadConfig(){
+    attempts++;
+    connectionView('Conectando ao sistema','Consultando a identidade visual e os módulos autorizados da empresa.');
+    try {
+      const response=await fetch('/api/public/tenant-config',{cache:'no-store'});
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      const data=await response.json();
+      if(!data||typeof data!=='object'||(!data.companyId&&data.source==='UNCONFIGURED_FAIL_CLOSED')){
+        connectionView('Configuração da empresa pendente','A API respondeu, mas ainda não recebeu uma identidade validada da Gestão Software. Confira o vínculo da empresa e a integração da API.');
+        return;
+      }
+      if(connectionPanel){connectionPanel.remove();connectionPanel=null;}
+      apply(data);
+    } catch(err) {
+      const message=attempts<12
+        ? 'A API está indisponível temporariamente ('+String(err.message||'falha de conexão')+'). Tentativa automática '+attempts+' de 12. Esta falha não indica, por si só, suspensão da licença.'
+        : 'Não foi possível consultar a API após várias tentativas. Confira o serviço nh122-demo-api no Render e tente novamente.';
+      connectionView('Aguardando conexão com a API',message);
+      if(attempts<12)nextRetry=setTimeout(loadConfig,Math.min(22000,3000+attempts*2000));
+    }
+  }
+  loadConfig();
 })();
