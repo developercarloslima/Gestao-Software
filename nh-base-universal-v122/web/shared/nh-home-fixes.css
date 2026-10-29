@@ -1,0 +1,117 @@
+/* Ajustes white-label da pagina inicial NH: marca, header e mockup do aplicativo. */
+.site-header .brand,
+.site-header .brand-name { min-width: 0 !important; }
+.site-header .brand-name { max-width: 100% !important; }
+.site-header .brand-name strong {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.08 !important;
+  max-width: 100% !important;
+}
+.site-header .brand-name small {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+.site-header .brand-symbol {
+  object-fit: contain !important;
+  max-height: 65px !important;
+}
+.tenant-brand-monogram {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.13);
+  color: var(--nh-yellow, #f0f000);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -.04em;
+}
+.proof-affiliate-logo .tenant-brand-monogram {
+  flex-basis: 76px;
+  width: 76px;
+  height: 76px;
+  font-size: 22px;
+}
+@media (min-width: 1600px) {
+  .site-header .brand-name strong { font-size: 15px !important; }
+}
+@media (min-width: 761px) and (max-width: 1599px) {
+  .site-header .brand { overflow: hidden !important; }
+  .site-header .brand-name strong { font-size: clamp(12px, 1.05vw, 17px) !important; }
+}
+@media (min-width: 761px) and (max-width: 1450px) {
+  /* A assistencia permanece acessivel no menu, sem cobrir o nome do cliente. */
+  .site-header .header-phone { display: none !important; }
+  .site-header .main-menu.open .assistance-menu-link { display: flex !important; }
+}
+@media (max-width: 760px) {
+  .site-header .brand-name strong { font-size: clamp(11px, 3vw, 15px) !important; }
+  .site-header .tenant-brand-monogram { flex-basis: 44px; width: 44px; height: 44px; font-size: 15px; }
+}
+
+/* Mockup do aplicativo enviado pelo cliente, sem recorte ou moldura duplicada. */
+.app-section .app-card {
+  grid-template-columns: minmax(190px, 225px) minmax(0, 1fr) minmax(150px, 220px) !important;
+  min-height: 292px !important;
+  gap: 22px !important;
+  padding: 24px 30px !important;
+  overflow: visible !important;
+  border-radius: 18px !important;
+}
+.app-section .app-card .phone-mockup.phone-mockup-real {
+  width: 210px !important;
+  height: 280px !important;
+  min-height: 0 !important;
+  margin: -26px 0 !important;
+  justify-self: center !important;
+  align-self: center !important;
+  overflow: visible !important;
+}
+.app-section .app-card .phone-mockup.phone-mockup-real::before { display: none !important; content: none !important; }
+.app-section .app-card .app-phone-image {
+  display: block !important;
+  width: 210px !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 295px !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 16px 22px rgba(7,12,64,.16)) !important;
+}
+@media (min-width: 761px) and (max-width: 980px) {
+  .app-section .app-card { grid-template-columns: 155px minmax(0,1fr) 160px !important; gap: 14px !important; padding: 18px !important; }
+  .app-section .app-card .phone-mockup.phone-mockup-real { width: 150px !important; height: 225px !important; }
+  .app-section .app-card .app-phone-image { width: 150px !important; max-height: 235px !important; }
+}
+@media (max-width: 760px) {
+  .app-section .app-card {
+    grid-template-columns: minmax(105px, .8fr) minmax(0, 1.2fr) !important;
+    grid-template-areas: "phone copy" "buttons buttons" !important;
+    min-height: 220px !important;
+    gap: 12px !important;
+    padding: 14px !important;
+    overflow: visible !important;
+  }
+  .app-section .app-card .phone-mockup.phone-mockup-real {
+    grid-area: phone !important;
+    width: 130px !important;
+    height: 184px !important;
+    margin: 0 !important;
+  }
+  .app-section .app-card .app-phone-image { width: 130px !important; max-height: 184px !important; }
+  .app-section .app-card .app-copy { grid-area: copy !important; }
+  .app-section .app-card .store-buttons.store-badges {
+    grid-area: buttons !important;
+    max-width: 100% !important;
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    justify-self: stretch !important;
+  }
+}
+@media (max-width: 390px) {
+  .app-section .app-card { grid-template-columns: 96px minmax(0,1fr) !important; gap: 8px !important; }
+  .app-section .app-card .phone-mockup.phone-mockup-real { width: 96px !important; height: 150px !important; }
+  .app-section .app-card .app-phone-image { width: 96px !important; max-height: 150px !important; }
+}
