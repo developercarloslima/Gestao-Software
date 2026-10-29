@@ -139,7 +139,33 @@
       if(formRecipient)form.action='https://formsubmit.co/ajax/'+encodeURIComponent(formRecipient);
       else{form.hidden=true;form.style.setProperty('display','none','important');}
     }
-    text('.site-footer .footer-compact-bottom p:first-child',config.footerDescription);
+    text('.site-footer .footer-compact-bottom p:first-child',config.footerLegalText||config.footerDescription);
+    text('.site-footer .footer-compact-address p',config.footerAddress);
+    text('.site-footer .footer-compact-hours p',config.footerHours);
+    const instagram=safeUrl(config.socialInstagramUrl);
+    const instagramLink=$('.floating-social a[aria-label^="Instagram"]');
+    if(instagramLink){
+      if(instagram){instagramLink.href=instagram;instagramLink.hidden=false;}
+      else{instagramLink.hidden=true;instagramLink.style.display='none';}
+    }
+    // Impedir vazamento dos contatos e do endereço específicos do modelo para novos clientes.
+    if(!contactPhone){
+      all('.contact-section a[href^="tel:"], .site-footer .footer-compact-contact a[href^="tel:"]').forEach(a=>a.hidden=true);
+    }
+    if(!assistancePhone){
+      all('.site-header .header-phone, .site-header .main-menu .assistance-menu-link, .site-footer .footer-compact-assist a[href^="tel:"]').forEach(a=>a.hidden=true);
+    }
+    if(!config.footerAddress){
+      const address=$('.site-footer .footer-compact-address');if(address)address.hidden=true;
+    }
+    if(!config.footerHours){
+      const hours=$('.site-footer .footer-compact-hours');if(hours)hours.hidden=true;
+    }
+    if(!contactEmail){
+      const link=$('.site-footer .footer-compact-contact a[href^="mailto:"]');if(link)link.hidden=true;
+    }
+    const bottom=$('.site-footer .footer-compact-bottom p:first-child');
+    if(bottom&&!(config.footerLegalText||config.footerDescription))bottom.textContent=String(identity.platformDisplayName||identity.companyName||'Empresa');
     // O favicon da empresa e o titulo sao atualizados em gestao-branding.js.
   }
   window.NH_SITE_EDITOR_APPLY=applySite;
