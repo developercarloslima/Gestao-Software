@@ -14,6 +14,7 @@ VALID={
     'requested_host':'cliente.gestaosoftware.com.br','provider':'MANAGED_VPS',
     'assessment':{'estimate':{'tier':'START','requiresArchitectureReview':False}},
     'branding':{'document':'11.222.333/0001-81','displayName':'Empresa Cliente'},
+        'tenantAdminUsername':'admin@exemplo.com.br',
     'modules':['COTA']
 }
 
