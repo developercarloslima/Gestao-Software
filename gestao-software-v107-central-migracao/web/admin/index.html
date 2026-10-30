@@ -488,6 +488,14 @@
         </div>
       </details>
     </fieldset>
+    <fieldset class="module-fieldset" id="company-site-zip-section" hidden>
+      <legend>Arquivo do Site Principal (ZIP)</legend>
+      <p class="form-help">Para empresas que já têm um site ou contrataram um site personalizado. Envie o ZIP aqui no cadastro ou na edição da empresa. Ele ficará guardado no acervo privado da Gestão, aguardando revisão e publicação manual. Não será executado nem publicado automaticamente.</p>
+      <label>Pacote de arquivos do site (ZIP, até 25 MB)
+        <input id="company-site-zip-file" type="file" accept=".zip,application/zip,application/x-zip-compressed">
+      </label>
+      <small class="form-help" id="company-site-zip-current">Nenhum ZIP recebido.</small>
+    </fieldset>
     <fieldset class="module-fieldset"><legend>Identidade visual white-label</legend>
       <div class="form-grid two"><label>Nome exibido no sistema<input id="company-platform-display" maxlength="180" placeholder="Ex.: Novo Horizonte"></label><label>Texto abaixo da marca<input id="company-platform-legal" maxlength="180" value="Gestão Software LTDA"></label></div>
       <div class="form-grid two"><label>Enviar logo da empresa<input id="company-logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"><small id="company-logo-current" class="form-help">Nenhuma logo enviada.</small></label><label>PDF da identidade visual<input id="company-identity-file" type="file" accept="application/pdf"><small id="company-identity-current" class="form-help">Nenhum PDF enviado.</small></label></div>
