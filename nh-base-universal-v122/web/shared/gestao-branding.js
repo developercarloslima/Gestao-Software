@@ -48,7 +48,18 @@
     root.style.setProperty('--yellow',c.secondaryColor||'#66a3b9');
     root.style.setProperty('--navy',c.primaryColor||'#263247');
     root.style.setProperty('--navy-950',c.primaryColor||'#263247');
-    if(c.siteTitle) document.title=document.title.replace(/Empresa Cliente/gi,c.siteTitle);
+    // Preservar o título original do HTML: cada atualização precisa funcionar,
+    // inclusive após uma ou várias alterações no painel da Gestão.
+    const originalTitle=document.documentElement.dataset.gestaoOriginalTitle
+      ||document.title;
+    document.documentElement.dataset.gestaoOriginalTitle=originalTitle;
+    const newTitle=String(c.siteTitle||c.platformDisplayName||c.companyName||'Empresa').trim();
+    if(newTitle){
+      document.title=location.pathname==='/' ? newTitle
+        : (/Empresa Cliente/i.test(originalTitle)
+          ? originalTitle.replace(/Empresa Cliente/gi,newTitle)
+          : originalTitle+' · '+newTitle);
+    }
     const logo=tenantLogo(c.logoUrl);
     // A marca do cliente tem prioridade no ícone da aba. Favicon genérico da
     // Gestão não substitui a logo do tenant.
@@ -63,12 +74,18 @@
     }
     document.querySelectorAll('img').forEach(img=>{
       const src=img.getAttribute('src')||'';
-      if(!/logo-nh|favicon-nh|simbolo-fundo-azul|identidade-pendente\.svg/i.test(src))return;
+      if(!/logo-nh|favicon-nh|simbolo-fundo-azul|identidade-pendente\.svg/i.test(src)
+        &&img.dataset.gestaoTenantBrandLogo!=='1')return;
+      img.dataset.gestaoTenantBrandLogo='1';
       if(!logo){logoFallback(img,c);return;}
+      // Se um upload foi substituído, atualizar até mesmo uma logo já aplicada.
+      img.dataset.tenantLogoFallback='';
+      img.nextElementSibling?.classList?.contains('tenant-brand-monogram')
+        && img.nextElementSibling.remove();
+      img.hidden=false;img.style.display='';img.style.visibility='visible';
       img.onerror=()=>logoFallback(img,c);
-      img.src=logo;
+      if(img.src!==new URL(logo,location.href).href)img.src=logo;
       img.alt=c.platformDisplayName||c.companyName||'Empresa';
-      img.style.visibility='visible';
     });
     setText('.portal-brand strong, [data-company-brand], .brand-name strong',c.platformDisplayName||c.companyName);
     // Substituir placeholders em páginas antigas sem exibir o nome de outro cliente.
@@ -114,6 +131,13 @@
   // evidência de suspensão da licença: mantenha o conteúdo coberto até
   // recebermos uma configuração validada.
   let attempts=0, nextRetry=null, connectionPanel=null;
+  let appliedSignature=null;
+  let refreshTimer=null;
+  const REFRESH_INTERVAL_MS=20000;
+  function scheduleRefresh(){
+    clearTimeout(refreshTimer);
+    refreshTimer=setTimeout(()=>loadConfig(true),REFRESH_INTERVAL_MS);
+  }
   function connectionView(title,message){
     if(!connectionPanel){
       connectionPanel=document.createElement('main');
@@ -133,26 +157,44 @@
     connectionPanel.querySelector('#nh-connect-title').textContent=title;
     connectionPanel.querySelector('#nh-connect-message').textContent=message;
   }
-  async function loadConfig(){
-    attempts++;
-    connectionView('Conectando ao sistema','Consultando a identidade visual e os módulos autorizados da empresa.');
+  async function loadConfig(silent=false){
+    if(!silent){
+      attempts++;
+      connectionView('Conectando ao sistema','Consultando a identidade visual e os módulos autorizados da empresa.');
+    }
     try {
-      const response=await fetch('/api/public/tenant-config',{cache:'no-store'});
+      const response=await fetch('/api/public/tenant-config?fresh='+Date.now(),{
+        cache:'no-store',headers:{'Cache-Control':'no-cache'}
+      });
       if(!response.ok)throw new Error('HTTP '+response.status);
       const data=await response.json();
       if(!data||typeof data!=='object'||(!data.companyId&&data.source==='UNCONFIGURED_FAIL_CLOSED')){
-        connectionView('Configuração da empresa pendente','A API respondeu, mas ainda não recebeu uma identidade validada da Gestão Software. Confira o vínculo da empresa e a integração da API.');
+        if(!silent)connectionView('Configuração da empresa pendente',
+          'A API respondeu, mas ainda não recebeu uma identidade validada da Gestão Software. Confira o vínculo da empresa e a integração da API.');
+        scheduleRefresh();
         return;
       }
       if(connectionPanel){connectionPanel.remove();connectionPanel=null;}
-      apply(data);
+      const signature=JSON.stringify(data);
+      if(signature!==appliedSignature){
+        apply(data);
+        appliedSignature=signature;
+      }
+      attempts=0;
+      scheduleRefresh();
     } catch(err) {
+      if(silent){
+        // Queda temporária da API não deve apagar a marca já validada.
+        scheduleRefresh();
+        return;
+      }
       const message=attempts<24
         ? 'A API está indisponível temporariamente ('+String(err.message||'falha de conexão')+'). Tentativa automática '+attempts+' de 24. Esta falha não indica, por si só, suspensão da licença.'
         : 'Não foi possível consultar a API após várias tentativas. Confira o serviço nh122-demo-api no Render e tente novamente.';
       connectionView('Aguardando conexão com a API',message);
-      if(attempts<24)nextRetry=setTimeout(loadConfig,Math.min(25000,3000+attempts*2000));
+      if(attempts<24)nextRetry=setTimeout(()=>loadConfig(false),Math.min(25000,3000+attempts*2000));
+      else scheduleRefresh();
     }
   }
-  loadConfig();
+  loadConfig(false);
 })();
