@@ -275,8 +275,15 @@ public class PortalUserService {
     public PortalUserResponse createImported(String login,String name,PortalRole role,
             String temporaryPassword,String adminUsername) {
         UUID collaboratorId=null;
-        String newCollaboratorName=role==PortalRole.CONSULTANT
-                ||role==PortalRole.ANALYST||role==PortalRole.SUPERVISION_ANALYSIS?name:null;
+        String newCollaboratorName=null;
+        if(role==PortalRole.CONSULTANT||role==PortalRole.ANALYST||role==PortalRole.SUPERVISION_ANALYSIS){
+            var existing=consultantRepository.findByNormalizedName(Consultant.normalize(name));
+            if(existing.isPresent()){
+                if(!existing.get().isActive()||!existing.get().getRole().name().equals(role.name()))
+                    throw new IllegalArgumentException("Colaborador existente possui outro cargo ou está inativo: "+name);
+                collaboratorId=existing.get().getId();
+            }else newCollaboratorName=name;
+        }
         PortalUserResponse created=create(new CreatePortalUserRequest(login,name,temporaryPassword,
                 role,collaboratorId,newCollaboratorName),adminUsername);
         PortalUser account=find(created.id());
