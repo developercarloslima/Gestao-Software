@@ -7,7 +7,7 @@ const brl=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
 const pct=new Intl.NumberFormat('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});
 let dashboard=null, companies=[], modules=[], expenses=[], vps=[], currentCompany=null, currentUser=null;
 const PLAN_CALCULATOR_USERS=new Set(['carlos.lima','pedro.henrique']);
-const GESTAO_DEFAULT_LOGO='/assets/logo-gestao-software.png';
+const GESTAO_DEFAULT_LOGO='/assets/logo-gestao-transparente.png';
 let calculatorReference=null;
 let calcAwsManual=false;
 
