@@ -133,6 +133,28 @@ public class SupervisionAnalysisController {
         return acceptanceWorkflow.renewAfterApproval(id, request.reason(), principal.username(), principal.role());
     }
 
+    @PostMapping("/{id}/acceptance/queue/mark-completed")
+    public AdminInspectionResponse moveAcceptanceQueueCompleted(
+            @PathVariable UUID id, @Valid @RequestBody AcceptanceQueueMoveRequest request,
+            Authentication authentication
+    ) {
+        PortalPrincipal principal = (PortalPrincipal) authentication.getPrincipal();
+        return service.moveAcceptanceQueueManually(id, true, request.reason(), principal.username(), principal.role());
+    }
+
+    @PostMapping("/{id}/acceptance/queue/undo")
+    public AdminInspectionResponse undoAcceptanceQueueMove(
+            @PathVariable UUID id, @Valid @RequestBody AcceptanceQueueMoveRequest request,
+            Authentication authentication
+    ) {
+        PortalPrincipal principal = (PortalPrincipal) authentication.getPrincipal();
+        return service.moveAcceptanceQueueManually(id, false, request.reason(), principal.username(), principal.role());
+    }
+
+    public record AcceptanceQueueMoveRequest(
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(min=5,max=1200) String reason
+    ) {}
+
     public record AcceptanceReapprovalRequest(@jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max=1200) String reason) {}
     public record AssignAnalystRequest(@NotNull UUID analystId) {}
     public record SupervisionNoteRequest(@Size(max = 1200) String note) {}
