@@ -112,6 +112,16 @@ public class InspectionRequest {
     @Column(name = "supervision_note_by_name", length = 160)
     private String supervisionNoteByName;
 
+    /** Apenas classificação operacional; não representa assinatura nem aceite digital. */
+    @Column(name = "acceptance_queue_manual_at")
+    private OffsetDateTime acceptanceQueueManualAt;
+
+    @Column(name = "acceptance_queue_manual_by", length = 160)
+    private String acceptanceQueueManualBy;
+
+    @Column(name = "acceptance_queue_manual_reason", length = 1200)
+    private String acceptanceQueueManualReason;
+
     @Column(name = "reviewed_at")
     private OffsetDateTime reviewedAt;
 
@@ -809,6 +819,7 @@ public class InspectionRequest {
         }
         InspectionRequestStatus previousStatus = this.status;
         this.status = newStatus;
+        if (newStatus != InspectionRequestStatus.APPROVED) clearManualAcceptanceQueueMove();
         if (previousStatus != newStatus) {
             this.decisionMessageSentAt = null;
         this.acceptanceWhatsappSentTo = null;
@@ -978,6 +989,7 @@ public class InspectionRequest {
                     "Esta vistoria já possui aceite digital do associado e não pode mais ser alterada."
             );
         }
+        clearManualAcceptanceQueueMove();
         this.webauthnRegistrationChallenge = null;
         this.webauthnRegistrationExpiresAt = null;
         this.webauthnOrigin = null;
@@ -1093,6 +1105,24 @@ public class InspectionRequest {
         this.supervisionNoteByName = cleanReviewerName(supervisorName);
     }
 
+    /** Move a aba sem gravar accepted_at, alterar termos ou provas WebAuthn. */
+    public void markManualAcceptanceQueueMove(String supervisorName, String reason) {
+        if (status != InspectionRequestStatus.APPROVED)
+            throw new IllegalArgumentException("Somente vistorias aprovadas podem ser movidas.");
+        if (reason == null || reason.isBlank() || reason.trim().length() < 5)
+            throw new IllegalArgumentException("Informe motivo com pelo menos 5 caracteres.");
+        this.acceptanceQueueManualAt = OffsetDateTime.now();
+        this.acceptanceQueueManualBy = cleanReviewerName(supervisorName);
+        this.acceptanceQueueManualReason = cleanNote(reason);
+        this.updatedAt = this.acceptanceQueueManualAt;
+    }
+
+    public void clearManualAcceptanceQueueMove() {
+        this.acceptanceQueueManualAt = null;
+        this.acceptanceQueueManualBy = null;
+        this.acceptanceQueueManualReason = null;
+    }
+
     private String cleanReviewerName(String value) {
         if (value == null || value.isBlank()) return null;
         String clean = value.trim().replaceAll("\\s+", " ");
@@ -1139,6 +1169,9 @@ public class InspectionRequest {
     public String getSupervisionNote() { return supervisionNote; }
     public OffsetDateTime getSupervisionNoteUpdatedAt() { return supervisionNoteUpdatedAt; }
     public String getSupervisionNoteByName() { return supervisionNoteByName; }
+    public OffsetDateTime getAcceptanceQueueManualAt() { return acceptanceQueueManualAt; }
+    public String getAcceptanceQueueManualBy() { return acceptanceQueueManualBy; }
+    public String getAcceptanceQueueManualReason() { return acceptanceQueueManualReason; }
     public OffsetDateTime getReviewedAt() { return reviewedAt; }
     public Consultant getReviewedByCollaborator() { return reviewedByCollaborator; }
     public String getReviewedByName() { return reviewedByName; }
