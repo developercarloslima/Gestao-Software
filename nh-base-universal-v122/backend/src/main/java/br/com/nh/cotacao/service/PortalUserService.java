@@ -622,6 +622,15 @@ public class PortalUserService {
         if (repository.findByNormalizedUsername(normalized).isPresent()) return;
         PortalUser user = PortalUser.create(username, displayName,
                 encoder.encode(temporaryPassword), role, "GESTAO_MODULE_BOOTSTRAP");
+        if (role == PortalRole.CONSULTANT || role == PortalRole.ANALYST
+                || role == PortalRole.SUPERVISION_ANALYSIS) {
+            CollaboratorRole teamRole = CollaboratorRole.valueOf(role.name());
+            Consultant member = consultantRepository.findByNormalizedName(Consultant.normalize(displayName))
+                    .orElseGet(() -> consultantRepository.save(
+                            Consultant.create(displayName, "GESTAO_MODULE_BOOTSTRAP", teamRole)));
+            if(member.getRole()!=teamRole)throw new IllegalStateException("Colaborador genérico já vinculado a outro cargo.");
+            user.linkConsultant(member.getId());
+        }
         user.requirePasswordChange();
         repository.save(user);
     }
