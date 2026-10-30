@@ -85,7 +85,8 @@
       const href=String(c.mobileAppUrl||'');
       if(/^https:\/\//.test(href)){a.href=href;a.hidden=false;}
     });
-    setText('.portal-brand small, [data-platform-legal-name]',c.platformLegalName||'Gestão Software LTDA');
+    setText('.portal-brand small',c.siteContent?.headerSubtitle||c.companyTagline||'Área da empresa');
+    setText('[data-platform-legal-name]',c.platformLegalName||'Gestão Software LTDA');
     if(window.NH_SITE_EDITOR_APPLY)window.NH_SITE_EDITOR_APPLY(c.siteContent||{},c);
     document.querySelectorAll('.developer-credit').forEach(el=>el.textContent=`Tecnologia: ${c.platformLegalName||'Gestão Software LTDA'}`);
 
