@@ -838,6 +838,58 @@ public class AdminActivityService {
         return toInspection(inspection, true);
     }
 
+    /**
+     * Movimenta somente a fila da Supervisão, sem criar assinatura, accepted_at
+     * ou comprovação WebAuthn. O estado real dos termos não é alterado.
+     */
+    @Transactional
+    public AdminInspectionResponse moveAcceptanceQueueManually(
+            UUID id, boolean completedQueue, String reason, String username, PortalRole actorRole
+    ) {
+        if (actorRole != PortalRole.SUPERVISION_ANALYSIS && actorRole != PortalRole.ADMIN)
+            throw new IllegalArgumentException("Somente a Supervisão e o ADM podem movimentar a fila.");
+        if (actorRole == PortalRole.SUPERVISION_ANALYSIS)
+            portalUserService.assertSupervisionInspectionAccess(username, actorRole, id);
+        InspectionRequest inspection = inspectionRepository.findForAcceptanceReapproval(id)
+                .orElseThrow(() -> new IllegalArgumentException("Solicitação do Retrato NH não encontrada."));
+        if (inspection.getStatus() != InspectionRequestStatus.APPROVED)
+            throw new IllegalArgumentException("Somente vistorias aprovadas podem mudar de fila.");
+        if (reason == null || reason.isBlank() || reason.trim().length() < 5)
+            throw new IllegalArgumentException("Informe o motivo (mínimo cinco caracteres).");
+        String supervisorName = ADMIN_RESPONSIBLE_NAME;
+        if (actorRole == PortalRole.SUPERVISION_ANALYSIS) {
+            UUID supervisorId = portalUserService.linkedSupervisorId(username)
+                    .orElseThrow(() -> new IllegalArgumentException("Supervisão sem colaborador vinculado."));
+            supervisorName = consultantService.findActiveSupervisor(supervisorId).getName();
+        }
+        InspectionAcceptanceWorkflowService.Progress progress = acceptanceWorkflow.progress(inspection);
+        String oldValue = inspection.getAcceptanceQueueManualAt() == null
+                ? "Fila automática" : "Movida por " + inspection.getAcceptanceQueueManualBy();
+        if (completedQueue) {
+            if (progress.allAccepted())
+                throw new IllegalArgumentException("Todos os aceites já foram assinados automaticamente.");
+            if (inspection.getAcceptanceQueueManualAt() != null)
+                throw new IllegalArgumentException("Vistoria já movimentada manualmente.");
+            inspection.markManualAcceptanceQueueMove(supervisorName, reason);
+        } else {
+            if (inspection.getAcceptanceQueueManualAt() == null)
+                throw new IllegalArgumentException("Não existe movimentação manual para desfazer.");
+            inspection.clearManualAcceptanceQueueMove();
+        }
+        inspectionRepository.flush();
+        auditRepository.save(CatalogChangeAudit.createText(
+                "INSPECTION_ACCEPTANCE_QUEUE_OVERRIDE", null, id.toString(),
+                (completedQueue ? "Movimentação para Aceites realizados" : "Retorno para Aguardando aceite")
+                        + " por " + supervisorName,
+                oldValue + " | assinaturas reais: " + progress.completed() + "/" + progress.total(),
+                (completedQueue ? "Fila Aceites realizados" : "Fila automática")
+                        + " | motivo: " + reason.trim()
+                        + " | assinaturas reais: " + progress.completed() + "/" + progress.total(),
+                username
+        ));
+        return toInspection(inspection, true);
+    }
+
     private AdminInspectionResponse updateInspectionStatus(
             UUID id,
             UpdateInspectionStatusRequest request,
@@ -1167,7 +1219,9 @@ public class AdminActivityService {
                 item.getAssignedAnalyst() == null ? null : item.getAssignedAnalyst().getId(), item.getAssignedAnalystName(),
                 item.getAnalysisStage(), item.getRegistrationCompletedAt(), item.getRegistrationCompletedByName(), displayStatus,
                 item.getCreatedAt(), item.getUpdatedAt(), item.getExpiresAt(), expiredWithoutFiles, item.getCompletedAt(), item.getAdminNote(),
-                item.getSupervisionNote(), item.getSupervisionNoteUpdatedAt(), item.getSupervisionNoteByName(), item.getReviewedAt(),
+                item.getSupervisionNote(), item.getSupervisionNoteUpdatedAt(), item.getSupervisionNoteByName(),
+                item.getAcceptanceQueueManualAt(), item.getAcceptanceQueueManualBy(), item.getAcceptanceQueueManualReason(),
+                item.getReviewedAt(),
                 item.getReviewedByCollaborator() == null ? null : item.getReviewedByCollaborator().getId(),
                 item.getReviewedByName(), item.getReviewedByRole(),
                 publicUrl, null, null, quotationPdfUrl, whatsappUrl(whatsapp, message), emailUrl(email, subject, message), associateInspectionUrl,
