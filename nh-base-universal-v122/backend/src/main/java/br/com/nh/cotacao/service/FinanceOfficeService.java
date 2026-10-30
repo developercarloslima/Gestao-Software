@@ -201,7 +201,7 @@ public class FinanceOfficeService {
 
     @Transactional(noRollbackFor = AsaasTransferFailure.class)
     public Map<String,Object> processWithdrawal(UUID id,String note){
-        ConsultantWithdrawal w=withdrawals.findById(id).orElseThrow(()->new IllegalArgumentException("Solicitação de saque não encontrada."));
+        ConsultantWithdrawal w=withdrawals.findByIdForUpdate(id).orElseThrow(()->new IllegalArgumentException("Solicitação de saque não encontrada."));
         if(w.getStatus()!=WithdrawalStatus.REQUESTED) throw new IllegalArgumentException("Somente solicitações pendentes podem ser processadas.");
         if(note!=null&&!note.isBlank()) w.financeNote(note);
         if(w.getPayoutMethod()==ConsultantPayoutMethod.PIX){
@@ -231,7 +231,7 @@ public class FinanceOfficeService {
 
     @Transactional
     public Map<String,Object> updateWithdrawal(UUID id,String status,String note){
-        ConsultantWithdrawal w=withdrawals.findById(id).orElseThrow(()->new IllegalArgumentException("Solicitação de saque não encontrada."));
+        ConsultantWithdrawal w=withdrawals.findByIdForUpdate(id).orElseThrow(()->new IllegalArgumentException("Solicitação de saque não encontrada."));
         if(w.getStatus()==WithdrawalStatus.PAID)
             throw new IllegalArgumentException("Saque pago é imutável.");
         if(w.getPayoutMethod()==ConsultantPayoutMethod.PIX && w.getStatus()==WithdrawalStatus.PROCESSING)

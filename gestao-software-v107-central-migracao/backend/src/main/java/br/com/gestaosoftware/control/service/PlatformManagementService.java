@@ -371,11 +371,15 @@ public class PlatformManagementService {
         String nextStatus = status == null ? (String) existing.get("status") : status;
         OffsetDateTime paidAt = null; // Somente o provedor verificado registra quitação.
         String notes = input.notes() == null ? (String) existing.get("notes") : clean(input.notes(), 600);
-        jdbc.update("""
+        int updated = jdbc.update("""
                 UPDATE platform_company_invoices
                    SET amount=?, due_date=?, status=?, paid_at=?, notes=?, updated_at=NOW()
-                 WHERE id=?
+                 WHERE id=? AND status <> 'PAID'
+                   AND NOT EXISTS (SELECT 1 FROM gs_invoice_checkout co WHERE co.invoice_id=platform_company_invoices.id)
+                   AND NOT EXISTS (SELECT 1 FROM gs_verified_payment vp WHERE vp.invoice_id=platform_company_invoices.id)
                 """, amount, dueDate, nextStatus, paidAt, notes, id);
+        if (updated == 0)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Fatura alterada ou vinculada ao provedor durante a edição. Recarregue antes de tentar novamente.");
         refreshOverdue();
         return getCompany((UUID) existing.get("companyId"));
     }

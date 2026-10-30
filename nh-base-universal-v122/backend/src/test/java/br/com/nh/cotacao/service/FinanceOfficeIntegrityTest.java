@@ -4,6 +4,8 @@ import br.com.nh.cotacao.entity.*;
 import br.com.nh.cotacao.repository.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -37,7 +39,7 @@ class FinanceOfficeIntegrityTest {
         AsaasClient asaas = mock(AsaasClient.class);
         UUID id = UUID.randomUUID();
 
-        when(withdrawals.findById(id)).thenReturn(Optional.of(withdrawal));
+        when(withdrawals.findByIdForUpdate(id)).thenReturn(Optional.of(withdrawal));
         when(withdrawal.getStatus()).thenReturn(WithdrawalStatus.REQUESTED);
         when(withdrawal.getPayoutMethod()).thenReturn(ConsultantPayoutMethod.PIX);
         when(withdrawal.getPixKeyType()).thenReturn(PixKeyType.CPF);
@@ -60,6 +62,16 @@ class FinanceOfficeIntegrityTest {
         verify(withdrawal).processing(isNull());
         verify(withdrawal).financeNote(contains("Conferir no Asaas"));
         verify(withdrawals).save(withdrawal);
+        verify(withdrawals).findByIdForUpdate(id);
+    }
+
+    @Test
+    void withdrawalIsLockedBeforeCallingExternalPaymentApi() throws Exception {
+        Lock lock = ConsultantWithdrawalRepository.class
+                .getMethod("findByIdForUpdate", UUID.class)
+                .getAnnotation(Lock.class);
+        assertNotNull(lock);
+        assertEquals(LockModeType.PESSIMISTIC_WRITE, lock.value());
     }
 
     @Test
