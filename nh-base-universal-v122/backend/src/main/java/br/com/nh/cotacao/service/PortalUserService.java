@@ -593,6 +593,24 @@ public class PortalUserService {
         repository.save(admin);
     }
 
+    /**
+     * Contas de demonstração por módulo, idempotentes e exclusivas do banco tenant.
+     * Nunca alteram senha ou cargo de usuário existente.
+     * Toda conta criada exige nova senha antes de usar as rotas do módulo.
+     */
+    @Transactional
+    public void bootstrapTenantModuleUser(String username, String displayName,
+            PortalRole role, String temporaryPassword) {
+        if (temporaryPassword == null || temporaryPassword.length() < 8)
+            throw new IllegalArgumentException("Senha temporária precisa de 8+ caracteres.");
+        String normalized = PortalUser.normalizeUsername(username);
+        if (repository.findByNormalizedUsername(normalized).isPresent()) return;
+        PortalUser user = PortalUser.create(username, displayName,
+                encoder.encode(temporaryPassword), role, "GESTAO_MODULE_BOOTSTRAP");
+        user.requirePasswordChange();
+        repository.save(user);
+    }
+
     @Transactional
     public void bootstrapDefaults(
             String adminUsername, String adminPassword,
