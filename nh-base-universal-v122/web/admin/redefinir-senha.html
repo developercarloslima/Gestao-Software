@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Redefinir senha | Empresa Cliente</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:20px;background:#f5f7fc;color:#070c40;font:15px system-ui,sans-serif}
+main{width:min(100%,440px);background:#fff;padding:clamp(22px,4vw,38px);border-radius:18px;box-shadow:0 24px 65px #070c4021}
+h1{font-size:25px;line-height:1.2;margin:0 0 12px}p{color:#505e7a;line-height:1.6}
+label{display:grid;gap:7px;margin:17px 0;font-weight:600}input{padding:12px 14px;border:1px solid #a7b9d8;border-radius:10px;font:inherit}
+button{width:100%;padding:13px;border:0;border-radius:10px;background:#070c40;color:white;font:700 15px system-ui;cursor:pointer}
+a{display:block;margin-top:18px;color:#183fba;text-align:center}#message{min-height:24px;margin:12px 0;color:#344f81}
+</style></head>
+<body><main>
+<h1>Definir nova senha</h1>
+<p>Este link é válido por 20 minutos e pode ser utilizado somente uma vez.</p>
+<form id="reset-form">
+<label>Nova senha<input type="password" id="new-password" required minlength="8" maxlength="120" autocomplete="new-password"></label>
+<label>Confirme a nova senha<input type="password" id="confirm-password" required minlength="8" maxlength="120" autocomplete="new-password"></label>
+<button type="submit">Redefinir senha</button>
+</form><p id="message" role="status" aria-live="polite"></p>
+<a href="/admin/">Voltar ao login</a></main>
+<script>
+const token=new URLSearchParams(location.search).get('token')||'';
+const form=document.getElementById('reset-form'),msg=document.getElementById('message');
+if(!/^[A-Za-z0-9_-]{40,100}$/.test(token)){form.hidden=true;msg.textContent='Link inválido. Solicite uma nova recuperação na tela de login.';}
+form.addEventListener('submit',async e=>{
+e.preventDefault();
+const password=document.getElementById('new-password').value,confirm=document.getElementById('confirm-password').value;
+if(password!==confirm){msg.textContent='As duas senhas devem ser iguais.';return;}
+const button=form.querySelector('button');button.disabled=true;msg.textContent='Validando o link...';
+try{
+ const response=await fetch('/api/auth/password-reset/confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,newPassword:password})});
+ const body=await response.json().catch(()=>({}));
+ if(!response.ok)throw new Error(body?.message||'O link expirou ou já foi utilizado.');
+ form.hidden=true;history.replaceState(null,'',location.pathname);msg.textContent='Senha redefinida. Você já pode entrar no painel com a nova senha.';
+}catch(err){msg.textContent=err.message;button.disabled=false;}
+});
+</script></body></html>
