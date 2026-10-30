@@ -786,7 +786,7 @@ public class PlatformManagementService {
     public Map<String, Object> publicBranding(String host) {
         String normalized = normalizeHost(host);
         Map<String, Object> result = jdbc.query("""
-                SELECT c.id, c.trade_name, c.status, c.platform_display_name, c.platform_legal_name, c.logo_url, c.favicon_url,
+                SELECT c.id, c.trade_name, c.status, c.contact_email, c.platform_display_name, c.platform_legal_name, c.logo_url, c.favicon_url,
                        c.primary_color, c.secondary_color, c.accent_color, c.site_title, c.company_tagline, c.login_subtitle, c.default_module_landing,
                        h.domain, h.subdomain
                   FROM platform_companies c
@@ -799,6 +799,7 @@ public class PlatformManagementService {
             return mapOf(
                     "companyId", rs.getObject("id", UUID.class),
                     "companyName", rs.getString("trade_name"),
+                    "contactEmail", rs.getString("contact_email"),
                     "status", rs.getString("status"),
                     "platformDisplayName", firstNonBlank(rs.getString("platform_display_name"), rs.getString("trade_name")),
                     "platformLegalName", firstNonBlank(rs.getString("platform_legal_name"), "Gestão Software LTDA"),
