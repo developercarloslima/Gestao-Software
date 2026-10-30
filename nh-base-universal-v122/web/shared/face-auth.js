@@ -226,6 +226,42 @@
     });
   }
 
+  async function requireInitialPasswordChange(loginData,currentPassword){
+    if(!loginData?.token||!loginData.passwordChangeRequired||loginData.role==='ADMIN')return loginData;
+    ensureStyles();
+    return new Promise((resolve,reject)=>{
+      const veil=document.createElement('div');
+      veil.className='nh-face-auth-backdrop';
+      const card=document.createElement('div');
+      card.className='nh-face-auth-card';
+      const title=document.createElement('h2');title.textContent='Troca de senha obrigatória';
+      const info=document.createElement('p');info.textContent='Sua conta foi criada com senha temporária. Cadastre sua senha pessoal antes de acessar o módulo.';
+      const form=document.createElement('form');
+      form.style.display='grid';form.style.gap='12px';
+      const newPass=document.createElement('input');newPass.type='password';newPass.required=true;newPass.minLength=8;newPass.maxLength=120;newPass.autocomplete='new-password';newPass.placeholder='Nova senha (8+ caracteres)';
+      const confirm=document.createElement('input');confirm.type='password';confirm.required=true;confirm.minLength=8;confirm.maxLength=120;confirm.autocomplete='new-password';confirm.placeholder='Confirmar nova senha';
+      const status=document.createElement('p');status.setAttribute('role','status');status.style.color='#9f1239';
+      const submit=document.createElement('button');submit.type='submit';submit.textContent='Salvar senha e continuar';submit.className='nh-face-auth-confirm';
+      const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';cancel.className='nh-face-auth-cancel';
+      const controls=document.createElement('div');controls.className='nh-face-auth-actions';controls.append(cancel,submit);
+      form.append(newPass,confirm,status,controls);card.append(title,info,form);veil.append(card);document.body.append(veil);
+      const close=()=>veil.remove();
+      cancel.addEventListener('click',()=>{close();reject(new Error('Troca de senha cancelada.'));});
+      form.addEventListener('submit',async e=>{
+        e.preventDefault();
+        if(newPass.value!==confirm.value){status.textContent='As senhas não coincidem.';return;}
+        if(newPass.value===currentPassword){status.textContent='Escolha senha diferente da temporária.';return;}
+        submit.disabled=true;
+        try{
+          await jsonFetch('/api/auth/change-password',{method:'POST',
+            headers:{'Content-Type':'application/json',Authorization:'Bearer '+loginData.token},
+            body:JSON.stringify({currentPassword,newPassword:newPass.value})});
+          close();resolve({...loginData,passwordChangeRequired:false});
+        }catch(error){status.textContent=error.message||'Não foi possível alterar a senha.';submit.disabled=false;}
+      });
+    });
+  }
+
   async function login(username, password) {
     const body = await jsonFetch('/api/auth/login', {
       method: 'POST',
@@ -234,8 +270,8 @@
     });
     // v83.19: facial removida do login. Somente o ADMIN confirma com passkey;
     // todos os demais perfis recebem o acesso logo após usuário e senha.
-    if (body?.passkeyRequired) return validatePasskey(body, username);
-    return body;
+    const completed=body?.passkeyRequired ? await validatePasskey(body, username) : body;
+    return requireInitialPasswordChange(completed,password);
   }
 
   window.NH_FACE_AUTH = Object.freeze({ login });
