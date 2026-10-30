@@ -571,6 +571,11 @@ public class PlatformManagementService {
             if (!type.startsWith("image/")) throw new IllegalArgumentException("A logo precisa ser uma imagem.");
             if (content.length > 5 * 1024 * 1024) throw new IllegalArgumentException("A logo deve ter no máximo 5 MB.");
         } else if ("SITE_SOURCE_ZIP".equals(purpose)) {
+            if (jdbc.queryForObject("""
+                    SELECT COUNT(*) FROM platform_company_modules
+                     WHERE company_id=? AND module_code='SITE_PRINCIPAL' AND enabled=TRUE
+                    """, Integer.class, companyId) == 0)
+                throw new IllegalArgumentException("O módulo Site Principal precisa estar contratado para receber o ZIP.");
             if (!String.valueOf(originalName).toLowerCase(Locale.ROOT).endsWith(".zip"))
                 throw new IllegalArgumentException("O código do site precisa ser enviado em .zip.");
             if (content.length > 25 * 1024 * 1024)
