@@ -138,3 +138,13 @@ h1, h2, h3, h4, h5, h6,
 @media(max-width:700px){.onboarding-steps{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.onboarding-steps span{padding:9px 6px}.onboarding-columns{grid-template-columns:1fr}#tab-onboarding .form-actions{display:grid;grid-template-columns:1fr}#tab-onboarding button{width:100%}.onboarding-summary{padding:12px}.onboarding-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:390px){.onboarding-kpis{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){#tab-onboarding *,#tab-onboarding *::after{transition:none!important;animation:none!important}}
+
+/* A logo é transparente; jamais gerar um retângulo escuro atrás dela. */
+.company-action-brand img,
+.platform-header .brand-lockup img {
+  background:transparent !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  border:0 !important;
+  object-fit:contain !important;
+}
