@@ -1,6 +1,7 @@
 type BrandProps = { compact?: boolean; footer?: boolean };
 
-const logoPath = '/assets/logo-gestao-software.png';
+// Ativo compartilhado pelo site e pelo painel: adicione o PNG sem fundo em web/assets/.
+const logoPath = '/assets/logo-gestao-transparente.png';
 
 export default function Brand({ compact = false, footer = false }: BrandProps) {
   return (
