@@ -138,6 +138,22 @@
       </div>
     </section>
 
+    <section id="admin-first-password" class="login-wrap" hidden>
+      <div class="card login-card">
+        <span class="eyebrow" style="color:#070c40">SEGURANÇA DO PRIMEIRO ACESSO</span>
+        <h1>Crie sua senha pessoal</h1>
+        <p>Esta empresa usa uma senha temporária. Para proteger o painel, altere-a antes de continuar.</p>
+        <form id="admin-first-password-form" class="form-grid">
+          <label class="span-2">Senha atual<input id="admin-first-current" type="password" autocomplete="current-password" required></label>
+          <label class="span-2">Nova senha<input id="admin-first-new" type="password" autocomplete="new-password" minlength="8" maxlength="120" required></label>
+          <label class="span-2">Confirmar nova senha<input id="admin-first-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="120" required></label>
+          <button class="primary span-2" type="submit">Trocar senha e entrar</button>
+          <button class="outline span-2" id="admin-first-cancel" type="button">Voltar ao login</button>
+        </form>
+        <div id="admin-first-message" aria-live="polite"></div>
+      </div>
+    </section>
+
     <main id="admin-view" class="shell" hidden>
       <section class="hero-panel">
         <h1>Gestão da operação Empresa Cliente</h1>
@@ -1998,7 +2014,7 @@
     <script src="/shared/money-input.js?v=20260805-brl-mask"></script>
     <script src="/shared/inspection-documents.js?v=20261016-v83-129"></script>
 <script src="/shared/fipe-picker.js?v=20261016-v83-137"></script>
-<script src="/admin/admin.js?v=20261016-v83-137-fipe-combobox"></script>
+<script src="/admin/admin.js?v=20261030-first-login-v2"></script>
     <script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
   
   <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">
