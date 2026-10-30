@@ -178,6 +178,7 @@ function resetCompanyForm(){
 function syncSiteEditorVisibility(){
   const checkbox=document.querySelector('#company-modules [data-module-code="SITE_PRINCIPAL"]');
   $('company-site-editor').hidden=!checkbox?.checked;
+  $('company-site-zip-section').hidden=!checkbox?.checked;
 }
 function resetSiteEditor(){
   document.querySelectorAll('#company-site-editor [data-site-field]').forEach(x=>x.value='');
@@ -238,12 +239,17 @@ function updateCompanyFileStatus(){
   $('company-logo-current').textContent=logoSelected
     ? `Nova imagem selecionada: ${logoSelected.name}. Salve a empresa para enviar.`
     : hasLogo ? '✓ Imagem recebida e salva.' : 'Nenhuma logo enviada.';
+  $('company-site-zip-current').textContent=$('company-site-zip-file').files[0]
+    ? 'ZIP selecionado: '+$('company-site-zip-file').files[0].name+'; salve a empresa para enviar.'
+    : (currentCompanyFileStatus.files||[]).some(x=>x.purpose==='SITE_SOURCE_ZIP')
+      ? '✓ ZIP recebido e guardado para revisão antes da publicação.' : 'Nenhum ZIP recebido.';
   $('company-identity-current').textContent=pdfSelected
     ? `Novo PDF selecionado: ${pdfSelected.name}. Salve a empresa para enviar.`
     : hasPdf ? '✓ PDF recebido e salvo.' : 'Nenhum PDF enviado.';
 }
 $('company-logo-file').addEventListener('change',updateCompanyFileStatus);
 $('company-identity-file').addEventListener('change',updateCompanyFileStatus);
+$('company-site-zip-file').addEventListener('change',updateCompanyFileStatus);
 async function saveCompanyTenantHosting(companyId){
   const host=$('company-tenant-host').value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/.*$/,'').replace(/:\d+$/,'');
   if(!host)return;
@@ -262,7 +268,7 @@ async function saveCompanyTenantHosting(companyId){
   });
 }
 async function uploadCompanyFiles(companyId){
-  const uploads=[['company-logo-file','LOGO'],['company-identity-file','VISUAL_IDENTITY_PDF']];
+  const uploads=[['company-logo-file','LOGO'],['company-identity-file','VISUAL_IDENTITY_PDF'],['company-site-zip-file','SITE_SOURCE_ZIP']];
   for(const [inputId,purpose] of uploads){const input=$(inputId);const file=input?.files?.[0];if(!file)continue;const form=new FormData();form.append('file',file);await api(`/api/platform/companies/${companyId}/files/${purpose}`,{method:'POST',body:form});}
 }
 async function editCompany(id){
@@ -271,6 +277,7 @@ async function editCompany(id){
   // Limpar seleções anteriores evita reaproveitar o arquivo de outra empresa.
   $('company-logo-file').value='';
   $('company-identity-file').value='';
+  $('company-site-zip-file').value='';
   currentCompanyFileStatus={files:data.files||[],logoUrl:data.logoUrl||''};
   updateCompanyFileStatus();
   populateCompanyPlanOptions();
