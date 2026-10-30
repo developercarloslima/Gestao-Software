@@ -16,7 +16,7 @@ public class SecurityConfig {
                 .sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth->auth
                         .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
-                        .requestMatchers("/api/health","/api/auth/login","/api/public/**","/api/agent/**").permitAll()
+                        .requestMatchers("/api/health","/api/auth/login","/api/auth/password-reset/**","/api/public/**","/api/agent/**").permitAll()
                         .requestMatchers("/api/auth/**","/api/platform/**").hasRole("PLATFORM_ADMIN")
                         .requestMatchers("/error").permitAll()
                         .anyRequest().denyAll())
