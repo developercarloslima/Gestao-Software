@@ -133,10 +133,19 @@
           <button class="primary span-2" type="submit">
             Entrar como administrador
           </button>
+          <button id="admin-forgot-password" class="outline span-2" type="button">Esqueci minha senha</button>
         </form>
         <div id="admin-login-message" aria-live="polite"></div>
       </div>
     </section>
+
+    <dialog id="admin-forgot-dialog" class="admin-dialog">
+      <div class="dialog-card" style="max-width:460px;padding:24px">
+        <h2>Recuperação de senha</h2>
+        <p id="admin-forgot-status" aria-live="polite">Se a conta possui e-mail vinculado, um link será solicitado para esse endereço.</p>
+        <button type="button" id="admin-forgot-close" class="primary">Entendi</button>
+      </div>
+    </dialog>
 
     <section id="admin-first-password" class="login-wrap" hidden>
       <div class="card login-card">
@@ -2031,7 +2040,7 @@
     <script src="/shared/money-input.js?v=20260805-brl-mask"></script>
     <script src="/shared/inspection-documents.js?v=20261016-v83-129"></script>
 <script src="/shared/fipe-picker.js?v=20261016-v83-137"></script>
-<script src="/admin/admin.js?v=20261030-tenant-modules-v4"></script>
+<script src="/admin/admin.js?v=20261030-forgot-mail-v5"></script>
     <script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
   
   <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">
