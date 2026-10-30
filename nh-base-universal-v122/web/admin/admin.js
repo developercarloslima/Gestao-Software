@@ -4863,6 +4863,48 @@ $('nh-ponto-employee-details-close')?.addEventListener('click',closeNhPontoEmplo
 $('admin-add-passkey')?.addEventListener('click', registerAdminPasskey);
 $('admin-passkey-banner-register')?.addEventListener('click', registerAdminPasskey);
 
+// Cadastro de colaboradores em lote: prévia obrigatória, sem sobrescrever contas.
+$('employee-excel-import-form').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const file=$('employee-excel-file').files[0];
+  const box=$('employee-excel-message');
+  const area=$('employee-excel-preview');
+  area.hidden=true;
+  $('employee-excel-confirm-check').checked=false;
+  $('employee-excel-confirm').disabled=true;
+  box.textContent='Analisando nomes, cargos e licenças...';
+  try{
+    if(!file||!file.name.toLowerCase().endsWith('.xlsx'))throw new Error('Selecione um Excel .xlsx.');
+    const form=new FormData();form.append('file',file);
+    const preview=await api('/api/admin/employee-excel/preview',{method:'POST',body:form});
+    $('employee-excel-totals').textContent=`Total: ${preview.total} · Prontos: ${preview.valid} · Pendentes: ${preview.rejected}`;
+    $('employee-excel-rows').innerHTML=(preview.entries||[]).slice(0,500).map(item=>`<tr>
+      <td>${Number(item.row)}</td><td>${esc(item.name)}</td><td>${esc(item.role)}</td>
+      <td>${esc(item.username)}</td><td>${esc(item.error||'Pronto para criação')}</td></tr>`).join('');
+    area.hidden=false;
+    $('employee-excel-confirm-check').disabled=preview.rejected>0||preview.valid===0;
+    box.textContent=preview.rejected>0?'Corrija as linhas inválidas e reenvie a planilha. Nenhuma conta foi criada.':'Prévia aprovada. Confirme para criar as contas.';
+  }catch(error){box.textContent=error.message;}
+});
+$('employee-excel-confirm-check').addEventListener('change',event=>{
+  $('employee-excel-confirm').disabled=!event.target.checked;
+});
+$('employee-excel-confirm').addEventListener('click',async()=>{
+  if(!$('employee-excel-confirm-check').checked)return;
+  const file=$('employee-excel-file').files[0];if(!file)return;
+  const box=$('employee-excel-message');
+  const button=$('employee-excel-confirm');button.disabled=true;
+  box.textContent='Criando contas no tenant...';
+  try{
+    const form=new FormData();form.append('file',file);form.append('confirmed','true');
+    const result=await api('/api/admin/employee-excel/confirm',{method:'POST',body:form});
+    box.textContent=`${result.created} contas criadas. Cada usuário deve trocar sua senha temporária no primeiro acesso.`;
+    $('employee-excel-preview').hidden=true;
+    $('employee-excel-file').value='';
+    await load();
+  }catch(error){box.textContent=error.message;button.disabled=false;}
+});
+
 const fipeSyncAdminCard = window.NHFipeSyncCard?.init({api});
 
 document.querySelectorAll('.admin-tabs button').forEach(button => {
