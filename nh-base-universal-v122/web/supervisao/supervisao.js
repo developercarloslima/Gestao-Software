@@ -395,12 +395,12 @@ const ANALYSIS_QUEUE_INFO = {
   analyst_pending: { label: 'Vistorias pendentes dos analistas', description: 'Todas as vistorias que ainda estão com os analistas: sem documentos, com documentos pendentes, aguardando análise ou ainda sem Cadastro feito.' },
   review: { label: 'Aguardando supervisão', description: 'Vistorias marcadas como Cadastro feito pelos analistas e que aguardam sua decisão final.' },
   acceptance: { label: 'Aguardando aceite', description: 'Vistorias aprovadas e aguardando os três aceites. Prazo de 7 dias; reaprovação necessária quando vencido.' },
-  accepted: { label: 'Aceites realizados', description: 'Dossiê, Termo de Responsabilidade e Ciência de Peças assinados pelo associado.' },
+  accepted: { label: 'Aceites realizados', description: 'Assinaturas obrigatórias concluídas automaticamente ou movimentação manual da Supervisão. A movimentação manual não equivale a assinatura.' },
   rejected: { label: 'Rejeitadas', description: 'Vistorias já rejeitadas pela Supervisão de Análise.' }
 };
 
 function inspectionQueueKey(item) {
-  if (item?.status === 'APPROVED') return item.allThreeAcceptancesCompleted ? 'accepted' : 'acceptance';
+  if (item?.status === 'APPROVED') return (item.allThreeAcceptancesCompleted || item.acceptanceQueueManualAt) ? 'accepted' : 'acceptance';
   if (item?.status === 'REJECTED') return 'rejected';
   if (item?.analysisStage === 'ANALYST_QUEUE' || item?.analysisStage === 'ANALYST_PENDING') return 'analyst_pending';
   return 'review';
@@ -838,14 +838,24 @@ function inspectionRows(items, emptyMessage) {
       ? `<button class="secondary small-button" type="button" data-reapprove="${esc(item.id)}">Reaprovar e gerar novos links (7 dias)</button>`
       : '';
 
+    const canMoveQueue = item.status === 'APPROVED' && !item.allThreeAcceptancesCompleted;
+    const queueMoveAction = canMoveQueue
+      ? item.acceptanceQueueManualAt
+        ? `<button class="outline small-button" type="button" data-acceptance-queue="undo" data-queue-inspection="${esc(item.id)}">Voltar para Aguardando aceite</button>`
+        : `<button class="secondary small-button" type="button" data-acceptance-queue="mark-completed" data-queue-inspection="${esc(item.id)}">Mover para Aceites realizados</button>`
+      : '';
+    const acceptanceSummary = item.status === 'APPROVED'
+      ? `<small class="table-code">${Number(item.acceptanceCompletedCount || 0)}/3 assinaturas reais · ${item.acceptanceQueueManualAt && !item.allThreeAcceptancesCompleted ? 'Movido manualmente — há assinaturas pendentes' : item.allThreeAcceptancesCompleted ? 'Concluídas' : item.acceptanceReapprovalRequired ? 'Prazo vencido' : 'Aguardando'}</small>`
+      : '';
+
     return `<tr>
       <td><strong>${esc(item.associateName)}</strong><small class="table-code">${esc(formatPhone(item.whatsapp) || 'Sem WhatsApp')}</small></td>
       <td>${esc(item.plate || '0 km — sem placa')}</td>
       <td>${esc(item.consultantName)}</td>
       <td>${esc(item.assignedAnalystName || 'Não vinculado')}</td>
       <td>${date(item.completedAt || item.createdAt)}</td>
-      <td><div class="status-with-action">${badge(item.status, item)}${item.status === 'APPROVED' ? `<small class="table-code">${Number(item.acceptanceCompletedCount || 0)}/3 · ${item.acceptanceReapprovalRequired ? 'Prazo vencido' : item.allThreeAcceptancesCompleted ? 'Concluídos' : 'Aguardando'}</small>` : ''}${statusActions}</div></td>
-      <td><div class="row-actions">${renewal}${pendingActions}<button class="secondary small-button" data-analyze="${item.id}" type="button">Analisar</button></div></td>
+      <td><div class="status-with-action">${badge(item.status, item)}${item.status === 'APPROVED' ? `<small class="table-code">${Number(item.acceptanceCompletedCount || 0)}/3 · ${item.acceptanceQueueManualAt && !item.allThreeAcceptancesCompleted ? 'Movido manualmente (assinaturas pendentes)' : item.acceptanceReapprovalRequired ? 'Prazo vencido' : item.allThreeAcceptancesCompleted ? 'Concluídos' : 'Aguardando'}</small>` : ''}${statusActions}</div></td>
+      <td><div class="row-actions">${renewal}${queueMoveAction}${pendingActions}<button class="secondary small-button" data-analyze="${item.id}" type="button">Analisar</button></div>${acceptanceSummary}</td>
     </tr>`;
   }).join('');
 
@@ -904,6 +914,40 @@ function render() {
         message('Reaprovação registrada. Novos links para os aceites pendentes liberados por 7 dias. A analista poderá enviá-los.', 'success');
       } catch (error) { message(error.message); }
       finally { button.disabled = false; }
+    });
+  });
+  document.querySelectorAll('[data-acceptance-queue]').forEach(button => {
+    button.addEventListener('click', async () => {
+      const id = button.dataset.queueInspection;
+      const action = button.dataset.acceptanceQueue;
+      const item = inspections.find(row => row.id === id);
+      if (!item || item.status !== 'APPROVED' || !['mark-completed','undo'].includes(action)) return;
+      const moving = action === 'mark-completed';
+      const reason = window.prompt(moving
+        ? 'Motivo para mover para Aceites realizados mesmo com assinaturas pendentes (mínimo cinco caracteres):'
+        : 'Motivo para voltar para Aguardando aceite (mínimo cinco caracteres):');
+      if (reason === null) return;
+      if (reason.trim().length < 5) return message('Informe ao menos cinco caracteres.');
+      const confirmed = await confirmAnalysisAction(
+        moving ? 'Mover manualmente para Aceites realizados?' : 'Desfazer movimentação manual?',
+        moving
+          ? `Apenas a fila será modificada. Existem ${Number(item.acceptanceCompletedCount || 0)}/3 aceites verdadeiros: nenhum contrato ou termo pendente será considerado assinado. O motivo e o responsável ficarão na auditoria.`
+          : 'Os aceites digitais já realizados serão preservados; a fila voltará a acompanhar o estado real das assinaturas.',
+        moving ? 'Mover na fila' : 'Desfazer movimentação'
+      );
+      if (!confirmed) return;
+      button.disabled = true;
+      try {
+        await api(`/api/supervision/inspections/${encodeURIComponent(id)}/acceptance/queue/${action}`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({reason:reason.trim()})
+        });
+        activeAnalysisQueue = moving ? 'accepted' : 'acceptance';
+        await load();
+        message(moving ? 'Movida manualmente: termos não assinados continuam pendentes.' :
+          'Movimentação manual desfeita; as assinaturas continuam intactas.', 'success');
+      } catch(error){ message(error.message); }
+      finally{ button.disabled=false; }
     });
   });
 }
@@ -1151,6 +1195,10 @@ function openInspection(id) {
     ['Analista responsável', item.assignedAnalystName || 'Não vinculado'],
     ['Cadastro feito por', item.registrationCompletedByName || '—'],
     ['Etapa', supervisionStageLabel(item)],
+    ['Fila de aceites', item.acceptanceQueueManualAt && !item.allThreeAcceptancesCompleted
+      ? `Aceites realizados (movido por ${item.acceptanceQueueManualBy || 'Supervisão'} em ${date(item.acceptanceQueueManualAt)}; assinaturas pendentes)`
+      : item.allThreeAcceptancesCompleted ? 'Aceites assinados' : 'Fila automática'],
+    ['Motivo da movimentação', item.acceptanceQueueManualReason || '—'],
     ['Placa', item.plate || '0 km — sem placa'],
     ['Tipo', item.requestType === 'NEW_INSPECTION' ? 'Nova vistoria' : 'Atualização de boleto']
   ];
