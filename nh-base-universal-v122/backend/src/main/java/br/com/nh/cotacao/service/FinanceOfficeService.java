@@ -187,9 +187,21 @@ public class FinanceOfficeService {
         }).toList();
     }
 
-    @Transactional
+    /** Permite registrar falha real do Asaas sem desfazer o status FAILED. */
+    static final class AsaasTransferFailure extends RuntimeException {
+        AsaasTransferFailure(String message, Throwable cause) { super(message, cause); }
+    }
+
+    static void assertManualPaidAllowed(ConsultantPayoutMethod method, WithdrawalStatus current) {
+        if (method == ConsultantPayoutMethod.PIX)
+            throw new IllegalArgumentException("Saque Pix só pode ser confirmado pelo webhook verificado do Asaas.");
+        if (current != WithdrawalStatus.PROCESSING)
+            throw new IllegalArgumentException("Aprovar/processar a TED antes de marcá-la como paga.");
+    }
+
+    @Transactional(noRollbackFor = AsaasTransferFailure.class)
     public Map<String,Object> processWithdrawal(UUID id,String note){
-        ConsultantWithdrawal w=withdrawals.findById(id).orElseThrow(()->new IllegalArgumentException("Solicitação de saque não encontrada."));
+        ConsultantWithdrawal w=withdrawals.findByIdForUpdate(id).orElseThrow(()->new IllegalArgumentException("Solicitação de saque não encontrada."));
         if(w.getStatus()!=WithdrawalStatus.REQUESTED) throw new IllegalArgumentException("Somente solicitações pendentes podem ser processadas.");
         if(note!=null&&!note.isBlank()) w.financeNote(note);
         if(w.getPayoutMethod()==ConsultantPayoutMethod.PIX){
@@ -202,9 +214,12 @@ public class FinanceOfficeService {
                 w.processing(transfer.id());
                 w.financeNote((note==null||note.isBlank()?"":note.trim()+" | ")+"Pix aprovado pelo Financeiro e enviado ao Asaas. Aguardando confirmação.");
             }catch(RuntimeException ex){
-                w.failed(ex.getMessage());
+                // Falha/timeout pode ocorrer após o Asaas aceitar a transferência.
+                // Reservamos o valor e bloqueamos novo envio até conciliação humana.
+                w.processing(null);
+                w.financeNote("Resultado da transferência Pix incerto. Conferir no Asaas antes de qualquer nova tentativa.");
                 withdrawals.save(w);
-                throw ex;
+                throw new AsaasTransferFailure("Resultado do Pix incerto; solicitação reservada para conciliação antes de nova tentativa.", ex);
             }
         }else{
             w.processing(null);
@@ -216,12 +231,15 @@ public class FinanceOfficeService {
 
     @Transactional
     public Map<String,Object> updateWithdrawal(UUID id,String status,String note){
-        ConsultantWithdrawal w=withdrawals.findById(id).orElseThrow(()->new IllegalArgumentException("Solicitação de saque não encontrada."));
+        ConsultantWithdrawal w=withdrawals.findByIdForUpdate(id).orElseThrow(()->new IllegalArgumentException("Solicitação de saque não encontrada."));
+        if(w.getStatus()==WithdrawalStatus.PAID)
+            throw new IllegalArgumentException("Saque pago é imutável.");
+        if(w.getPayoutMethod()==ConsultantPayoutMethod.PIX && w.getStatus()==WithdrawalStatus.PROCESSING)
+            throw new IllegalArgumentException("Saque Pix enviado ao Asaas só pode ser concluído ou revertido pelo retorno do provedor.");
         if(note!=null&&!note.isBlank())w.financeNote(note);
         switch(status.toUpperCase(Locale.ROOT)){
             case "PAID" -> {
-                if(w.getStatus()!=WithdrawalStatus.PROCESSING && w.getPayoutMethod()==ConsultantPayoutMethod.TED)
-                    throw new IllegalArgumentException("Aprovar/processar a TED antes de marcá-la como paga.");
+                assertManualPaidAllowed(w.getPayoutMethod(), w.getStatus());
                 w.paid();
             }
             case "FAILED" -> w.failed(note==null?"Falha informada pelo Financeiro.":note);

@@ -292,6 +292,8 @@ public class PlatformManagementService {
                 UPDATE platform_company_invoices
                    SET amount=?, updated_at=NOW()
                  WHERE company_id=? AND status='PENDING' AND reference_month>=?
+                   AND NOT EXISTS (SELECT 1 FROM gs_invoice_checkout co WHERE co.invoice_id=platform_company_invoices.id)
+                   AND NOT EXISTS (SELECT 1 FROM gs_verified_payment vp WHERE vp.invoice_id=platform_company_invoices.id)
                 """, money(input.monthlyFee()), id, YearMonth.now().atDay(1));
         return getCompany(id);
     }
@@ -311,6 +313,16 @@ public class PlatformManagementService {
         return "SUSPENDED".equals(requested) ? "DEACTIVATE" : "REACTIVATE";
     }
 
+    /** Alterações manuais nunca substituem uma confirmação financeira do provedor. */
+    static void assertManualInvoiceChangeAllowed(String currentStatus, String requestedStatus, boolean providerLinked) {
+        if ("PAID".equals(currentStatus))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Fatura paga é imutável. Efetue estornos pelo fluxo financeiro auditado.");
+        if (providerLinked)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cobrança vinculada ao Asaas: confirme ou reconcilie pelo provedor antes de alterar.");
+        if ("PAID".equals(requestedStatus))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Pagamento só pode ser confirmado após verificação pelo provedor.");
+    }
+
     @Transactional
     public Map<String, Object> generateInvoice(UUID companyId, InvoiceInput input) {
         Map<String, Object> company = getCompany(companyId);
@@ -320,12 +332,18 @@ public class PlatformManagementService {
                 ? YearMonth.from(reference).atDay((Integer) company.get("billingDueDay"))
                 : input.dueDate();
         UUID id = UUID.randomUUID();
-        jdbc.update("""
+        int changed = jdbc.update("""
                 INSERT INTO platform_company_invoices(id, company_id, reference_month, amount, due_date, status, notes, created_at, updated_at)
                 VALUES (?,?,?,?,?,'PENDING',?,NOW(),NOW())
                 ON CONFLICT (company_id, reference_month) DO UPDATE SET
                     amount=EXCLUDED.amount, due_date=EXCLUDED.due_date, notes=EXCLUDED.notes, updated_at=NOW()
+                WHERE platform_company_invoices.status IN ('PENDING','OVERDUE')
+                  AND NOT EXISTS (SELECT 1 FROM gs_invoice_checkout co WHERE co.invoice_id=platform_company_invoices.id)
+                  AND NOT EXISTS (SELECT 1 FROM gs_verified_payment vp WHERE vp.invoice_id=platform_company_invoices.id)
                 """, id, companyId, reference, amount, due, clean(input.notes(), 600));
+        if (changed == 0)
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "A mensalidade está quitada, cancelada ou possui cobrança vinculada ao provedor. Não é possível sobrescrevê-la.");
         refreshOverdue();
         return getCompany(companyId);
     }
@@ -342,18 +360,28 @@ public class PlatformManagementService {
                     "dueDate", localDate(rs, "due_date"), "status", rs.getString("status"),
                     "paidAt", offset(rs, "paid_at"), "notes", rs.getString("notes"));
         }, id);
+        boolean providerLinked = Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT EXISTS(
+                    SELECT 1 FROM gs_invoice_checkout WHERE invoice_id=?
+                    UNION ALL
+                    SELECT 1 FROM gs_verified_payment WHERE invoice_id=?
+                )
+                """, Boolean.class, id, id));
+        assertManualInvoiceChangeAllowed((String) existing.get("status"), status, providerLinked);
         BigDecimal amount = input.amount() == null ? (BigDecimal) existing.get("amount") : money(input.amount());
         LocalDate dueDate = input.dueDate() == null ? (LocalDate) existing.get("dueDate") : input.dueDate();
         String nextStatus = status == null ? (String) existing.get("status") : status;
-        OffsetDateTime paidAt = "PAID".equals(nextStatus)
-                ? (input.paidAt() == null ? (existing.get("paidAt") == null ? OffsetDateTime.now() : (OffsetDateTime) existing.get("paidAt")) : input.paidAt())
-                : null;
+        OffsetDateTime paidAt = null; // Somente o provedor verificado registra quitação.
         String notes = input.notes() == null ? (String) existing.get("notes") : clean(input.notes(), 600);
-        jdbc.update("""
+        int updated = jdbc.update("""
                 UPDATE platform_company_invoices
                    SET amount=?, due_date=?, status=?, paid_at=?, notes=?, updated_at=NOW()
-                 WHERE id=?
+                 WHERE id=? AND status <> 'PAID'
+                   AND NOT EXISTS (SELECT 1 FROM gs_invoice_checkout co WHERE co.invoice_id=platform_company_invoices.id)
+                   AND NOT EXISTS (SELECT 1 FROM gs_verified_payment vp WHERE vp.invoice_id=platform_company_invoices.id)
                 """, amount, dueDate, nextStatus, paidAt, notes, id);
+        if (updated == 0)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Fatura alterada ou vinculada ao provedor durante a edição. Recarregue antes de tentar novamente.");
         refreshOverdue();
         return getCompany((UUID) existing.get("companyId"));
     }

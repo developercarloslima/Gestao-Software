@@ -5,7 +5,7 @@ import re
 root=Path(__file__).resolve().parents[1]
 def read(p):return (root/p).read_text(encoding='utf-8')
 checks={
-'11 migrações exclusivas do tenant, sem repetir versão': sorted(int(f.name.split('__')[0][1:]) for f in (root/'backend/src/main/resources/db/tenant').glob('V*.sql'))==list(range(1,12)),
+'13 migrações exclusivas do tenant, sem repetir versão': sorted(int(f.name.split('__')[0][1:]) for f in (root/'backend/src/main/resources/db/tenant').glob('V*.sql'))==list(range(1,14)),
 'sem importação automática de plano comercial histórico': 'INSERT INTO' not in read('backend/src/main/resources/db/tenant/V7__regional_configuration_without_prices.sql').upper(),
 'desconto só no valor base': bool(re.search(r'base\.multiply\(factor\)\s*\.add\(mandatory\)\s*\.add\(optionals\)',read('backend/src/main/java/br/com/nh/cotacao/entity/Quotation.java'))),
 'regra de terceiros configurável por tenant': 'PENDING_CONFIGURATION' in read('backend/src/main/java/br/com/nh/cotacao/service/ThirdPartyRuleSettingsService.java'),
