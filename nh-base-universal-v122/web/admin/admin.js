@@ -3669,6 +3669,18 @@ $('admin-login-form').addEventListener('submit', async event => {
   }
 });
 
+$('admin-forgot-close').addEventListener('click',()=>$('admin-forgot-dialog').close());
+$('admin-forgot-password').addEventListener('click',async()=>{
+  const username=$('admin-username').value.trim();
+  if(!username){$('admin-login-message').textContent='Informe o usuário administrativo para recuperar a senha.';return;}
+  $('admin-forgot-status').textContent='Solicitando link de recuperação...';
+  $('admin-forgot-dialog').showModal();
+  try{
+    await fetch('/api/auth/password-reset/request',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({username})});
+  }catch(_){ /* Resposta neutra, sem revelar contas e sem expor problemas do SMTP. */ }
+  $('admin-forgot-status').textContent='Se o administrador possui e-mail cadastrado na Gestão Software, o link de redefinição foi solicitado para esse endereço. Verifique também a pasta de spam.';
+});
 $('admin-first-cancel').addEventListener('click',()=>showLogin());
 $('admin-first-password-form').addEventListener('submit', async event => {
   event.preventDefault();
