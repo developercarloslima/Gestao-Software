@@ -292,6 +292,8 @@ public class PlatformManagementService {
                 UPDATE platform_company_invoices
                    SET amount=?, updated_at=NOW()
                  WHERE company_id=? AND status='PENDING' AND reference_month>=?
+                   AND NOT EXISTS (SELECT 1 FROM gs_invoice_checkout co WHERE co.invoice_id=platform_company_invoices.id)
+                   AND NOT EXISTS (SELECT 1 FROM gs_verified_payment vp WHERE vp.invoice_id=platform_company_invoices.id)
                 """, money(input.monthlyFee()), id, YearMonth.now().atDay(1));
         return getCompany(id);
     }
