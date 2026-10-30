@@ -218,3 +218,112 @@
   .site-header .brand-name strong {font-size:clamp(11px,3vw,15px) !important;}
 }
 #company-site-editor[hidden] {display:none !important;}
+
+/* v4 — Site Principal: reproduz o cabeçalho institucional horizontal da
+   referência no desktop. Menu suspenso apenas em tablets/celulares. */
+@media (min-width:1100px){
+  .site-header .nav-wrapper {
+    width:min(1740px,calc(100% - 34px)) !important;
+    max-width:1740px !important;
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:clamp(5px,.55vw,12px) !important;
+    min-height:64px !important;
+  }
+  .site-header .nav-wrapper > .brand {
+    flex:0 1 clamp(175px,17vw,275px) !important;
+    width:clamp(175px,17vw,275px) !important;
+    min-width:0 !important;
+    max-width:275px !important;
+    order:1 !important;
+    margin:0 !important;
+  }
+  .site-header .nav-wrapper > .brand .brand-symbol {
+    width:clamp(35px,3vw,48px) !important;
+    min-width:clamp(35px,3vw,48px) !important;
+    height:48px !important;
+  }
+  .site-header .nav-wrapper > .brand .brand-name strong {
+    font-size:clamp(11px,1vw,16px) !important;
+    line-height:1.05 !important;
+  }
+  .site-header .nav-wrapper > .header-phone {
+    display:inline-flex !important;
+    order:2 !important;
+    padding:0 9px !important;
+    font-size:clamp(9px,.73vw,11px) !important;
+    min-height:34px !important;
+  }
+  .site-header .nav-wrapper > .main-menu,
+  .site-header .nav-wrapper > .main-menu.open {
+    position:static !important;
+    inset:auto !important;
+    display:flex !important;
+    flex:1 1 auto !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    max-height:none !important;
+    order:3 !important;
+    gap:clamp(5px,.53vw,13px) !important;
+    padding:0 !important;
+    margin:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    overflow:visible !important;
+  }
+  .site-header .nav-wrapper > .main-menu a:not(.assistance-menu-link):not(.collaborator-menu-link):not(.associate-menu-link),
+  .site-header .nav-wrapper > .main-menu.open a:not(.assistance-menu-link):not(.collaborator-menu-link):not(.associate-menu-link) {
+    display:inline-flex !important;
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-height:36px !important;
+    align-items:center !important;
+    padding:8px 0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    color:#fff !important;
+    font-size:clamp(8px,.64vw,11px) !important;
+    font-weight:800 !important;
+    text-transform:uppercase !important;
+    white-space:nowrap !important;
+  }
+  .site-header .nav-wrapper > .header-cta {
+    display:inline-flex !important;
+    flex:0 0 auto !important;
+    order:4 !important;
+    min-height:35px !important;
+    padding:0 clamp(8px,.8vw,15px) !important;
+    font-size:clamp(9px,.7vw,11px) !important;
+  }
+  .site-header .nav-wrapper > .header-collaborator {
+    display:inline-flex !important;
+    order:5 !important;
+    flex:0 0 auto !important;
+    min-height:35px !important;
+    padding:0 clamp(8px,.7vw,14px) !important;
+    font-size:clamp(9px,.7vw,11px) !important;
+  }
+  .site-header .nav-wrapper > .header-associate,
+  .site-header .nav-wrapper > .menu-toggle {
+    display:none !important;
+    visibility:hidden !important;
+  }
+}
+@media (min-width:1100px) and (max-width:1280px) {
+  .site-header .nav-wrapper > .header-phone {display:none !important;}
+  .site-header .nav-wrapper > .brand {flex-basis:175px !important;}
+}
+@media (min-width:761px) and (max-width:1099px) {
+  .site-header .nav-wrapper > .main-menu {display:none !important;}
+  .site-header .nav-wrapper > .menu-toggle {display:grid !important;}
+}
