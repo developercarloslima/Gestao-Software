@@ -599,3 +599,16 @@ body,
     background-position: center, 64% 0;
   }
 }
+
+/* A nova marca já tem transparência alfa: não adicionar placa de fundo. */
+.brand__logo {
+  display:block;
+  background:transparent !important;
+  box-shadow:none !important;
+  border:0 !important;
+  padding:0 !important;
+  object-fit:contain;
+}
+:root[data-theme='light'] .brand__logo {
+  filter:drop-shadow(0 1px 1px rgba(6,22,74,.52));
+}
