@@ -77,7 +77,7 @@ public class GestaoTenantConfigService {
     // Consulta em segundo plano: acorda a API central no Render Free e
     // atualiza a configuração mesmo sem o usuário recarregar a página.
     // Uma falha de rede NUNCA cria licença nem substitui os dados de outro host.
-    @Scheduled(fixedDelay = 45000, initialDelay = 10000)
+    @Scheduled(fixedDelay = 20000, initialDelay = 8000)
     public void refreshFromGestao() {
         synchronized (this) {
             Map<String,Object> remote = fetchRemote();
@@ -90,7 +90,7 @@ public class GestaoTenantConfigService {
         Map<String,Object> immutable = Collections.unmodifiableMap(new LinkedHashMap<>(remote));
         persist(immutable);
         cached = immutable;
-        cachedUntil = Instant.now().plusSeconds(cacheSeconds);
+        cachedUntil = Instant.now().plusSeconds(Math.min(cacheSeconds, 15));
     }
 
     private Map<String,Object> fetchRemote() {
