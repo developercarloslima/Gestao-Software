@@ -22,7 +22,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
-                        .requestMatchers("/api/health", "/api/health/tenant", "/api/auth/login", "/api/auth/face/**", "/api/auth/passkey/**").permitAll()
+                        .requestMatchers("/api/health", "/api/health/tenant", "/api/auth/login", "/api/auth/password-reset/**", "/api/auth/face/**", "/api/auth/passkey/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/quotes/*/pdf").permitAll()
                         .requestMatchers("/api/auth/**").authenticated()
