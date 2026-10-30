@@ -22,7 +22,7 @@ public class PlatformManagementService {
     private static final Set<String> PLATFORM_OWNERS = Set.of("carlos.lima", "pedro.henrique");
     private static final Set<String> INVOICE_STATUSES = Set.of("PENDING", "PAID", "OVERDUE", "CANCELLED");
     private static final Set<String> PAYMENT_METHODS = Set.of("PIX_AUTOMATICO", "DEBITO_AUTOMATICO", "BOLETO");
-    private static final Set<String> FILE_PURPOSES = Set.of("LOGO", "VISUAL_IDENTITY_PDF");
+    private static final Set<String> FILE_PURPOSES = Set.of("LOGO", "VISUAL_IDENTITY_PDF", "SITE_SOURCE_ZIP");
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100.00");
     private static final BigDecimal VPS_ALERT_PERCENT = new BigDecimal("80.00");
     private static final BigDecimal VPS_CRITICAL_PERCENT = new BigDecimal("90.00");
@@ -570,6 +570,15 @@ public class PlatformManagementService {
         if ("LOGO".equals(purpose)) {
             if (!type.startsWith("image/")) throw new IllegalArgumentException("A logo precisa ser uma imagem.");
             if (content.length > 5 * 1024 * 1024) throw new IllegalArgumentException("A logo deve ter no máximo 5 MB.");
+        } else if ("SITE_SOURCE_ZIP".equals(purpose)) {
+            if (!String.valueOf(originalName).toLowerCase(Locale.ROOT).endsWith(".zip"))
+                throw new IllegalArgumentException("O código do site precisa ser enviado em .zip.");
+            if (content.length > 25 * 1024 * 1024)
+                throw new IllegalArgumentException("O ZIP do site deve ter no máximo 25 MB.");
+            if (content.length < 4 || content[0] != 'P' || content[1] != 'K')
+                throw new IllegalArgumentException("Arquivo ZIP inválido.");
+            validateSiteZipArchive(content);
+            type = "application/zip";
         } else {
             if (!"application/pdf".equals(type)) throw new IllegalArgumentException("A identidade visual precisa ser enviada em PDF.");
             if (content.length > 20 * 1024 * 1024) throw new IllegalArgumentException("O PDF deve ter no máximo 20 MB.");
@@ -592,6 +601,40 @@ public class PlatformManagementService {
             jdbc.update("UPDATE platform_companies SET logo_url=?, updated_at=NOW() WHERE id=?", "/api/public/platform/files/" + fileId, companyId);
         }
         return getCompany(companyId);
+    }
+
+    /**
+     * Apenas armazena e valida o pacote; não extrai em diretórios web nem executa scripts.
+     * Revisão/implantação em hospedagem separada é etapa humana posterior.
+     */
+    private static void validateSiteZipArchive(byte[] content) {
+        long expanded = 0;
+        int entries = 0;
+        boolean hasFile = false;
+        byte[] buffer = new byte[8192];
+        try (java.util.zip.ZipInputStream zip = new java.util.zip.ZipInputStream(
+                new java.io.ByteArrayInputStream(content))) {
+            java.util.zip.ZipEntry entry;
+            while ((entry = zip.getNextEntry()) != null) {
+                if (++entries > 2000) throw new IllegalArgumentException("ZIP com excesso de arquivos.");
+                String name = entry.getName();
+                if (name == null || name.startsWith("/") || name.startsWith("\\")
+                        || name.indexOf('\\') >= 0 || name.indexOf((char)0) >= 0
+                        || java.util.Arrays.asList(name.split("/")).contains(".."))
+                    throw new IllegalArgumentException("ZIP contém caminhos inseguros.");
+                if (!entry.isDirectory()) hasFile = true;
+                int read;
+                while ((read = zip.read(buffer)) != -1) {
+                    expanded += read;
+                    if (expanded > 120L * 1024 * 1024)
+                        throw new IllegalArgumentException("ZIP descompactado excede 120 MB.");
+                }
+                zip.closeEntry();
+            }
+        } catch (java.io.IOException e) {
+            throw new IllegalArgumentException("ZIP corrompido ou incompatível.", e);
+        }
+        if (!hasFile) throw new IllegalArgumentException("ZIP não contém arquivos de site.");
     }
 
     @Transactional(readOnly = true)
