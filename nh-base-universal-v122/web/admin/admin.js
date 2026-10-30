@@ -525,6 +525,7 @@ function showLogin(text = '') {
   clearSession();
   $('admin-login').hidden = false;
   $('admin-view').hidden = true;
+  $('admin-first-password').hidden = true;
   $('logout').hidden = true;
   const box = $('admin-login-message');
   box.className = text ? 'message error' : '';
@@ -537,15 +538,40 @@ function showAdmin() {
   $('logout').hidden = false;
 }
 
+function showFirstPassword() {
+  $('admin-login').hidden = true;
+  $('admin-view').hidden = true;
+  $('admin-first-password').hidden = false;
+  $('logout').hidden = true;
+  $('admin-first-message').textContent = '';
+}
 async function api(path, options = {}) {
   const headers = new Headers(options.headers || {});
   if (token) headers.set('Authorization', `Bearer ${token}`);
   const response = await fetch(window.NH_API?.backend(path) || path, { ...options, headers });
-  if (token && (response.status === 401 || response.status === 403)) {
+  if (token && response.status === 401) {
     showLogin('Sua sessão administrativa expirou. Entre novamente.');
     const error = new Error('Sessão administrativa inválida.');
     error.authExpired = true;
     throw error;
+  }
+  if (token && response.status === 403) {
+    const stillActive = path === '/api/auth/me' ? false : await adminSessionStillValid();
+    if (!stillActive) {
+      showLogin('Sessão administrativa inválida. Entre novamente.');
+      const error = new Error('Sessão administrativa inválida.');
+      error.authExpired = true;
+      throw error;
+    }
+    const me = await api('/api/auth/me');
+    if (me?.passwordChangeRequired) {
+      showFirstPassword();
+      const err = new Error('Troque a senha temporária antes de acessar o painel.');
+      err.passwordChangeRequired = true;
+      throw err;
+    }
+    const body = await response.json().catch(()=>null);
+    throw new Error(body?.message || 'Seu perfil não tem permissão para esta operação. A sessão continua ativa.');
   }
   if (!response.ok) {
     const body = await response.json().catch(() => null);
@@ -3625,13 +3651,42 @@ $('admin-login-form').addEventListener('submit', async event => {
     const nhPontoAllowed = true;
     document.querySelector('[data-tab="nh-ponto"]')?.toggleAttribute('hidden', !nhPontoAllowed);
     if ($('tab-nh-ponto')) $('tab-nh-ponto').dataset.accessAllowed = nhPontoAllowed ? 'true' : 'false';
+    if (body.passwordChangeRequired) { showFirstPassword(); return; }
     showAdmin();
     await load();
   } catch (error) {
+    if (error.passwordChangeRequired) return;
     clearSession();
     box.className = 'message error';
     box.textContent = error.message;
   }
+});
+
+$('admin-first-cancel').addEventListener('click',()=>showLogin());
+$('admin-first-password-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const box=$('admin-first-message');
+  box.className='';
+  const current=$('admin-first-current').value;
+  const next=$('admin-first-new').value;
+  if(next !== $('admin-first-confirm').value){
+    box.textContent='A confirmação deve ser igual à nova senha.';return;
+  }
+  if(next.length<8 || next===current){
+    box.textContent='Use uma nova senha com pelo menos 8 caracteres, diferente da atual.';return;
+  }
+  const button=event.target.querySelector('button[type=submit]');
+  button.disabled=true;
+  try{
+    await api('/api/auth/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({currentPassword:current,newPassword:next})});
+    event.target.reset();
+    $('admin-first-password').hidden=true;
+    showAdmin();
+    await load();
+  }catch(error){
+    box.className='message error';
+    box.textContent=error.message;
+  }finally{button.disabled=false;}
 });
 
 $('consultant-form').addEventListener('submit', async event => {
@@ -4843,9 +4898,11 @@ async function boot() {
     const nhPontoAllowed = true;
     document.querySelector('[data-tab="nh-ponto"]')?.toggleAttribute('hidden', !nhPontoAllowed);
     if ($('tab-nh-ponto')) $('tab-nh-ponto').dataset.accessAllowed = nhPontoAllowed ? 'true' : 'false';
+    if (me.passwordChangeRequired) { showFirstPassword(); return; }
     showAdmin();
     await load();
   } catch (error) {
+    if (error?.passwordChangeRequired) return;
     if (!error?.authExpired && $('admin-login').hidden) showLogin(error.message);
   }
 }
