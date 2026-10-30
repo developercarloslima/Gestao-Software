@@ -26,12 +26,12 @@
 
     menu.querySelectorAll('a, button').forEach((control) => {
       control.addEventListener('click', () => {
-        if (window.innerWidth < 1180) closeMenu();
+        closeMenu();
       });
     });
 
     document.addEventListener('click', (event) => {
-      if (window.innerWidth >= 1180 || !menu.classList.contains('is-open')) return;
+      if (!menu.classList.contains('is-open')) return;
       if (!header.contains(event.target)) closeMenu();
     });
 
@@ -40,7 +40,7 @@
     });
 
     window.addEventListener('resize', () => {
-      if (window.innerWidth >= 1180) closeMenu();
+      closeMenu();
     }, { passive: true });
   });
 })();
