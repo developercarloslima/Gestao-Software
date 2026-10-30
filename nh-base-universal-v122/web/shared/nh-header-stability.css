@@ -242,3 +242,42 @@
   .site-header .main-menu.open .collaborator-menu-link,
   .site-header .main-menu.open .associate-menu-link { display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; border-radius: 10px !important; background: var(--nh-yellow, #f0f000) !important; color: var(--nh-blue, #070c40) !important; font-weight: 900 !important; }
 }
+
+/* White-label 2026-10-30: nomes longos nunca se sobrepõem às ações. */
+.site-header .brand {
+  min-width:0 !important;
+  max-width:100% !important;
+}
+.site-header .brand-name {
+  display:flex !important;
+  flex-direction:column !important;
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+}
+.site-header .brand-name strong {
+  display:-webkit-box !important;
+  -webkit-box-orient:vertical !important;
+  -webkit-line-clamp:2 !important;
+  white-space:normal !important;
+  overflow:hidden !important;
+  overflow-wrap:anywhere !important;
+  line-height:1.1 !important;
+  max-width:100% !important;
+}
+.site-header .brand-name small {
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  max-width:100% !important;
+}
+@media(min-width:1600px){
+  .site-header .brand {max-width:244px !important;}
+}
+@media(min-width:761px) and (max-width:1599px){
+  .site-header .brand {max-width:min(44vw,490px) !important;}
+}
+@media(max-width:760px){
+  .site-header .brand {max-width:calc(100% - 110px) !important;}
+}
