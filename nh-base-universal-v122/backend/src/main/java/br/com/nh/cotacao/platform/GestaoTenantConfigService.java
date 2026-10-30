@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -18,7 +21,8 @@ import java.util.*;
 
 @Service
 public class GestaoTenantConfigService {
-    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
+    private static final Logger log = LoggerFactory.getLogger(GestaoTenantConfigService.class);
+    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(6)).build();
     private final ObjectMapper mapper;
     private final JdbcTemplate jdbc;
     private final String baseUrl;
@@ -52,11 +56,7 @@ public class GestaoTenantConfigService {
 
             Map<String,Object> remote = fetchRemote();
             if (remote != null) {
-                remote.put("source", "GESTAO_CONTROL");
-                Map<String,Object> immutable = Collections.unmodifiableMap(new LinkedHashMap<>(remote));
-                persist(immutable);
-                cached = immutable;
-                cachedUntil = Instant.now().plusSeconds(cacheSeconds);
+                storeRemote(remote);
                 return cached;
             }
 
@@ -64,7 +64,7 @@ public class GestaoTenantConfigService {
             if (persisted != null) {
                 persisted.put("source", "LOCAL_LAST_CONFIRMED");
                 cached = Collections.unmodifiableMap(new LinkedHashMap<>(persisted));
-                cachedUntil = Instant.now().plusSeconds(Math.max(30, Math.min(cacheSeconds, 300)));
+                cachedUntil = Instant.now().plusSeconds(15);
                 return cached;
             }
 
@@ -74,12 +74,31 @@ public class GestaoTenantConfigService {
         }
     }
 
+    // Consulta em segundo plano: acorda a API central no Render Free e
+    // atualiza a configuração mesmo sem o usuário recarregar a página.
+    // Uma falha de rede NUNCA cria licença nem substitui os dados de outro host.
+    @Scheduled(fixedDelay = 45000, initialDelay = 10000)
+    public void refreshFromGestao() {
+        synchronized (this) {
+            Map<String,Object> remote = fetchRemote();
+            if (remote != null) storeRemote(remote);
+        }
+    }
+
+    private void storeRemote(Map<String,Object> remote) {
+        remote.put("source", "GESTAO_CONTROL");
+        Map<String,Object> immutable = Collections.unmodifiableMap(new LinkedHashMap<>(remote));
+        persist(immutable);
+        cached = immutable;
+        cachedUntil = Instant.now().plusSeconds(cacheSeconds);
+    }
+
     private Map<String,Object> fetchRemote() {
         try {
             String url = baseUrl + "/api/public/platform/branding?host="
                     + URLEncoder.encode(tenantHost, StandardCharsets.UTF_8);
             HttpRequest req = HttpRequest.newBuilder(URI.create(url))
-                    .timeout(Duration.ofSeconds(5))
+                    .timeout(Duration.ofSeconds(12))
                     .GET()
                     .build();
             HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
@@ -99,11 +118,16 @@ public class GestaoTenantConfigService {
                     data.put("siteContent",site);
                 }
                 // Respostas sem empresa vinculada não substituem uma licença já confirmada.
-                if (data.get("companyId") == null && !Boolean.FALSE.equals(data.get("active"))) return null;
+                if (data.get("companyId") == null && !Boolean.FALSE.equals(data.get("active"))) {
+                    log.warn("Gestao nao identificou empresa para o host configurado (HTTP 200).");
+                    return null;
+                }
                 return data;
             }
-        } catch (Exception ignored) {
-            // Falha do Control Plane não derruba a empresa: usamos a última configuração persistida.
+            log.warn("Consulta de branding na Gestao retornou HTTP {} para o host configurado.", res.statusCode());
+        } catch (Exception e) {
+            // Nunca registrar token, dados da empresa nem credenciais.
+            log.warn("Sem comunicacao com a Gestao: {}. Nova tentativa automatica.", e.getClass().getSimpleName());
         }
         return null;
     }
