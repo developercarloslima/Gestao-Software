@@ -83,6 +83,9 @@ public class InspectionAcceptanceWorkflowService {
         Progress before = progress(inspection);
         if (before.allAccepted()) throw new IllegalArgumentException("Os três aceites já estão concluídos.");
         if (!before.expired()) throw new IllegalArgumentException("O prazo de 7 dias ainda está válido; não é permitido renová-lo.");
+        // Renovar o fluxo abre nova análise da fila, sem fabricar assinatura.
+        inspection.clearManualAcceptanceQueueMove();
+        inspections.saveAndFlush(inspection);
         OffsetDateTime now = OffsetDateTime.now();
         if (inspection.getAcceptedAt() == null) {
             inspection.renewPendingAcceptance(securePublicToken(), now);
