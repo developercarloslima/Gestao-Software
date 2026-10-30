@@ -153,3 +153,20 @@ body.gestao-contract .meta div { background: var(--gs-card-alt); }
 body.gestao-contract .contract-text { color: var(--gs-text); }
 body.gestao-contract .status:not(.signed) { background: var(--gs-blue-soft); color: var(--gs-blue); }
 @media(max-width: 520px) { .gestao-theme-toggle { padding: 8px; font-size: 12px; } }
+
+/* Gestão 2026 — imagem PNG transparente, sem fundo preto no login e Control Plane.
+   A leve sombra preserva legibilidade da tipografia branca no tema claro. */
+body.gestao-login .login > img,
+.platform-header .brand-lockup img,
+.company-action-brand img {
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  object-fit:contain !important;
+}
+:root:not([data-theme='dark']) body.gestao-login .login > img,
+:root:not([data-theme='dark']) .platform-header .brand-lockup img,
+:root:not([data-theme='dark']) .company-action-brand img {
+  filter:drop-shadow(0 1px 1px rgba(6,22,74,.55));
+}
