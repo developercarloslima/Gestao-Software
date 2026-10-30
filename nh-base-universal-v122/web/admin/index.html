@@ -821,6 +821,23 @@
             </p>
           </div>
         </div>
+        <div class="card settings-card" id="employee-excel-import-card">
+          <h3>Importar funcionários por Excel</h3>
+          <p class="helper">Envie uma planilha .xlsx com as colunas <strong>Nome</strong> e <strong>Cargo</strong>. A coluna <strong>Usuário</strong> é opcional. O sistema apresenta uma prévia, valida a função e cria contas apenas após sua confirmação. Cada funcionário recebe senha temporária e será obrigado a trocá-la no primeiro login. Contas existentes não são sobrescritas.</p>
+          <form id="employee-excel-import-form" class="form-grid">
+            <label>Planilha de funcionários (.xlsx, até 500 linhas)
+              <input id="employee-excel-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+            </label>
+            <div class="actions"><button class="secondary" type="submit">Analisar planilha</button></div>
+          </form>
+          <div id="employee-excel-preview" hidden>
+            <p id="employee-excel-totals"></p>
+            <div class="table-wrap"><table><thead><tr><th>Linha</th><th>Nome</th><th>Cargo</th><th>Usuário</th><th>Situação</th></tr></thead><tbody id="employee-excel-rows"></tbody></table></div>
+            <label><input type="checkbox" id="employee-excel-confirm-check"> Confirmei nomes, cargos e usuários. Autorizo criar as contas.</label>
+            <div class="actions"><button id="employee-excel-confirm" class="primary" type="button" disabled>Criar usuários da planilha</button></div>
+          </div>
+          <p id="employee-excel-message" role="status" aria-live="polite"></p>
+        </div>
         <div class="card settings-card">
           <h3 style="margin-top: 0">Destinos de envio</h3>
           <div class="settings-row">
@@ -2014,7 +2031,7 @@
     <script src="/shared/money-input.js?v=20260805-brl-mask"></script>
     <script src="/shared/inspection-documents.js?v=20261016-v83-129"></script>
 <script src="/shared/fipe-picker.js?v=20261016-v83-137"></script>
-<script src="/admin/admin.js?v=20261030-first-login-v2"></script>
+<script src="/admin/admin.js?v=20261030-employees-xlsx-v3"></script>
     <script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
   
   <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">
