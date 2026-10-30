@@ -270,6 +270,21 @@ public class PortalUserService {
         return toResponse(saved);
     }
 
+    /** Importação apenas no banco deste tenant; nunca sobrescreve contas existentes. */
+    @Transactional
+    public PortalUserResponse createImported(String login,String name,PortalRole role,
+            String temporaryPassword,String adminUsername) {
+        UUID collaboratorId=null;
+        String newCollaboratorName=role==PortalRole.CONSULTANT
+                ||role==PortalRole.ANALYST||role==PortalRole.SUPERVISION_ANALYSIS?name:null;
+        PortalUserResponse created=create(new CreatePortalUserRequest(login,name,temporaryPassword,
+                role,collaboratorId,newCollaboratorName),adminUsername);
+        PortalUser account=find(created.id());
+        account.requirePasswordChange();
+        repository.saveAndFlush(account);
+        return toResponse(account);
+    }
+
     @Transactional
     public PortalUserResponse update(UUID id, UpdatePortalUserRequest request, String adminUsername) {
         PortalUser user = find(id);
