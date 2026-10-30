@@ -319,7 +319,7 @@
     visibility:hidden !important;
   }
 }
-@media (min-width:1100px) and (max-width:1280px) {
+@media (min-width:1100px) and (max-width:1160px) {
   .site-header .nav-wrapper > .header-phone {display:none !important;}
   .site-header .nav-wrapper > .brand {flex-basis:175px !important;}
 }
