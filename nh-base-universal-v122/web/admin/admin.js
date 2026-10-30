@@ -891,26 +891,33 @@ function confirmAction(title, text, confirmLabel = 'Confirmar') {
   });
 }
 
+async function optionalModuleData(path, fallback=[]) {
+  try { return await api(path); }
+  catch(error){
+    if(/Módulo não contratado|MODULE_DISABLED|Módulo desativado/i.test(String(error.message||'')))return fallback;
+    throw error;
+  }
+}
 async function load() {
   clearMessage();
   try {
     const result = await Promise.all([
-      api('/api/admin/consultants'),
+      optionalModuleData('/api/admin/consultants'),
       api('/api/admin/commercial/consultants').catch(() => []),
       api('/api/admin/users'),
-      api('/api/admin/quotes'),
-      api('/api/admin/inspections'),
-      api('/api/checklist/events'),
-      api('/api/workshop/events'),
-      api('/api/procurement/events'),
-      api('/api/tow/records'),
-      api('/api/admin/catalog/categories'),
-      api('/api/admin/catalog/prices'),
-      api('/api/admin/catalog/promotional-motorcycle-prices'),
-      api('/api/admin/catalog/plans'),
-      api('/api/admin/catalog/discounts'),
-      api('/api/admin/catalog/benefits'),
-      api('/api/admin/catalog/coverages'),
+      optionalModuleData('/api/admin/quotes'),
+      optionalModuleData('/api/admin/inspections'),
+      optionalModuleData('/api/checklist/events'),
+      optionalModuleData('/api/workshop/events'),
+      optionalModuleData('/api/procurement/events'),
+      optionalModuleData('/api/tow/records'),
+      optionalModuleData('/api/admin/catalog/categories'),
+      optionalModuleData('/api/admin/catalog/prices'),
+      optionalModuleData('/api/admin/catalog/promotional-motorcycle-prices'),
+      optionalModuleData('/api/admin/catalog/plans'),
+      optionalModuleData('/api/admin/catalog/discounts'),
+      optionalModuleData('/api/admin/catalog/benefits'),
+      optionalModuleData('/api/admin/catalog/coverages'),
       api('/api/admin/catalog/audit'),
       api('/api/admin/settings/communications'),
       api('/api/admin/settings/regulation'),
