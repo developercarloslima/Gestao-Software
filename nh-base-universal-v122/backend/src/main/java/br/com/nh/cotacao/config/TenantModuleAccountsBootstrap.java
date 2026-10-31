@@ -25,7 +25,7 @@ public class TenantModuleAccountsBootstrap {
     @Scheduled(initialDelay=35000,fixedDelay=180000)
     public void provision() {
         if(gestao.enabled("COTA")) {
-            users.bootstrapTenantModuleUser("consultor","Consultor padrão",PortalRole.CONSULTANT,password);
+            users.bootstrapTenantModuleUser("colaborador","Colaborador",PortalRole.CONSULTANT,password);
         }
         if(gestao.enabled("VISTORIA_EVENTOS")) {
             users.bootstrapTenantModuleUser("analista","Analista padrão",PortalRole.ANALYST,password);

@@ -632,7 +632,7 @@ async function api(path, options = {}) {
   if (!response.ok) {
     const body = await response.json().catch(() => null);
 
-    if (!isSelfService && (response.status === 401 || response.status === 403)) {
+    if (!isSelfService && response.status === 401) {
       redirectToPortalLogin('Sua sessão expirou. Entre novamente para continuar a cotação.');
       const error = new Error('Sua sessão expirou. Entre novamente para continuar.');
       error.authExpired = true;

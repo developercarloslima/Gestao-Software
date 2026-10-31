@@ -313,6 +313,9 @@ public class PortalUserService {
 
         UUID nextConsultantId = resolveConsultantForUpdate(user, nextRole, request.consultantId(), request.newConsultantName(), adminUsername);
         String nextUsername = requestedUsername == null || requestedUsername.isBlank() ? user.getUsername() : requestedUsername;
+        if (isGestaoModuleAccount(user) && !nextUsername.equals(user.getUsername())) {
+            throw new IllegalArgumentException("O login genérico do módulo é fixo. Altere apenas a senha pelo painel.");
+        }
         String displayName = request.displayName();
         if (displayName == null || displayName.isBlank()) {
             displayName = normalizeDisplayName(null, nextUsername, nextConsultantId);
@@ -457,6 +460,8 @@ public class PortalUserService {
     @Transactional
     public void bootstrapConsultantAccounts() {
         consultantRepository.findByActiveTrueAndRoleOrderByNameAsc(CollaboratorRole.CONSULTANT)
+                .stream()
+                .filter(consultant -> !"GESTAO_MODULE_BOOTSTRAP".equals(consultant.getSource()))
                 .forEach(consultant -> ensureConsultantAccount(consultant.getId()));
     }
 
@@ -618,10 +623,10 @@ public class PortalUserService {
     }
 
     /**
-     * Contas genéricas por módulo, idempotentes e exclusivas do banco tenant.
-     * Nunca redefinem senha, perfil ou vínculo de uma conta existente.
-     * Contas genéricas usam a senha padrão até que o ADM a altere; contas
-     * pessoais criadas/importadas pelo ADM e o administrador inicial exigem troca.
+     * Contas de módulo são compartilhadas: não representam um colaborador
+     * específico. A seleção da pessoa ocorre no portal e as atividades usam
+     * o ID do consultor escolhido, também visível no login individual dele.
+     * Backfills preservam a senha escolhida pelo ADM e nunca alteram contas pessoais.
      */
     @Transactional
     public void bootstrapTenantModuleUser(String username, String displayName,
@@ -630,29 +635,51 @@ public class PortalUserService {
             throw new IllegalArgumentException("Senha temporária precisa de 8+ caracteres.");
         String normalized = PortalUser.normalizeUsername(username);
         Optional<PortalUser> current = repository.findByNormalizedUsername(normalized);
+
+        // Migra o login genérico antigo sem perder senha, passkey ou histórico.
+        if (current.isEmpty() && role == PortalRole.CONSULTANT && "colaborador".equals(normalized)) {
+            Optional<PortalUser> old = repository.findByNormalizedUsername("consultor");
+            if (old.isPresent() && isGestaoModuleAccount(old.get())
+                    && old.get().getRole() == PortalRole.CONSULTANT) {
+                PortalUser generic = old.get();
+                generic.updateProfile("colaborador", displayName, role);
+                generic.linkConsultant(null);
+                generic.clearPasswordChangeRequirement();
+                repository.save(generic);
+                return;
+            }
+        }
+
         if (current.isPresent()) {
             PortalUser existing = current.get();
-            // Backfill seguro: inclui empresas já cadastradas sem resetar senha
-            // ou mudar contas pessoais que ocupem o mesmo login.
-            if ("GESTAO_MODULE_BOOTSTRAP".equals(existing.getCreatedBy())
-                    && existing.getRole() == role && existing.isMustChangePassword()) {
-                existing.clearPasswordChangeRequirement();
-                repository.save(existing);
+            if (isGestaoModuleAccount(existing) && existing.getRole() == role) {
+                // Versões anteriores vinculavam contas genéricas a pessoas fictícias.
+                // Nunca associar o login compartilhado ao histórico de uma pessoa.
+                boolean changed = false;
+                if (existing.getConsultantId() != null) {
+                    existing.linkConsultant(null);
+                    changed = true;
+                }
+                if (existing.isMustChangePassword()) {
+                    existing.clearPasswordChangeRequirement();
+                    changed = true;
+                }
+                if (!displayName.equals(existing.getDisplayName())) {
+                    existing.updateProfile(null, displayName, null);
+                    changed = true;
+                }
+                if (changed) repository.save(existing);
             }
             return;
         }
+
         PortalUser user = PortalUser.create(username, displayName,
                 encoder.encode(temporaryPassword), role, "GESTAO_MODULE_BOOTSTRAP");
-        if (role == PortalRole.CONSULTANT || role == PortalRole.ANALYST
-                || role == PortalRole.SUPERVISION_ANALYSIS) {
-            CollaboratorRole teamRole = CollaboratorRole.valueOf(role.name());
-            Consultant member = consultantRepository.findByNormalizedName(Consultant.normalize(displayName))
-                    .orElseGet(() -> consultantRepository.save(
-                            Consultant.create(displayName, "GESTAO_MODULE_BOOTSTRAP", teamRole)));
-            if(member.getRole()!=teamRole)throw new IllegalStateException("Colaborador genérico já vinculado a outro cargo.");
-            user.linkConsultant(member.getId());
-        }
         repository.save(user);
+    }
+
+    private boolean isGestaoModuleAccount(PortalUser user) {
+        return user != null && "GESTAO_MODULE_BOOTSTRAP".equals(user.getCreatedBy());
     }
 
     @Transactional
@@ -703,6 +730,15 @@ public class PortalUserService {
             String newCollaboratorName,
             String adminUsername
     ) {
+        if (isGestaoModuleAccount(user)) {
+            if (nextRole != user.getRole()) {
+                throw new IllegalArgumentException("O cargo da conta genérica é definido pelo módulo contratado.");
+            }
+            if (collaboratorId != null || (newCollaboratorName != null && !newCollaboratorName.isBlank())) {
+                throw new IllegalArgumentException("A conta genérica não pode ser vinculada a uma pessoa específica.");
+            }
+            return null;
+        }
         if (nextRole != PortalRole.CONSULTANT && nextRole != PortalRole.ANALYST && nextRole != PortalRole.SUPERVISION_ANALYSIS) return null;
 
         UUID resolved = resolveCollaborator(nextRole, collaboratorId, newCollaboratorName, adminUsername);
@@ -710,7 +746,8 @@ public class PortalUserService {
             // Os usuários padrão criados no bootstrap podem continuar sem vínculo específico.
             if (user.getRole() == nextRole
                     && user.getConsultantId() == null
-                    && "BOOTSTRAP".equalsIgnoreCase(user.getCreatedBy())) {
+                    && ("BOOTSTRAP".equalsIgnoreCase(user.getCreatedBy())
+                        || isGestaoModuleAccount(user))) {
                 return null;
             }
             if (user.getRole() == nextRole) resolved = user.getConsultantId();
