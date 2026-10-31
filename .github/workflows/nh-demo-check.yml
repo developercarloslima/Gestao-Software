@@ -22,6 +22,11 @@ jobs:
           python-version: "3.12"
       - name: Validar layout, seguranca e isolamento da base universal
         run: python3 nh-base-universal-v122/ci/test_v122_integrations.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Testar acesso do Associado no cabeçalho
+        run: node --test nh-base-universal-v122/web/tests/header-area-associado.test.cjs
       - name: Validar sintaxe e isolamento do Blueprint
         run: |
           python3 -m pip install pyyaml
