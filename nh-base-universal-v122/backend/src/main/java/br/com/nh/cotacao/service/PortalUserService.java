@@ -262,6 +262,8 @@ public class PortalUserService {
                 request.username(), displayName, encoder.encode(request.password()), request.role(), adminUsername
         );
         user.linkConsultant(consultantId);
+        // Contas pessoais criadas pelo ADM sempre trocam a senha no primeiro acesso.
+        user.requirePasswordChange();
         PortalUser saved = repository.save(user);
         auditRepository.save(CatalogChangeAudit.createText(
                 "PORTAL_USER", null, saved.getId().toString(),
@@ -616,9 +618,10 @@ public class PortalUserService {
     }
 
     /**
-     * Contas de demonstração por módulo, idempotentes e exclusivas do banco tenant.
-     * Nunca alteram senha ou cargo de usuário existente.
-     * Toda conta criada exige nova senha antes de usar as rotas do módulo.
+     * Contas genéricas por módulo, idempotentes e exclusivas do banco tenant.
+     * Nunca redefinem senha, perfil ou vínculo de uma conta existente.
+     * Contas genéricas usam a senha padrão até que o ADM a altere; contas
+     * pessoais criadas/importadas pelo ADM e o administrador inicial exigem troca.
      */
     @Transactional
     public void bootstrapTenantModuleUser(String username, String displayName,
@@ -626,7 +629,18 @@ public class PortalUserService {
         if (temporaryPassword == null || temporaryPassword.length() < 8)
             throw new IllegalArgumentException("Senha temporária precisa de 8+ caracteres.");
         String normalized = PortalUser.normalizeUsername(username);
-        if (repository.findByNormalizedUsername(normalized).isPresent()) return;
+        Optional<PortalUser> current = repository.findByNormalizedUsername(normalized);
+        if (current.isPresent()) {
+            PortalUser existing = current.get();
+            // Backfill seguro: inclui empresas já cadastradas sem resetar senha
+            // ou mudar contas pessoais que ocupem o mesmo login.
+            if ("GESTAO_MODULE_BOOTSTRAP".equals(existing.getCreatedBy())
+                    && existing.getRole() == role && existing.isMustChangePassword()) {
+                existing.clearPasswordChangeRequirement();
+                repository.save(existing);
+            }
+            return;
+        }
         PortalUser user = PortalUser.create(username, displayName,
                 encoder.encode(temporaryPassword), role, "GESTAO_MODULE_BOOTSTRAP");
         if (role == PortalRole.CONSULTANT || role == PortalRole.ANALYST
@@ -638,7 +652,6 @@ public class PortalUserService {
             if(member.getRole()!=teamRole)throw new IllegalStateException("Colaborador genérico já vinculado a outro cargo.");
             user.linkConsultant(member.getId());
         }
-        user.requirePasswordChange();
         repository.save(user);
     }
 
@@ -762,6 +775,7 @@ public class PortalUserService {
                 || "WORKSHOP_BOOTSTRAP".equals(source)
                 || "EVENT_BOOTSTRAP".equals(source)
                 || "BUYER_BOOTSTRAP".equals(source)
+                || "GESTAO_MODULE_BOOTSTRAP".equals(source)
                 || DEVELOPER_BOOTSTRAP.equals(source));
     }
 
