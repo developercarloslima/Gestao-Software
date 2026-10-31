@@ -39,8 +39,8 @@ async function api(path, options = {}) {
   const type = response.headers.get('content-type') || '';
   const body = type.includes('application/json') ? await response.json().catch(() => null) : await response.text().catch(() => '');
   if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
-      const text = response.status === 403 ? 'Acesso negado. Entre com o usuário exclusivo do Guincho/Reboque.' : 'Sua sessão expirou. Entre novamente.';
+    if (response.status === 401) {
+      const text = 'Sua sessão expirou. Entre novamente.';
       showLogin(text);
       throw new Error(text);
     }
@@ -54,7 +54,7 @@ async function apiBlob(path) {
   const headers = new Headers();
   if (token()) headers.set('Authorization', `Bearer ${token()}`);
   const response = await fetch(apiUrl(path), { headers, cache: 'no-store' });
-  if (!response.ok) { if (response.status === 401 || response.status === 403) showLogin('Entre novamente com o usuário do Guincho/Reboque.'); throw new Error('Não foi possível carregar a foto.'); }
+  if (!response.ok) { if (response.status === 401) showLogin('Sua sessão expirou. Entre novamente.'); throw new Error('Não foi possível carregar a foto.'); }
   markActivity();
   return response.blob();
 }

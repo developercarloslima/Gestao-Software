@@ -6,7 +6,7 @@ const pct=v=>`${Number(v||0).toFixed(2)}%`;
 const d=v=>v?new Date(String(v).slice(0,10)+'T12:00:00').toLocaleDateString('pt-BR'):'—';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let people=[];
-async function req(path,opt={}){const h={...(opt.headers||{})};const t=localStorage.getItem(T);if(t)h.Authorization=`Bearer ${t}`;if(opt.body&&!(opt.body instanceof FormData))h['Content-Type']='application/json';const r=await fetch(api(path),{...opt,headers:h});if(r.status===401||r.status===403){if(path!='/api/auth/login')logout();throw new Error(await err(r))}if(!r.ok)throw new Error(await err(r));return r.status===204?null:r.json()}
+async function req(path,opt={}){const h={...(opt.headers||{})};const t=localStorage.getItem(T);if(t)h.Authorization=`Bearer ${t}`;if(opt.body&&!(opt.body instanceof FormData))h['Content-Type']='application/json';const r=await fetch(api(path),{...opt,headers:h});if(r.status===401){if(path!='/api/auth/login')logout();throw new Error(await err(r))}if(!r.ok)throw new Error(await err(r));return r.status===204?null:r.json()}
 async function err(r){try{const j=await r.json();return j.message||j.detail||j.error||'Erro'}catch{return await r.text()||'Erro'}}
 function msg(id,t,e=true){const x=$(id);if(!x)return;x.textContent=t||'';x.className=t?`message ${e?'error':'success'}`:''}
 function logout(){localStorage.removeItem(T);localStorage.removeItem(R);$('app').hidden=true;$('login').hidden=false;$('logout').hidden=true}

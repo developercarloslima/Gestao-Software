@@ -92,7 +92,7 @@ async function api(path, options = {}) {
   const response = await fetch(window.NH_API?.backend(path) || path, { ...options, headers });
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
       redirectToLogin();
       const error = new Error('Sua sessão expirou. Entre novamente.');
       error.authExpired = true;

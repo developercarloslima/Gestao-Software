@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
+import br.com.nh.cotacao.entity.CollaboratorRole;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -23,13 +24,14 @@ import static org.mockito.Mockito.*;
 class PortalUserServiceTenantModuleBootstrapTest {
     private final PortalUserRepository users = mock(PortalUserRepository.class);
     private final ConsultantRepository consultants = mock(ConsultantRepository.class);
+    private final ConsultantService consultantService = mock(ConsultantService.class);
     private final PortalUserService service = new PortalUserService(
             users,
             mock(CatalogChangeAuditRepository.class),
             consultants,
             mock(AssociateRepository.class),
             mock(InspectionRequestRepository.class),
-            mock(ConsultantService.class)
+            consultantService
     );
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -40,27 +42,53 @@ class PortalUserServiceTenantModuleBootstrapTest {
 
     @Test
     void newGenericModuleAccountKeepsDefaultPasswordWithoutFirstLoginReset() {
+        when(users.findByNormalizedUsername("colaborador")).thenReturn(Optional.empty());
         when(users.findByNormalizedUsername("consultor")).thenReturn(Optional.empty());
-        when(consultants.findByNormalizedName(anyString())).thenReturn(Optional.empty());
-        when(consultants.save(any(Consultant.class))).thenAnswer(call -> call.getArgument(0));
 
         service.bootstrapTenantModuleUser(
-                "consultor", "Consultor padrão", PortalRole.CONSULTANT, "gestao1234");
+                "colaborador", "Colaborador", PortalRole.CONSULTANT, "gestao1234");
 
         var saved = org.mockito.ArgumentCaptor.forClass(PortalUser.class);
         verify(users).save(saved.capture());
         PortalUser account = saved.getValue();
         assertEquals(PortalRole.CONSULTANT, account.getRole());
         assertEquals("GESTAO_MODULE_BOOTSTRAP", account.getCreatedBy());
-        assertNotNull(account.getConsultantId());
+        assertNull(account.getConsultantId());
+        assertEquals("colaborador", account.getUsername());
+        verifyNoInteractions(consultants);
         assertFalse(account.isMustChangePassword());
         assertTrue(encoder.matches("gestao1234", account.getPasswordHash()));
+    }
+
+    @Test
+    void legacyGenericConsultantIsRenamedWithoutLosingPasswordOrId() {
+        PortalUser account = PortalUser.create("consultor", "Consultor padrão",
+                encoder.encode("SenhaPersonalizada2026"), PortalRole.CONSULTANT, "GESTAO_MODULE_BOOTSTRAP");
+        Consultant oldPlaceholder = Consultant.create("Consultor padrão", "GESTAO_MODULE_BOOTSTRAP");
+        account.linkConsultant(oldPlaceholder.getId());
+        account.requirePasswordChange();
+        var accountId = account.getId();
+        var hash = account.getPasswordHash();
+        when(users.findByNormalizedUsername("colaborador")).thenReturn(Optional.empty());
+        when(users.findByNormalizedUsername("consultor")).thenReturn(Optional.of(account));
+
+        service.bootstrapTenantModuleUser("colaborador", "Colaborador", PortalRole.CONSULTANT, "gestao1234");
+
+        assertEquals(accountId, account.getId());
+        assertEquals("colaborador", account.getUsername());
+        assertEquals("Colaborador", account.getDisplayName());
+        assertNull(account.getConsultantId());
+        assertEquals(hash, account.getPasswordHash());
+        assertFalse(account.isMustChangePassword());
+        verify(users).save(same(account));
+        verifyNoInteractions(consultants);
     }
 
     @Test
     void oldGenericModuleAccountIsNormalizedWithoutResettingAdminPassword() {
         PortalUser account = PortalUser.create("analista", "Analista padrão",
                 encoder.encode("SenhaAlteradaPeloAdm2026"), PortalRole.ANALYST, "GESTAO_MODULE_BOOTSTRAP");
+        account.linkConsultant(Consultant.create("Analista padrão", "GESTAO_MODULE_BOOTSTRAP", CollaboratorRole.ANALYST).getId());
         account.requirePasswordChange();
         String customHash = account.getPasswordHash();
         when(users.findByNormalizedUsername("analista")).thenReturn(Optional.of(account));
@@ -69,6 +97,7 @@ class PortalUserServiceTenantModuleBootstrapTest {
                 "analista", "Analista padrão", PortalRole.ANALYST, "gestao1234");
 
         assertFalse(account.isMustChangePassword());
+        assertNull(account.getConsultantId());
         assertEquals(customHash, account.getPasswordHash());
         assertTrue(encoder.matches("SenhaAlteradaPeloAdm2026", account.getPasswordHash()));
         verify(users).save(same(account));
@@ -90,6 +119,23 @@ class PortalUserServiceTenantModuleBootstrapTest {
         verify(users, never()).save(any(PortalUser.class));
         verifyNoInteractions(consultants);
         assertTrue(service.requiresPasswordChange("supervisor"));
+    }
+
+    @Test
+    void adminCreatedConsultantLinksToRealCollaboratorAndRequiresPasswordChange() {
+        Consultant person = Consultant.create("Maria Costa", "CREATED_WITH_PORTAL_USER");
+        when(users.findByNormalizedUsername("maria.costa")).thenReturn(Optional.empty());
+        when(consultantService.findActiveWithRole(person.getId(), CollaboratorRole.CONSULTANT)).thenReturn(person);
+        when(consultants.findById(person.getId())).thenReturn(Optional.of(person));
+
+        var created = service.create(new CreatePortalUserRequest(
+                "maria.costa", "Maria Costa", "SenhaInicial2026",
+                PortalRole.CONSULTANT, person.getId(), null), "adm.empresa");
+
+        assertEquals(person.getId(), created.consultantId());
+        assertEquals(person.getName(), created.consultantName());
+        assertTrue(created.mustChangePassword());
+        verify(users).save(argThat(user -> person.getId().equals(user.getConsultantId())));
     }
 
     @Test

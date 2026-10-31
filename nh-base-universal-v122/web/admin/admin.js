@@ -1288,9 +1288,9 @@ function renderUsers() {
     <td><strong>${esc(item.username)}</strong></td>
     <td>${esc(item.displayName || '—')}</td>
     <td>${['CONSULTANT', 'ANALYST', 'SUPERVISION_ANALYSIS'].includes(item.role)
-      ? esc(item.consultantName || (item.createdBy === 'BOOTSTRAP' ? 'Usuário padrão — identificação manual' : '—'))
+      ? esc(item.consultantName || (['BOOTSTRAP', 'GESTAO_MODULE_BOOTSTRAP'].includes(item.createdBy) ? 'Usuário padrão — identificação manual' : '—'))
       : '—'}</td>
-    <td>${statusBadge(roleLabel(item.role), item.role === 'ADMIN' || item.role === 'SUPERVISION_ANALYSIS' ? 'ok' : item.role === 'ANALYST' || item.role === 'TOW_DRIVER' || item.role === 'WORKSHOP_MANAGER' || item.role === 'EVENT_OPERATOR' || item.role === 'BUYER' ? 'warn' : '')}</td>
+    <td>${statusBadge(item.role === 'CONSULTANT' && item.createdBy === 'GESTAO_MODULE_BOOTSTRAP' ? 'Colaborador' : roleLabel(item.role), item.role === 'ADMIN' || item.role === 'SUPERVISION_ANALYSIS' ? 'ok' : item.role === 'ANALYST' || item.role === 'TOW_DRIVER' || item.role === 'WORKSHOP_MANAGER' || item.role === 'EVENT_OPERATOR' || item.role === 'BUYER' ? 'warn' : '')}</td>
     <td>${statusBadge(item.active ? 'Ativo' : 'Inativo', item.active ? 'ok' : 'off')}</td>
     <td>${item.passkeyRequired ? statusBadge(item.passkeyEnrolled ? 'Cadastrada' : 'Pendente', item.passkeyEnrolled ? 'ok' : 'warn') : statusBadge('Não exigida', 'off')}</td>
     <td>${date(item.lastLoginAt)}</td>
@@ -1320,7 +1320,7 @@ function populateUserConsultants(item = null) {
   $('user-new-consultant-name').placeholder = collaboratorRole === 'ANALYST' ? 'Nome completo do analista' : collaboratorRole === 'SUPERVISION_ANALYSIS' ? 'Nome completo do supervisor' : 'Nome completo do consultor';
 
   const options = [`<option value="">Selecione um ${roleLabelText} ativo</option>`];
-  if (item?.role === role && !item.consultantId && item.createdBy === 'BOOTSTRAP') {
+  if (item?.role === role && !item.consultantId && ['BOOTSTRAP', 'GESTAO_MODULE_BOOTSTRAP'].includes(item.createdBy)) {
     options.push('<option value="__LEGACY__">Usuário padrão — identificação manual</option>');
   }
   consultants

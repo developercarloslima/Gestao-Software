@@ -601,7 +601,7 @@ async function api(path, options = {}) {
   const headers = new Headers(options.headers || {});
   if (token) headers.set('Authorization', `Bearer ${token}`);
   const response = await fetch(window.NH_API?.backend(path) || path, { ...options, headers });
-  if (token && (response.status === 401 || response.status === 403)) {
+  if (token && response.status === 401) {
     showLogin('Sua sessão expirou. Entre novamente.');
     const error = new Error('Sessão inválida.');
     error.authExpired = true;

@@ -37,24 +37,29 @@ public class ConsultantService {
     @Transactional(readOnly = true)
     public List<ConsultantResponse> active() {
         return repository.findByActiveTrueAndRoleOrderByNameAsc(CollaboratorRole.CONSULTANT)
-                .stream().map(this::toResponse).toList();
+                .stream().filter(this::isRealCollaborator).map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
     public List<ConsultantResponse> activeAnalysts() {
         return repository.findByActiveTrueAndRoleOrderByNameAsc(CollaboratorRole.ANALYST)
-                .stream().map(this::toResponse).toList();
+                .stream().filter(this::isRealCollaborator).map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
     public List<ConsultantResponse> activeSupervisors() {
         return repository.findByActiveTrueAndRoleOrderByNameAsc(CollaboratorRole.SUPERVISION_ANALYSIS)
-                .stream().map(this::toResponse).toList();
+                .stream().filter(this::isRealCollaborator).map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
     public List<ConsultantResponse> all() {
-        return repository.findAllByOrderByNameAsc().stream().map(this::toResponse).toList();
+        return repository.findAllByOrderByNameAsc().stream()
+                .filter(this::isRealCollaborator).map(this::toResponse).toList();
+    }
+
+    private boolean isRealCollaborator(Consultant consultant) {
+        return !"GESTAO_MODULE_BOOTSTRAP".equals(consultant.getSource());
     }
 
     @Transactional(readOnly = true)

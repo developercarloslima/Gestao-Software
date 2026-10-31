@@ -21,6 +21,25 @@ import static org.mockito.Mockito.*;
 class ConsultantServiceTest {
 
     @Test
+    void genericPlaceholderIsNotASelectableRealCollaborator() {
+        ConsultantRepository repository = mock(ConsultantRepository.class);
+        Consultant fake = Consultant.create("Consultor padrão", "GESTAO_MODULE_BOOTSTRAP", CollaboratorRole.CONSULTANT);
+        Consultant real = Consultant.create("Maria Costa", "CREATED_WITH_PORTAL_USER", CollaboratorRole.CONSULTANT);
+        when(repository.findByActiveTrueAndRoleOrderByNameAsc(CollaboratorRole.CONSULTANT))
+                .thenReturn(List.of(fake, real));
+        when(repository.findAllByOrderByNameAsc()).thenReturn(List.of(fake, real));
+
+        ConsultantService service = new ConsultantService(repository,
+                mock(QuotationRepository.class), mock(InspectionRequestRepository.class),
+                mock(CatalogChangeAuditRepository.class), mock(PortalUserRepository.class));
+
+        org.junit.jupiter.api.Assertions.assertEquals(List.of(real.getId()),
+                service.active().stream().map(response -> response.id()).toList());
+        org.junit.jupiter.api.Assertions.assertEquals(List.of(real.getId()),
+                service.all().stream().map(response -> response.id()).toList());
+    }
+
+    @Test
     void transferringConsultantToAnalystUpdatesOnlyPendingAnalysisAssignments() {
         ConsultantRepository consultantRepository = mock(ConsultantRepository.class);
         QuotationRepository quotationRepository = mock(QuotationRepository.class);

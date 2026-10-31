@@ -156,7 +156,7 @@ async function api(path, options = {}) {
   const response = await fetch(window.NH_API?.backend(path) || path, { ...options, headers });
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    if (authToken && (response.status === 401 || response.status === 403)) {
+    if (authToken && response.status === 401) {
       expireSession();
       throw authExpiredError();
     }
@@ -379,10 +379,11 @@ async function registerConsultantLogin(consultant) {
 
 async function restoreConsultant() {
   const consultant = JSON.parse(localStorage.getItem(CONSULTANT_KEY) || 'null');
-  if (consultant?.id) {
+  if (consultant?.id && consultants.some(item => item.id === consultant.id)) {
     $('consultant-search').value = consultant.name;
     applyConsultant(await registerConsultantLogin(consultant));
   } else {
+    localStorage.removeItem(CONSULTANT_KEY);
     $('tools').hidden = true;
     $('activity-dashboard').hidden = true;
   }
@@ -490,7 +491,16 @@ async function loadCommercialPanel() {
     return;
   }
   if (financeCard) financeCard.hidden = false;
-  const [finance, vehicles] = await Promise.all([api('/api/commercial/me/finance'), api('/api/commercial/vehicles')]);
+  let finance, vehicles;
+  try {
+    [finance, vehicles] = await Promise.all([api('/api/commercial/me/finance'), api('/api/commercial/vehicles')]);
+  } catch (error) {
+    if (/módulo não contratado|módulo desativado/i.test(error.message)) {
+      if (financeCard) financeCard.hidden = true;
+      return;
+    }
+    throw error;
+  }
   consultantFinanceData = finance;
   renderFinance(finance);
   renderCommercialVehicles(vehicles || []);
@@ -1219,7 +1229,7 @@ $('login-form').addEventListener('submit', async event => {
     else if (data.role === 'WORKSHOP_MANAGER') location.href = '/oficina/';
     else if (data.role === 'EVENT_OPERATOR') location.href = '/checklist/';
     else if (data.role === 'BUYER') location.href = '/financeiro/';
-    else if (data.role === 'CONSULTANT') location.href = '/consultor/';
+    else if (data.role === 'CONSULTANT' && data.consultantId) location.href = '/consultor/';
     else await boot();
   } catch (error) {
     box.className = 'message error';

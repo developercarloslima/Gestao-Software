@@ -19,7 +19,7 @@ class TenantModuleAccountsBootstrapTest {
         bootstrap.provision();
 
         verify(users).bootstrapTenantModuleUser(
-                "consultor", "Consultor padrão", PortalRole.CONSULTANT, "gestao1234");
+                "colaborador", "Colaborador", PortalRole.CONSULTANT, "gestao1234");
         verifyNoMoreInteractions(users);
     }
 
@@ -29,7 +29,7 @@ class TenantModuleAccountsBootstrapTest {
         bootstrap.provision();
 
         verify(users).bootstrapTenantModuleUser(
-                "consultor", "Consultor padrão", PortalRole.CONSULTANT, "gestao1234");
+                "colaborador", "Colaborador", PortalRole.CONSULTANT, "gestao1234");
         verify(users).bootstrapTenantModuleUser(
                 "analista", "Analista padrão", PortalRole.ANALYST, "gestao1234");
         verify(users).bootstrapTenantModuleUser(
