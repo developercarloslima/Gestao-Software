@@ -14,20 +14,20 @@ async function api(path,options={}){
  return data;
 }
 function mark(step){for(let i=1;i<=3;i++)$('step-'+i).classList.toggle('active',i===step);}
-$('template').addEventListener('click',ev=>{ev.preventDefault();const contents='nome;documento;email;telefone;nascimento;telefone2;cep;endereco;numero;complemento;bairro;cidade;uf;codigoexterno\n';const url=URL.createObjectURL(new Blob(['\uFEFF'+contents],{type:'text/csv;charset=utf-8'}));const a=el('a');a.href=url;a.download='modelo-clientes.csv';a.click();URL.revokeObjectURL(url);});
+$('template').addEventListener('click',ev=>{ev.preventDefault();const contents='nome;documento;email;telefone;nascimento;telefone2;cep;endereco;numero;complemento;bairro;cidade;uf;codigoexterno;whatsapp;placa;veiculo0km;tipoveiculo;marca;modelo;anodomodelo;versaofipe;codigofipe;valorfipe\n';const url=URL.createObjectURL(new Blob(['\uFEFF'+contents],{type:'text/csv;charset=utf-8'}));const a=el('a');a.href=url;a.download='modelo-clientes.csv';a.click();URL.revokeObjectURL(url);});
 $('form-upload').addEventListener('submit',async ev=>{ev.preventDefault();const file=$('file').files[0];if(!file){status('Escolha o CSV de clientes.',true);return;}if(file.size>2000000){status('O limite é 2 MB. Divida o arquivo em partes menores.',true);return;}
  $('send').disabled=true;status('Conferindo dados. Nenhum cadastro será alterado nesta etapa...');
  try{const fd=new FormData();fd.set('arquivo',file);fd.set('autorizado',$('authorized').checked?'true':'false');const data=await api('/preparar',{method:'POST',body:fd});currentBatch=data;
  $('preview').hidden=false;$('result').hidden=true;mark(2);$('valid').textContent=String(data.validRows);$('invalid').textContent=String(data.invalidRows);$('duplicates').textContent=String(data.existingRecords);
- $('preview-message').textContent=data.invalidRows?'Corrija as linhas listadas e envie o arquivo novamente. Nenhum cadastro foi alterado.':'Arquivo validado. Registros existentes serão ignorados, sem substituir informações.';
+ $('preview-message').textContent=data.invalidRows?'Corrija as linhas listadas e envie o arquivo novamente. Nenhum cadastro foi alterado.':'Arquivo validado. Clientes existentes serão preservados; veículos novos de clientes incluídos ficarão como rascunho.';
  const tbody=$('preview-data');tbody.replaceChildren();for(const row of data.preview||[]){const tr=document.createElement('tr');for(const key of ['line','name','document','action'])tr.append(el('td',String(row[key]??'')));tbody.append(tr);}
  const issues=$('issues');issues.replaceChildren();for(const issue of data.errors||[]){issues.append(el('p',`Linha ${issue.line}: ${issue.message}`));}
- $('confirm').checked=false;$('apply').disabled=true;$('preview').scrollIntoView({behavior:'smooth',block:'start'});status('Prévia pronta. Confira e confirme para gravar os novos clientes.');await refreshHistory();}
+ $('confirm').checked=false;$('apply').disabled=true;$('preview').scrollIntoView({behavior:'smooth',block:'start'});status('Prévia pronta. Confira e confirme para gravar os novos clientes e veículos.');await refreshHistory();}
  catch(err){status(err.message,true);}finally{$('send').disabled=false;}
 });
 $('confirm').addEventListener('change',()=>{$('apply').disabled=!$('confirm').checked || !currentBatch || currentBatch.invalidRows>0;});
 $('apply').addEventListener('click',async()=>{if(!currentBatch||!$('confirm').checked)return;$('apply').disabled=true;status('Importando... Não feche a página até receber a confirmação.');try{const r=await api('/'+encodeURIComponent(currentBatch.batchId)+'/confirmar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({confirmo:true})});
- $('result').hidden=false;$('preview').hidden=true;mark(3);$('result-message').textContent=`${r.inserted} novos clientes cadastrados. ${r.alreadyExisting} já existiam e foram preservados. Nenhum cadastro foi substituído.`;
+ $('result').hidden=false;$('preview').hidden=true;mark(3);$('result-message').textContent=`${r.inserted} novos clientes cadastrados. ${r.alreadyExisting} já existiam e foram preservados. Nenhum cadastro foi substituído. Os veículos novos precisam de revisão antes da ativação.`;
  $('result').scrollIntoView({behavior:'smooth',block:'start'});status('Importação finalizada com segurança.');await refreshHistory();await refreshCustomers();
  }catch(e){status(e.message,true);$('apply').disabled=false;}});
 $('new-upload').addEventListener('click',()=>{currentBatch=null;$('form-upload').reset();$('result').hidden=true;$('preview').hidden=true;mark(1);$('file').focus();});

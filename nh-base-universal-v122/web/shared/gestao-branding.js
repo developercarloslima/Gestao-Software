@@ -64,7 +64,7 @@
     // A marca do cliente tem prioridade no ícone da aba. Favicon genérico da
     // Gestão não substitui a logo do tenant.
     const customized=tenantLogo(c.faviconUrl);
-    const browserIcon=customized||logo;
+    const browserIcon=logo||customized;
     if(browserIcon){
       document.querySelectorAll('link[rel="icon"],link[rel="shortcut icon"],link[rel="apple-touch-icon"]').forEach(link=>{
         link.href=browserIcon;

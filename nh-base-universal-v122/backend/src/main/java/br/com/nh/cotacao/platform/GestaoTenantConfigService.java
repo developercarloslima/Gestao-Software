@@ -28,6 +28,7 @@ public class GestaoTenantConfigService {
     private final String baseUrl;
     private final String publicBaseUrl;
     private final String tenantHost;
+    private final String brandingToken;
     private final long cacheSeconds;
     private volatile Map<String,Object> cached;
     private volatile Instant cachedUntil = Instant.EPOCH;
@@ -38,12 +39,14 @@ public class GestaoTenantConfigService {
             @Value("${app.gestao-control.base-url:http://localhost:3001}") String baseUrl,
             @Value("${app.gestao-control.public-url:}") String publicBaseUrl,
             @Value("${app.gestao-control.tenant-host:nh.gestaosoftware.com.br}") String tenantHost,
+            @Value("${GESTAO_TENANT_BRANDING_TOKEN:}") String brandingToken,
             @Value("${app.gestao-control.cache-seconds:60}") long cacheSeconds) {
         this.mapper = mapper;
         this.jdbc = jdbc;
         this.baseUrl = String.valueOf(baseUrl).replaceAll("/+$", "");
         this.publicBaseUrl = publicBaseUrl == null || publicBaseUrl.isBlank() ? this.baseUrl : publicBaseUrl.replaceAll("/+$", "");
         this.tenantHost = tenantHost;
+        this.brandingToken = brandingToken == null ? "" : brandingToken.trim();
         this.cacheSeconds = Math.max(15, cacheSeconds);
         this.cached = loadPersisted();
         if (this.cached != null) this.cachedUntil = Instant.now().plusSeconds(Math.min(30, this.cacheSeconds));
@@ -182,6 +185,56 @@ public class GestaoTenantConfigService {
         fallback.put("active", false);
         fallback.put("source", "UNCONFIGURED_FAIL_CLOSED");
         return fallback;
+    }
+
+
+    /**
+     * Somente a API admin autenticada pode chamar este método. A Gestão continua
+     * sendo a fonte única da verdade; não gravamos personalização local não confirmada.
+     */
+    public synchronized Map<String,Object> saveBranding(Map<String,Object> values) {
+        if (brandingToken.length() != 64) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+                    "Sincronização não configurada: falta o token individual desta empresa.");
+        }
+        Map<String,Object> current = config();
+        if (current.get("companyId") == null || Boolean.FALSE.equals(current.get("active"))) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.CONFLICT, "Esta empresa ainda não possui vínculo ativo com a Gestão.");
+        }
+        try {
+            byte[] body = mapper.writeValueAsBytes(values);
+            if (body.length > 3 * 1024 * 1024) throw new IllegalArgumentException("A imagem excede o limite permitido.");
+            HttpRequest request = HttpRequest.newBuilder(URI.create(baseUrl + "/api/public/platform/tenant-branding"))
+                    .timeout(Duration.ofSeconds(25))
+                    .header("Content-Type","application/json")
+                    .header("X-Gestao-Tenant-Host",tenantHost.trim().toLowerCase(Locale.ROOT))
+                    .header("X-Gestao-Tenant-Token",brandingToken)
+                    .PUT(HttpRequest.BodyPublishers.ofByteArray(body)).build();
+            HttpResponse<String> response = http.send(request,HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                log.warn("Atualização de branding rejeitada pela Gestão: HTTP {}", response.statusCode());
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.BAD_GATEWAY,
+                        "A Gestão não aceitou a personalização (HTTP " + response.statusCode() + ").");
+            }
+            Map<String,Object> confirmed = fetchRemote();
+            if (confirmed == null || !Objects.equals(String.valueOf(confirmed.get("companyId")),
+                    String.valueOf(current.get("companyId")))) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.BAD_GATEWAY,
+                        "A Gestão recebeu os dados, mas ainda não foi possível confirmar a atualização.");
+            }
+            storeRemote(confirmed);
+            return confirmed;
+        } catch (org.springframework.web.server.ResponseStatusException e) { throw e; }
+        catch (Exception e) {
+            log.warn("Falha de sincronização da personalização: {}", e.getClass().getSimpleName());
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_GATEWAY,
+                    "Não foi possível sincronizar com a Gestão. Tente novamente.");
+        }
     }
 
     public boolean enabled(String module) {

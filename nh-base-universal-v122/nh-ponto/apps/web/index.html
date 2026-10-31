@@ -16,6 +16,17 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://nhprotecao.com.br/ponto/nh-share-blue-v8371.png" />
     <title>Apontamento Digital | Empresa Cliente</title>
+    <script>
+      // O módulo de ponto utiliza a mesma identidade do tenant nos ícones da aba.
+      fetch('/api/public/tenant-config', {cache:'no-store'}).then(r=>r.ok?r.json():null).then(c=>{
+        if(!c || c.active===false)return;
+        const logo=String(c.logoUrl||'');
+        if(!/^https:\/\//.test(logo) || /\/assets\/logo-gestao-software\.png(?:[?#]|$)/i.test(logo))return;
+        document.querySelectorAll('link[rel="icon"]').forEach(link=>{
+          link.href=logo;link.removeAttribute('type');
+        });
+      }).catch(()=>{});
+    </script>
   </head>
   <body>
     <div id="root"></div>

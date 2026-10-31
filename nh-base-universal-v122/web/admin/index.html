@@ -80,7 +80,37 @@
   .form-grid label:has(input[list]){min-width:0}
   #edit-fipe-brand,#inspection-edit-model,#edit-vehicle-model,#admin-fipe-brand {max-width:100%}
 </style>
-</head>
+<script defer src="/shared/tenant-identity.js"></script><style id="tenant-admin-nav-responsive">
+.admin-page .portal-header{position:relative!important;min-height:76px!important;gap:12px!important}
+.admin-page .portal-header>.portal-brand{flex:1 1 auto!important;width:auto!important;max-width:calc(100% - 116px)!important}
+.admin-page .portal-header>.nh-portal-menu-toggle{
+ display:flex!important;visibility:visible!important;opacity:1!important;
+ align-items:center!important;justify-content:center!important;gap:4px!important;
+ flex:0 0 94px!important;width:94px!important;height:42px!important;min-height:42px!important;
+ border:1px solid var(--yellow,#f0f000)!important;border-radius:12px!important;
+ padding:8px!important;color:#fff!important;background:transparent!important;margin-left:auto!important
+}
+.admin-page .portal-header>.nh-portal-menu-toggle::after{content:"Menu";font-size:13px;font-weight:750;margin-left:5px}
+.admin-page .portal-header>.nh-portal-menu-toggle>span{width:17px!important;height:2px!important;min-height:2px!important;flex:0 0 2px!important;background:var(--yellow,#f0f000)!important;display:block!important}
+.admin-page .portal-header>.nh-standard-header-actions{
+ display:none!important;position:absolute!important;z-index:999!important;top:calc(100% + 5px)!important;
+ left:auto!important;right:clamp(12px,2vw,28px)!important;bottom:auto!important;
+ width:min(560px,calc(100vw - 24px))!important;max-height:min(76vh,680px)!important;overflow-y:auto!important;
+ padding:16px!important;border:1px solid rgba(240,240,0,.45)!important;border-radius:16px!important;
+ background:var(--navy,#070c40)!important;box-shadow:0 18px 60px rgba(0,0,0,.3)!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important
+}
+.admin-page .portal-header>.nh-standard-header-actions.is-open{display:grid!important}
+.admin-page .portal-header>.nh-standard-header-actions :is(a,button):not([hidden]){
+ width:100%!important;min-width:0!important;max-width:100%!important;white-space:normal!important;
+ justify-content:center!important;text-align:center!important;min-height:42px!important;
+ font-size:13px!important;padding:10px 12px!important;line-height:1.25!important
+}
+@media(max-width:550px){
+ .admin-page .portal-header>.nh-standard-header-actions{grid-template-columns:1fr!important}
+ .admin-page .portal-header>.portal-brand img{flex-basis:40px!important}
+}
+</style></head>
   <body class="admin-page">
     <header class="portal-header">
       <a class="portal-brand" href="/">

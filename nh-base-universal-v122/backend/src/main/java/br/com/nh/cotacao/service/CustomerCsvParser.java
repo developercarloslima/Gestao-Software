@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.text.Normalizer;
 import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -13,10 +14,14 @@ public final class CustomerCsvParser {
     public static final int MAX_BYTES = 2_000_000;
     public static final int MAX_ROWS = 5_000;
     private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
-    private static final Set<String> ALLOWED = Set.of("nome", "documento", "email", "telefone", "nascimento", "telefone2", "cep", "endereco", "numero", "complemento", "bairro", "cidade", "uf", "codigoexterno");
+    private static final Set<String> ALLOWED = Set.of("nome", "documento", "email", "telefone", "whatsapp", "nascimento", "telefone2", "cep", "endereco", "numero", "complemento", "bairro", "cidade", "uf", "codigoexterno", "placa", "veiculo0km", "tipoveiculo", "marca", "modelo", "anodomodelo", "versaofipe", "codigofipe", "valorfipe");
     public record CustomerRow(int sourceLine, String name, String document, String email, String phone,
                               String birthDate, String phone2, String zip, String address, String number,
-                              String complement, String neighborhood, String city, String state, String externalId) {}
+                              String complement, String neighborhood, String city, String state, String externalId,
+                               String plate, String vehicleZeroKm, String vehicleType, String vehicleMake,
+                               String vehicleModel, String modelYear, String fipeVersion, String fipeCode, String fipeValue) {
+        public boolean hasVehicle() { return !vehicleModel.isBlank(); }
+    }
     public record Issue(int line, String code, String message) {}
     public record Parsed(List<CustomerRow> rows, List<Issue> errors, String sha256) {}
 
@@ -42,7 +47,7 @@ public final class CustomerCsvParser {
             List<String> r = table.get(index); int line=index+1;
             if (r.size()==1 && r.get(0).isBlank()) continue;
             if (r.size() != table.get(0).size()) { errors.add(new Issue(line,"COLUNAS","Quantidade de colunas diferente do cabeçalho.")); continue; }
-            String name=cell(r,columns,"nome"),doc=digits(cell(r,columns,"documento")),email=cell(r,columns,"email").toLowerCase(Locale.ROOT),phone=digits(cell(r,columns,"telefone"));
+            String name=cell(r,columns,"nome"),doc=digits(cell(r,columns,"documento")),email=cell(r,columns,"email").toLowerCase(Locale.ROOT),phone=digits(cell(r,columns,"whatsapp").isBlank()?cell(r,columns,"telefone"):cell(r,columns,"whatsapp"));
             if (name.isBlank() || name.length()>160 || name.chars().anyMatch(c->c<32)) { errors.add(new Issue(line,"NOME","Nome obrigatório, com até 160 caracteres."));continue; }
             if (!validDocument(doc)) { errors.add(new Issue(line,"DOCUMENTO","CPF/CNPJ inválido. Confira os dígitos verificadores."));continue; }
             if (!seen.add(doc)) { errors.add(new Issue(line,"DUPLICADO","CPF/CNPJ duplicado dentro do arquivo."));continue; }
@@ -58,9 +63,43 @@ public final class CustomerCsvParser {
             if (!within(r,columns,"telefone2",30) || !within(r,columns,"endereco",220) || !within(r,columns,"numero",30) || !within(r,columns,"complemento",120) || !within(r,columns,"bairro",120) || !within(r,columns,"cidade",120) || !within(r,columns,"codigoexterno",160)) {
                 errors.add(new Issue(line,"TAMANHO","Um campo ultrapassa o tamanho permitido."));continue;
             }
-            rows.add(new CustomerRow(line,name,doc,email,phone,birth,digits(cell(r,columns,"telefone2")),zip,cell(r,columns,"endereco"),cell(r,columns,"numero"),cell(r,columns,"complemento"),cell(r,columns,"bairro"),cell(r,columns,"cidade"),state,cell(r,columns,"codigoexterno")));
+            String plate=cell(r,columns,"placa").toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]","");
+            String zeroKm=cell(r,columns,"veiculo0km").toLowerCase(Locale.ROOT);
+            String type=cell(r,columns,"tipoveiculo"),make=cell(r,columns,"marca");
+            String model=cell(r,columns,"modelo"),year=cell(r,columns,"anodomodelo");
+            String version=cell(r,columns,"versaofipe"),code=cell(r,columns,"codigofipe");
+            String fipe=cell(r,columns,"valorfipe");
+            boolean vehicle=!(plate+zeroKm+type+make+model+year+version+code+fipe).isBlank();
+            if(vehicle){
+                if(model.isBlank()||model.length()>140||make.length()>140||type.length()>40||version.length()>220||code.length()>30){
+                    errors.add(new Issue(line,"VEICULO","Modelo do veículo obrigatório; confira o tamanho dos campos de veículo."));continue;
+                }
+                if(!plate.isBlank()&&!plate.matches("[A-Z]{3}[0-9][A-Z0-9][0-9]{2}")){
+                    errors.add(new Issue(line,"PLACA","Placa inválida: utilize ABC1234 ou ABC1D23."));continue;
+                }
+                if(!zeroKm.isBlank()&&!Set.of("sim","nao","não","true","false","1","0").contains(zeroKm)){
+                    errors.add(new Issue(line,"ZERO_KM","Veículo 0 km deve ser Sim ou Não."));continue;
+                }
+                if(!year.isBlank()){
+                    try{
+                        int y=Integer.parseInt(year);
+                        if(y<1900||y>LocalDate.now().getYear()+2)throw new IllegalArgumentException();
+                    }catch(Exception e){errors.add(new Issue(line,"ANO_MODELO","Ano do modelo inválido."));continue;}
+                }
+                if(!fipe.isBlank()){
+                    try{
+                        BigDecimal v=new BigDecimal(normalizeMoney(fipe));
+                        if(v.signum()<0||v.compareTo(new BigDecimal("99999999"))>0)throw new IllegalArgumentException();
+                    }catch(Exception e){errors.add(new Issue(line,"VALOR_FIPE","Valor FIPE inválido."));continue;}
+                }
+            }
+            rows.add(new CustomerRow(line,name,doc,email,phone,birth,digits(cell(r,columns,"telefone2")),zip,cell(r,columns,"endereco"),cell(r,columns,"numero"),cell(r,columns,"complemento"),cell(r,columns,"bairro"),cell(r,columns,"cidade"),state,cell(r,columns,"codigoexterno"),plate,zeroKm,type,make,model,year,version,code,fipe));
         }
         return new Parsed(List.copyOf(rows),List.copyOf(errors),hexSha(bytes));
+    }
+    public static String normalizeMoney(String raw){
+        String v=raw.trim().replace("R$","").replace(" ","");
+        return v.contains(",")?v.replace(".","").replace(",","."):v;
     }
     private static boolean within(List<String> row,Map<String,Integer> columns,String name,int length){return cell(row,columns,name).length()<=length;}
     private static String cell(List<String> row,Map<String,Integer> cols,String key){Integer i=cols.get(key);return i==null?"":row.get(i).trim();}
@@ -70,11 +109,21 @@ public final class CustomerCsvParser {
         String n=Normalizer.normalize(s.trim().toLowerCase(Locale.ROOT),Normalizer.Form.NFD).replaceAll("\\p{M}","").replaceAll("[^a-z0-9]","");
         return switch(n){case "nomecompleto","razaosocial","cliente","associado"->"nome";
             case "cpf","cnpj","cpfcnpj","cpfoucnpj"->"documento";
-            case "celular","whatsapp","fone","telefoneprincipal"->"telefone";
+            case "celular","fone","telefoneprincipal"->"telefone";
+            case "numerowhatsapp","whats"->"whatsapp";
             case "datanascimento","datadenascimento"->"nascimento";
             case "celular2","telefonealternativo","telefone secundario","telefonesecundario"->"telefone2";
             case "logradouro","rua"->"endereco";case "bairro"->"bairro";case "estado"->"uf";
             case "idexterno","idlegado","codigocliente","codigo"->"codigoexterno";
+            case "nomedoassociado","nomecliente"->"nome";
+            case "placadoveiculo","placaveiculo"->"placa";
+            case "veiculozerokm","veiculo0kilometro","0km"->"veiculo0km";
+            case "tipodeveiculofipe","tipodeveiculo"->"tipoveiculo";
+            case "marcadoveiculo","marcadoveiculodigiteouselecione"->"marca";
+            case "modelodoveiculo","modelodoveiculodigiteouselecione"->"modelo";
+            case "anodomodeloveiculo"->"anodomodelo";
+            case "versaodoveiculo","versaodoveiculotabelafipe","versaodeveiculotabelafipe"->"versaofipe";
+            case "valorfipeencontrado"->"valorfipe";
             default->n;};
     }
     private static char delimiter(String raw){int end=raw.indexOf('\n');String head=end<0?raw:raw.substring(0,end);return head.chars().filter(c->c==';').count()>=head.chars().filter(c->c==',').count()?';':',';}

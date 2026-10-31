@@ -26,7 +26,13 @@ function buildStep(key,information,index){
  const card=el('article','step'+(approved?' complete':''));
  card.append(el('span','number',approved?'✓':String(index+1)));
  const body=el('div');body.append(el('h2','',information[1]),el('p','',information[2]));
- const row=el('div','actions');const link=el('a','btn',information[4]+' ↗');link.href=information[3];row.append(link);
+ const row=el('div','actions');
+ if(key==='BRAND_REVIEWED'){
+  const edit=el('button','btn','Abrir personalização');edit.type='button';
+  edit.addEventListener('click',openBranding);row.append(edit);
+ }else{
+  const link=el('a','btn',information[4]+' ↗');link.href=information[3];row.append(link);
+ }
  const action=el('button','btn'+(approved?'':' primary'),approved?'Revisar aprovação':'Confirmar verificação');action.type='button';action.addEventListener('click',()=>openDialog(key,approved));row.append(action);
  body.append(row);
  if(approved){const details=report.requirements[key];const evidence=el('small','',`Conferido por ${details.approvedBy||'administrador'} em ${details.approvedAt?new Date(details.approvedAt).toLocaleString('pt-BR'):'data não informada'}.`);body.append(evidence);}
@@ -63,3 +69,69 @@ $('approval-form').addEventListener('submit',async event=>{
  }catch(error){$('message').textContent=error.message;}finally{$('confirm').disabled=false;}
 });
 request().then(render).catch(e=>{$('message').textContent=e.message;$('overall').replaceChildren(el('strong','', 'Não foi possível conferir a implantação.'));});
+
+/* O ADM edita a identidade pela API autenticada da Base. A Base envia ao
+ * Control Plane usando credenciais próprias do servidor, nunca no navegador. */
+const brandingFields=['platformDisplayName','siteTitle','companyTagline','loginSubtitle','primaryColor','secondaryColor','accentColor'];
+async function brandingRequest(options={}){
+ const response=await fetch('/api/admin/branding',{...options,headers:{
+  'Authorization':'Bearer '+token(),
+  ...(options.body?{'Content-Type':'application/json'}:{})
+ }});
+ if(response.status===401){location.replace('/admin/');throw Error('Sessão expirada. Entre novamente.');}
+ const value=await response.json().catch(()=>({}));
+ if(!response.ok)throw Error(value.detail||value.message||'A personalização não pôde ser salva.');
+ return value;
+}
+async function openBranding(){
+ const modal=$('brand-editor'),form=$('brand-form');
+ $('brand-feedback').textContent='Carregando a identidade da empresa...';
+ modal.showModal();
+ try{
+  const data=await brandingRequest();
+  brandingFields.forEach(key=>{
+   const field=form.elements.namedItem(key);
+   if(field)field.value=data[key]||({'primaryColor':'#070c40','secondaryColor':'#f0f000','accentColor':'#ffffff'}[key]||'');
+  });
+  const logo=data.logoUrl;
+  const preview=$('brand-logo-preview');
+  preview.hidden=!logo||/\/assets\/logo-gestao-software\.png(?:[?#]|$)/i.test(logo);
+  if(!preview.hidden)preview.src=logo;
+  $('brand-logo').value='';
+  $('brand-feedback').textContent='';
+ }catch(e){$('brand-feedback').textContent=e.message;}
+}
+$('brand-cancel').addEventListener('click',()=>$('brand-editor').close());
+$('brand-logo').addEventListener('change',()=>{
+ const file=$('brand-logo').files?.[0];
+ if(file && file.size>2*1024*1024){$('brand-feedback').textContent='Logo acima de 2 MB.';$('brand-logo').value='';return;}
+ if(file){$('brand-logo-preview').src=URL.createObjectURL(file);$('brand-logo-preview').hidden=false;}
+});
+function base64File(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');
+  reader.onerror=()=>reject(Error('Não foi possível ler a imagem.'));
+  reader.readAsDataURL(file);
+ });
+}
+$('brand-form').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const form=$('brand-form'),payload={};
+ brandingFields.forEach(key=>payload[key]=String(form.elements.namedItem(key).value||'').trim());
+ const submit=$('brand-save');submit.disabled=true;
+ $('brand-feedback').textContent='Salvando e sincronizando com a Gestão...';
+ try{
+  const file=$('brand-logo').files?.[0];
+  if(file){
+   if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2*1024*1024)
+    throw Error('Envie uma imagem PNG, JPG ou WebP de até 2 MB.');
+   payload.logoBase64=await base64File(file);payload.logoContentType=file.type;
+  }
+  const latest=await brandingRequest({method:'PUT',body:JSON.stringify(payload)});
+  $('brand-feedback').textContent='Identidade atualizada na Gestão. Os portais refletirão as alterações automaticamente.';
+  if(latest.logoUrl){$('brand-logo-preview').src=latest.logoUrl;$('brand-logo-preview').hidden=false;}
+  document.dispatchEvent(new CustomEvent('tenant-branding-updated',{detail:latest}));
+ }catch(error){$('brand-feedback').textContent=error.message;}
+ finally{submit.disabled=false;}
+});
