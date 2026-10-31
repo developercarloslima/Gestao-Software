@@ -219,12 +219,12 @@
 }
 #company-site-editor[hidden] {display:none !important;}
 
-/* v4 — Site Principal: reproduz o cabeçalho institucional horizontal da
-   referência no desktop. Menu suspenso apenas em tablets/celulares. */
+/* v5 — Site Principal: cabeçalho horizontal com Área do Associado visível.
+   Mantém menu suspenso em tablets/celulares e acesso pela rota /associado/. */
 @media (min-width:1100px){
   .site-header .nav-wrapper {
-    width:min(1740px,calc(100% - 34px)) !important;
-    max-width:1740px !important;
+    width:min(1800px,calc(100% - 24px)) !important;
+    max-width:1800px !important;
     display:flex !important;
     flex-wrap:nowrap !important;
     align-items:center !important;
@@ -313,7 +313,15 @@
     padding:0 clamp(8px,.7vw,14px) !important;
     font-size:clamp(9px,.7vw,11px) !important;
   }
-  .site-header .nav-wrapper > .header-associate,
+  .site-header .nav-wrapper > .header-associate {
+    display:inline-flex !important;
+    visibility:visible !important;
+    order:6 !important;
+    flex:0 0 auto !important;
+    min-height:35px !important;
+    padding:0 clamp(7px,.65vw,13px) !important;
+    font-size:clamp(9px,.68vw,11px) !important;
+  }
   .site-header .nav-wrapper > .menu-toggle {
     display:none !important;
     visibility:hidden !important;
