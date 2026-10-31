@@ -11,7 +11,7 @@ services:
     rootDir: nh-base-universal-v122/backend
     dockerfilePath: ./Dockerfile.tenant
     dockerContext: .
-    autoDeployTrigger: "off"
+    autoDeployTrigger: checksPass
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL
@@ -80,7 +80,7 @@ services:
     rootDir: nh-base-universal-v122/web
     dockerfilePath: ./Dockerfile.render-public
     dockerContext: .
-    autoDeployTrigger: "off"
+    autoDeployTrigger: commit
     healthCheckPath: /health
     envVars:
       # Somente hostname publico da API (sem https:// e sem caminho).
