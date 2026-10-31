@@ -133,7 +133,7 @@ class PortalUserServiceTenantModuleBootstrapTest {
                 PortalRole.CONSULTANT, person.getId(), null), "adm.empresa");
 
         assertEquals(person.getId(), created.consultantId());
-        assertEquals("Maria Costa", created.consultantName());
+        assertEquals(person.getName(), created.consultantName());
         assertTrue(created.mustChangePassword());
         verify(users).save(argThat(user -> person.getId().equals(user.getConsultantId())));
     }
