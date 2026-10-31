@@ -64,10 +64,13 @@ public class SecureCustomerImportService {
           VALUES (?,?,?,?,?,?,?,?,?,TRUE,?)
           """,id,filename,parsed.sha256(),cipher,iv,status,valid+bad,valid,bad,operator);
         Set<String> existingDocuments=existingDocuments(parsed.rows());
+        Set<String> existingPlates=existingPlates(parsed.rows());
         int existing=0;List<Map<String,Object>> preview=new ArrayList<>();
         for (CustomerCsvParser.CustomerRow row:parsed.rows()) {
             boolean found=existingDocuments.contains(row.document());if(found)existing++;
-            if(preview.size()<12)preview.add(Map.of("line",row.sourceLine(),"name",row.name(),"document",maskDocument(row.document()),"action",found?"JÁ CADASTRADO — IGNORAR":"NOVO"));
+            if(preview.size()<12)preview.add(Map.of("line",row.sourceLine(),"name",row.name(),"document",maskDocument(row.document()),
+                    "action",found?"JÁ CADASTRADO — IGNORAR":
+                    (row.hasVehicle()?(existingPlates.contains(row.plate()) && !row.plate().isBlank()?"NOVO · VEÍCULO JÁ EXISTE":"NOVO + VEÍCULO"):"NOVO")));
         }
         return new ValidationPreview(id,status,valid,bad,existing,parsed.sha256(),parsed.errors().stream().limit(50).toList(),preview);
     }
@@ -80,6 +83,17 @@ public class SecureCustomerImportService {
             docs.addAll(db.query(sql,(rs,n)->rs.getString(1),args));
         }
         return docs;
+    }
+    private Set<String> existingPlates(List<CustomerCsvParser.CustomerRow> rows) {
+        Set<String> plates=new HashSet<>();
+        List<String> requested=rows.stream().map(CustomerCsvParser.CustomerRow::plate).filter(p->!p.isBlank()).distinct().toList();
+        for(int start=0;start<requested.size();start+=250){
+            List<String> block=requested.subList(start,Math.min(start+250,requested.size()));
+            String sql="SELECT UPPER(REPLACE(plate,'-','')) FROM commercial_vehicles WHERE UPPER(REPLACE(plate,'-','')) IN ("
+                +String.join(",",Collections.nCopies(block.size(),"?"))+")";
+            plates.addAll(db.query(sql,(rs,n)->rs.getString(1),block.toArray()));
+        }
+        return plates;
     }
     @Transactional
     public ImportResult confirm(UUID id,boolean approved,String operator){
@@ -99,6 +113,7 @@ public class SecureCustomerImportService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,"Integridade do arquivo não confirmada. Importação cancelada.");
         int inserted=0,skipped=0;
         Set<String> existing=existingDocuments(parsed.rows());
+        Set<String> existingVehiclePlates=existingPlates(parsed.rows());
         for (CustomerCsvParser.CustomerRow r:parsed.rows()) {
             if(existing.contains(r.document())){skipped++;continue;}
             UUID associate=UUID.randomUUID();
@@ -111,6 +126,21 @@ public class SecureCustomerImportService {
                 r.birthDate().isEmpty()?null:LocalDate.parse(r.birthDate()),nil(r.phone2()),nil(r.zip()),nil(r.address()),nil(r.number()),nil(r.complement()),nil(r.neighborhood()),nil(r.city()),nil(r.state()));
             if(insertedIds.isEmpty()){skipped++;continue;}
             db.update("INSERT INTO tenant_customer_import_links(batch_id,source_line,associate_id,source_external_code) VALUES (?,?,?,?)",id,r.sourceLine(),associate,nil(r.externalId()));
+            if (r.hasVehicle() && (r.plate().isBlank() || existingVehiclePlates.add(r.plate()))) {
+                Integer modelYear=r.modelYear().isBlank()?null:Integer.valueOf(r.modelYear());
+                Boolean zeroKm=r.vehicleZeroKm().isBlank()?null:Set.of("sim","true","1").contains(r.vehicleZeroKm());
+                java.math.BigDecimal fipe=r.fipeValue().isBlank()?null:
+                        new java.math.BigDecimal(CustomerCsvParser.normalizeMoney(r.fipeValue()));
+                // DRAFT, sem cobrança ou plano: o ADM confere os dados FIPE antes de ativar.
+                db.update("""
+                    INSERT INTO commercial_vehicles
+                      (id,associate_id,plate,model,created_at,updated_at,
+                       zero_km,vehicle_type,brand,model_year,fipe_version,fipe_code,fipe_value)
+                    VALUES (?,?,?,?,NOW(),NOW(),?,?,?,?,?,?,?)
+                    """,UUID.randomUUID(),associate,nil(r.plate()),r.vehicleModel(),zeroKm,
+                       nil(r.vehicleType()),nil(r.vehicleMake()),modelYear,
+                       nil(r.fipeVersion()),nil(r.fipeCode()),fipe);
+            }
             inserted++;
         }
         db.update("""
