@@ -1378,9 +1378,6 @@ function openUserModal(id = '') {
   roleSelect.value = item?.role || 'CONSULTANT';
 
   $('user-new-consultant-name').value = '';
-  $('user-password').value = '';
-  $('user-password-wrap').hidden = Boolean(item);
-  $('user-password').required = !item;
   $('user-active-wrap').hidden = !item;
   $('user-active').checked = item?.active ?? true;
   $('user-dialog-title').textContent = item ? 'Editar usuário' : 'Novo usuário';
@@ -3806,7 +3803,6 @@ $('user-form').addEventListener('submit', async event => {
       });
       message('Usuário atualizado.', 'success');
     } else {
-      payload.password = $('user-password').value;
       await api('/api/admin/users', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
       });

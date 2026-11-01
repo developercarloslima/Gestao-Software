@@ -175,7 +175,7 @@ class PortalUserServiceTenantModuleBootstrapTest {
         when(users.findByNormalizedUsername("operador")).thenReturn(Optional.empty());
 
         var result = service.create(new CreatePortalUserRequest(
-                "operador", "Operador cadastrado", "SenhaInicial2026",
+                "operador", "Operador cadastrado", "SenhaEscolhidaNoPayload2026",
                 PortalRole.TOW_DRIVER, null, null), "adm.empresa");
 
         var saved = org.mockito.ArgumentCaptor.forClass(PortalUser.class);
@@ -183,6 +183,40 @@ class PortalUserServiceTenantModuleBootstrapTest {
         assertTrue(saved.getValue().isMustChangePassword());
         assertTrue(result.mustChangePassword());
         assertEquals("adm.empresa", saved.getValue().getCreatedBy());
+        assertTrue(encoder.matches("gestao1234", saved.getValue().getPasswordHash()));
+        assertFalse(encoder.matches("SenhaEscolhidaNoPayload2026", saved.getValue().getPasswordHash()));
+    }
+
+    @Test
+    void adminCanCreateWithoutSendingAnyPassword() {
+        when(users.findByNormalizedUsername("atendente")).thenReturn(Optional.empty());
+
+        var created = service.create(new CreatePortalUserRequest(
+                "atendente", "Atendente", null, PortalRole.EVENT_OPERATOR, null, null), "adm.empresa");
+
+        var saved = org.mockito.ArgumentCaptor.forClass(PortalUser.class);
+        verify(users).save(saved.capture());
+        assertTrue(encoder.matches("gestao1234", saved.getValue().getPasswordHash()));
+        assertTrue(created.mustChangePassword());
+    }
+
+    @Test
+    void importedUserKeepsBatchTemporaryPasswordAndMustChangeIt() {
+        when(users.findByNormalizedUsername("importado")).thenReturn(Optional.empty());
+        var stored = new java.util.concurrent.atomic.AtomicReference<PortalUser>();
+        when(users.save(any(PortalUser.class))).thenAnswer(call -> {
+            PortalUser account = call.getArgument(0);
+            stored.set(account);
+            return account;
+        });
+        when(users.findById(any(java.util.UUID.class))).thenAnswer(call -> Optional.ofNullable(stored.get()));
+
+        var result = service.createImported("importado", "Operador importado", PortalRole.EVENT_OPERATOR,
+                "SenhaTemporariaImportacao2026", "adm.empresa");
+
+        PortalUser account = stored.get();
+        assertTrue(encoder.matches("SenhaTemporariaImportacao2026", account.getPasswordHash()));
+        assertTrue(result.mustChangePassword());
     }
 
     @Test

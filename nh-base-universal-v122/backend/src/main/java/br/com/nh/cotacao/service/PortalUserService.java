@@ -12,6 +12,7 @@ import br.com.nh.cotacao.repository.ConsultantRepository;
 import br.com.nh.cotacao.repository.InspectionRequestRepository;
 import br.com.nh.cotacao.repository.PortalUserRepository;
 import br.com.nh.cotacao.security.PortalRole;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,11 @@ public class PortalUserService {
     }
 
     private static final String DEVELOPER_BOOTSTRAP = "DEVELOPER_BOOTSTRAP";
+
+    // Mesma senha inicial dos logins genéricos deste tenant.
+    // Contas pessoais sempre devem substituí-la no primeiro acesso.
+    @Value("${app.tenant.module-temporary-password:gestao1234}")
+    private String defaultNewUserPassword = "gestao1234";
     private final PortalUserRepository repository;
     private final CatalogChangeAuditRepository auditRepository;
     private final ConsultantRepository consultantRepository;
@@ -247,11 +253,18 @@ public class PortalUserService {
 
     @Transactional
     public PortalUserResponse create(CreatePortalUserRequest request, String adminUsername) {
+        // O ADM não escolhe a senha inicial; o tenant define o padrão.
+        return createWithPassword(request, adminUsername, defaultNewUserPassword);
+    }
+
+    private PortalUserResponse createWithPassword(
+            CreatePortalUserRequest request, String adminUsername, String temporaryPassword
+    ) {
         String normalized = PortalUser.normalizeUsername(request.username());
         repository.findByNormalizedUsername(normalized).ifPresent(existing -> {
             throw new IllegalArgumentException("Já existe uma conta com esse usuário.");
         });
-        validatePassword(request.password());
+        validatePassword(temporaryPassword);
 
         UUID consultantId = resolveConsultantForNewUser(
                 request.role(), request.consultantId(), request.newConsultantName(), adminUsername
@@ -259,7 +272,7 @@ public class PortalUserService {
         String displayName = normalizeDisplayName(request.displayName(), request.username(), consultantId);
 
         PortalUser user = PortalUser.create(
-                request.username(), displayName, encoder.encode(request.password()), request.role(), adminUsername
+                request.username(), displayName, encoder.encode(temporaryPassword), request.role(), adminUsername
         );
         user.linkConsultant(consultantId);
         // Contas pessoais criadas pelo ADM sempre trocam a senha no primeiro acesso.
@@ -286,8 +299,9 @@ public class PortalUserService {
                 collaboratorId=existing.get().getId();
             }else newCollaboratorName=name;
         }
-        PortalUserResponse created=create(new CreatePortalUserRequest(login,name,temporaryPassword,
-                role,collaboratorId,newCollaboratorName),adminUsername);
+        // A importação preserva a senha temporária do lote e exige troca no primeiro login.
+        PortalUserResponse created=createWithPassword(new CreatePortalUserRequest(login,name,null,
+                role,collaboratorId,newCollaboratorName),adminUsername,temporaryPassword);
         PortalUser account=find(created.id());
         account.requirePasswordChange();
         repository.saveAndFlush(account);

@@ -36,7 +36,8 @@ public final class AdminUserDtos {
     public record CreatePortalUserRequest(
             @NotBlank @Size(min = 3, max = 160) String username,
             @Size(max = 160) String displayName,
-            @NotBlank @Size(min = 8, max = 120) String password,
+            // Campo legado opcional; cadastro manual sempre usa o padrão do tenant.
+            @Size(max = 120) String password,
             @NotNull PortalRole role,
             UUID consultantId,
             @Size(max = 140) String newConsultantName
