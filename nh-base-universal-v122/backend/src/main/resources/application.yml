@@ -44,6 +44,13 @@ server:
     include-stacktrace: never
 
 app:
+  financial:
+    # NONE desativa operações externas; ASAAS reutiliza a integração existente.
+    # Outros provedores devem implementar FinancialProvider antes da ativação.
+    provider: ${FINANCIAL_PROVIDER:ASAAS}
+    # Aliases antigos permanecem válidos para não alterar a tarifa já contratada.
+    payment-fee: ${FINANCIAL_PAYMENT_FEE:${ASAAS_PAYMENT_FEE:2.00}}
+    withdrawal-fee: ${FINANCIAL_WITHDRAWAL_FEE:${ASAAS_WITHDRAWAL_FEE:2.00}}
   demo-associate:
     enabled: ${DEMO_ASSOCIATE_ENABLED:false}
   public-api-url: ${PUBLIC_API_URL:${RENDER_EXTERNAL_URL:http://localhost:8080}}

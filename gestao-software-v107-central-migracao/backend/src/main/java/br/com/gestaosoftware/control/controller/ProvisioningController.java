@@ -2,7 +2,7 @@ package br.com.gestaosoftware.control.controller;
 
 import br.com.gestaosoftware.control.security.PlatformPrincipal;
 import br.com.gestaosoftware.control.service.CapacitySizingService;
-import br.com.gestaosoftware.control.service.AsaasCheckoutService;
+import br.com.gestaosoftware.control.service.PlatformPaymentGateway;
 import br.com.gestaosoftware.control.service.ProvisioningService;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.HttpStatus;
@@ -13,8 +13,10 @@ import java.util.*;
 @RestController
 public class ProvisioningController {
     private final ProvisioningService svc;
-    private final AsaasCheckoutService checkout;
-    public ProvisioningController(ProvisioningService svc,AsaasCheckoutService checkout){this.svc=svc;this.checkout=checkout;}
+    private final PlatformPaymentGateway checkout;
+    public ProvisioningController(ProvisioningService svc,PlatformPaymentGateway checkout){this.svc=svc;this.checkout=checkout;}
+    @GetMapping("/api/platform/finance/provider")
+    public Map<String,Object> providerStatus(){return checkout.status();}
     @GetMapping("/api/platform/implantacao/capacidades")
     public Map<String,Object> capabilities(){return svc.capabilities();}
     @PostMapping("/api/platform/implantacao/dimensionar")
@@ -34,10 +36,16 @@ public class ProvisioningController {
     @PostMapping("/api/platform/implantacao/faturas/{invoiceId}/gerar-cobranca")
     public Map<String,Object> createPayment(@PathVariable UUID invoiceId){return checkout.checkout(invoiceId);}
     @PostMapping("/api/platform/implantacao/faturas/{invoiceId}/verificar-asaas")
-    public Map<String,Object> payment(@PathVariable UUID invoiceId,@RequestBody ProvisioningService.PaymentCheck request){return svc.verifyAsaasPayment(invoiceId,request.paymentId());}
+    public Map<String,Object> payment(@PathVariable UUID invoiceId,@RequestBody ProvisioningService.PaymentCheck request){
+        if(!"ASAAS".equals(checkout.code()) || !checkout.ready())throw new org.springframework.web.server.ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"Integração Asaas não está ativa.");
+        return svc.verifyAsaasPayment(invoiceId,request.paymentId());
+    }
     @PostMapping("/api/public/implantacao/asaas-webhook")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void webhook(@RequestHeader(value="asaas-access-token",required=false) String token,@RequestBody JsonNode event){svc.verifiedAsaasWebhook(token,event);}
+    public void webhook(@RequestHeader(value="asaas-access-token",required=false) String token,@RequestBody JsonNode event){
+        if(!"ASAAS".equals(checkout.code()) || !checkout.ready())throw new org.springframework.web.server.ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        svc.verifiedAsaasWebhook(token,event);
+    }
     @PostMapping("/api/agent/implantacao/proximo")
     public Map<String,Object> claim(@RequestHeader(value="X-Provisioner-Key",required=false) String token,
          @RequestHeader(value="X-Provisioner-Vps-Id",required=false) UUID vpsId){return svc.claim(token,vpsId);}

@@ -26,13 +26,13 @@ public class CommercialFinanceService {
     private final ConsultantWithdrawalRepository withdrawals;
     private final ConsultantWalletMovementRepository wallet;
     private final AsaasWebhookEventRepository webhookEvents;
-    private final AsaasClient asaas;
+    private final FinancialProviderGateway asaas;
     private final ConsultantCommissionGuideService commissionGuide;
     private final ObjectMapper mapper;
 
-    @Value("${app.asaas.payment-fee:2.00}")
+    @Value("${app.financial.payment-fee:2.00}")
     private BigDecimal asaasPaymentFee;
-    @Value("${app.asaas.withdrawal-fee:2.00}")
+    @Value("${app.financial.withdrawal-fee:2.00}")
     private BigDecimal asaasWithdrawalFee;
 
     public CommercialFinanceService(
@@ -43,7 +43,7 @@ public class CommercialFinanceService {
             ConsultantWithdrawalRepository withdrawals,
             ConsultantWalletMovementRepository wallet,
             AsaasWebhookEventRepository webhookEvents,
-            AsaasClient asaas,
+            FinancialProviderGateway asaas,
             ConsultantCommissionGuideService commissionGuide,
             ObjectMapper mapper
     ) {
@@ -191,7 +191,7 @@ public class CommercialFinanceService {
         if (request.billingType() == FinancialBillingType.CASH_HAND) {
             throw new IllegalArgumentException("Somente a adesão pode ser registrada como recebida em mãos.");
         }
-        if (!asaas.enabled()) throw new IllegalStateException("Configure o Asaas antes de gerar Pix ou boleto.");
+        if (!asaas.enabled()) throw new IllegalStateException("Configure a financeira para gerar Pix ou boleto.");
         return toChargeResponse(createAsaasCharge(v, request.type(), request.billingType(), request.value(), request.dueDate()));
     }
 
@@ -368,6 +368,7 @@ public class CommercialFinanceService {
 
     private FinancialCharge sendExistingAsaasCharge(FinancialCharge c) {
         try {
+            c.selectProvider(asaas.code());
             String customer = ensureAsaasCustomer(c.getAssociate());
             c.applyProviderFee(paymentFeeFor(c.getBillingType()));
             var p = asaas.createCharge(customer, c.getBillingType(), c.getGrossValue(), c.getDueDate() == null ? LocalDate.now() : c.getDueDate(),
@@ -382,6 +383,7 @@ public class CommercialFinanceService {
 
     private FinancialCharge createAsaasCharge(CommercialVehicle v, FinancialChargeType type, FinancialBillingType billing, BigDecimal value, LocalDate dueDate) {
         FinancialCharge c = FinancialCharge.create(v, type, billing, value, dueDate);
+        c.selectProvider(asaas.code());
         c.applyProviderFee(paymentFeeFor(billing));
         c = charges.save(c);
         try {
@@ -510,7 +512,7 @@ public class CommercialFinanceService {
                 return toChargeResponse(c);
             }
         }
-        if (!asaas.enabled()) throw new IllegalStateException("Configure o Asaas antes de gerar a cobrança.");
+        if (!asaas.enabled()) throw new IllegalStateException("Configure a financeira antes de gerar a cobrança.");
         return toChargeResponse(createAsaasCharge(v, FinancialChargeType.MONTHLY, billing, v.getMonthlyValue(), LocalDate.now()));
     }
 

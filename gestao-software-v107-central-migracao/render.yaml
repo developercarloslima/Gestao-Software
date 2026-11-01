@@ -45,6 +45,8 @@ services:
         value: "false"
       - key: GESTAO_ASAAS_BASE_URL
         value: https://api-sandbox.asaas.com/v3
+      - key: GESTAO_FINANCIAL_PROVIDER
+        value: NONE
   - type: web
     name: gs107-hml-web
     runtime: docker

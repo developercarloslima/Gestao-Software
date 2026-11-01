@@ -3,7 +3,7 @@
   'use strict';
   const $=id=>document.getElementById(id);
   const root='/api/platform/implantacao';
-  let companyId=null, draft=null, currentEstimate=null, capabilities=null, lastReady=null;
+  let companyId=null, draft=null, currentEstimate=null, capabilities=null, lastReady=null, financialProvider=null;
   let currentJobs=[],lastCompany=null, loadSerial=0;
   const labels={QUEUED:'Na fila',PROVISIONING:'Instalando serviços',VERIFYING:'Verificando endereço',ACTIVE:'Pronto para uso',FAILED:'Falhou — exige atenção'};
   const formRequest=(payload,method='POST')=>({method,headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -91,8 +91,14 @@
   }
   async function populate(){
     try{
-      const [companies,modules,caps]=await Promise.all([api('/api/platform/companies'),api('/api/platform/modules'),api(`${root}/capacidades`)]);
+      const [companies,modules,caps,payment]=await Promise.all([api('/api/platform/companies'),api('/api/platform/modules'),api(`${root}/capacidades`),api('/api/platform/finance/provider')]);
       capabilities=caps;
+      financialProvider=payment;
+      $('payment-create').disabled=!payment.configured;
+      $('payment-verify').disabled=!payment.configured||payment.provider!=='ASAAS';
+      $('onboarding-financial-provider').textContent=payment.configured
+        ? `Financeira ${payment.provider} conectada e apta a gerar cobranças.`
+        : `Financeira aguardando configuração (${payment.provider}). A emissão e confirmação bancária estão bloqueadas.`;
       const old=$('onboarding-company').value;
       $('onboarding-company').innerHTML='<option value="">Selecione uma empresa</option>'+companies.map(c=>`<option value="${esc(c.id)}">${esc(c.tradeName)}</option>`).join('');
       if(companies.some(c=>String(c.id)===old))$('onboarding-company').value=old;
@@ -149,16 +155,16 @@
   $('payment-create').addEventListener('click',async()=>{
     const invoice=$('payment-invoice').value;
     if(!companyId||!invoice){hint('Escolha uma empresa e uma fatura.',true);return;}
-    if(!confirm('Esta ação cria uma cobrança no Asaas. Certifique-se de que o cadastro e o valor estão corretos antes de continuar.'))return;
+    if(!confirm('Esta ação cria uma cobrança na financeira configurada. Confira empresa, valor e vencimento antes de continuar.'))return;
     const btn=$('payment-create');btn.disabled=true;
     try{
       const result=await api(`${root}/faturas/${invoice}/gerar-cobranca`,{method:'POST'});
       $('payment-asaas-id').value=result.paymentId||'';
       const url=safeUrl(result.invoiceUrl);
       $('payment-checkout').hidden=false;
-      $('payment-checkout').innerHTML=url?`<p><strong>Cobrança criada, ainda não paga.</strong></p><p><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Abrir cobrança no Asaas ↗</a></p><small>ID: ${esc(result.paymentId)}</small>`:'Cobrança criada. Verifique o recebimento no Asaas.';
+      $('payment-checkout').innerHTML=url?`<p><strong>Cobrança criada, ainda não paga.</strong></p><p><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Abrir cobrança ↗</a></p><small>ID: ${esc(result.paymentId)}</small>`:'Cobrança criada. Aguarde confirmação bancária.';
       hint('Cobrança criada. A implantação permanece bloqueada até confirmação efetiva do pagamento.');
-    }catch(err){hint(err.message,true);}finally{btn.disabled=false;}
+    }catch(err){hint(err.message,true);}finally{btn.disabled=!financialProvider?.configured;}
   });
   $('payment-verify').addEventListener('click',async()=>{
     const invoice=$('payment-invoice').value,id=$('payment-asaas-id').value.trim();

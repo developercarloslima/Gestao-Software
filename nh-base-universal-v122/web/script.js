@@ -263,9 +263,10 @@ if (contactForm && contactFormMessage) {
   });
 }
 
-// Consulta da 2ª via de boleto por associado: CPF/CNPJ -> API oficial Hinova SGA V2
+// Consulta protegida: CPF/CNPJ + senha, sem revelar cobranças a terceiros.
 const boletoBuscaForm = document.querySelector('#boletoBuscaForm');
 const boletoDocumento = document.querySelector('#boletoDocumento');
+const boletoSenha = document.querySelector('#boletoSenha');
 const boletoFormMessage = document.querySelector('#boletoFormMessage');
 const boletoAssociadoArea = document.querySelector('#boletoAssociadoArea');
 const boletoAssociadoNome = document.querySelector('#boletoAssociadoNome');
@@ -413,6 +414,8 @@ function getBoletoTitle(boleto, index) {
 }
 
 function getBoletoLabel(boleto) {
+  if (boleto.status === 'Pago') return 'Pagamento confirmado';
+  if (boleto.status === 'Vencido') return 'Boleto vencido';
   if (boleto.tipoExibicao === 'placa_cancelada') return 'Placa cancelada';
   if (boleto.tipoExibicao === 'placa_inativa') return 'Placa inativa';
   if (boleto.tipoExibicao === 'boleto_vencido') return 'Boleto vencido';
@@ -476,10 +479,15 @@ function createBoletoItem(boleto, index) {
   const actions = document.createElement('div');
   actions.className = 'boleto-item__actions';
 
-  if (boleto.pdf && boleto.disponivel !== false) {
+  const boletoUrl = (() => {
+    try { const u = new URL(String(boleto.pdf || '')); return u.protocol === 'https:' ? u.href : null; }
+    catch (_) { return null; }
+  })();
+  if (boletoUrl && boleto.disponivel !== false) {
     const openLink = document.createElement('a');
     openLink.className = 'primary-button';
-    openLink.href = `/api/baixar-boleto?url=${encodeURIComponent(boleto.pdf)}`;
+    // URL entregue pela financeira: nunca usar proxy de download com URL arbitrária (SSRF).
+    openLink.href = boletoUrl;
     openLink.target = '_blank';
     openLink.rel = 'noopener';
     openLink.textContent = 'Baixar boleto';
@@ -575,12 +583,24 @@ if (boletoBuscaForm) {
         submitButton.textContent = 'Consultando...';
       }
 
-      const response = await fetch('/api/consultar-boletos-associado', {
+      const endpoint = path => window.NH_API?.backend ? window.NH_API.backend(path) : path;
+      const loginResponse = await fetch(endpoint('/api/auth/login'), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ documento }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: documento, password: boletoSenha?.value || '' }),
+      });
+      if (boletoSenha) boletoSenha.value = '';
+      const login = await loginResponse.json().catch(() => ({}));
+      if (!loginResponse.ok || login.role !== 'ASSOCIATE' || !login.token) {
+        throw new Error('CPF/CNPJ ou senha inválidos. Entre pela Área do Associado caso seja seu primeiro acesso.');
+      }
+      if (login.passwordChangeRequired) {
+        throw new Error('Altere sua senha no primeiro acesso à Área do Associado antes de consultar boletos.');
+      }
+      const response = await fetch(endpoint('/api/associate-portal/second-copy'), {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${login.token}` },
+        cache: 'no-store'
       });
 
       const data = await response.json().catch(() => ({}));
@@ -599,7 +619,9 @@ if (boletoBuscaForm) {
       if (boletoResumo) {
         boletoResumo.textContent = boletoState.boletos.length
           ? `${boletoState.boletos.length} resultado(s) encontrado(s). Confira placa, valor e vencimento antes de baixar.`
-          : 'Nenhum boleto disponível foi encontrado para este CPF/CNPJ.';
+          : (data.financeiraConfigurada
+            ? 'Nenhum boleto emitido foi encontrado para este cadastro.'
+            : 'A financeira ainda não está conectada. Nenhum boleto emitido está disponível.');
       }
 
       renderBoletos(boletoState.boletos);

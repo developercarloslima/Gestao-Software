@@ -19,6 +19,9 @@ server:
     include-message: never
     include-stacktrace: never
 app:
+  financial:
+    # NONE = nenhuma operação externa. Integração atual: ASAAS.
+    provider: ${GESTAO_FINANCIAL_PROVIDER:ASAAS}
   auth:
     token-secret: ${AUTH_TOKEN_SECRET:gestao-software-local-secret-change-me-2026}
     token-hours: ${AUTH_TOKEN_HOURS:12}
