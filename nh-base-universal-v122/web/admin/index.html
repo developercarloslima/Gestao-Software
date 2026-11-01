@@ -1175,7 +1175,7 @@
               placeholder="Ex.: carlos.lima"
           /></label>
           <input id="user-display-name" type="hidden" />
-          <label
+          <label class="span-2"
             >Perfil de acesso<select id="user-role" required>
               <option value="CONSULTANT">Consultor</option>
               <option value="ANALYST">Analista</option>
@@ -1186,15 +1186,7 @@
               <option value="BUYER">Financeiro</option>
             </select></label
           >
-          <label id="user-password-wrap"
-            >Senha<input
-              id="user-password"
-              type="password"
-              autocomplete="new-password"
-              minlength="8"
-              maxlength="120"
-              placeholder="Mínimo de 8 caracteres"
-          /></label>
+          <p class="helper span-2">A senha inicial padrão da empresa será atribuída automaticamente. O usuário deverá alterá-la no primeiro login.</p>
           <div id="user-consultant-wrap" class="span-2">
             <div class="form-grid">
               <label class="span-2"
