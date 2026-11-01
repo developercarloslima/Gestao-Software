@@ -51,6 +51,11 @@ public class AdminUserController {
     }
 
 
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable UUID id, Authentication auth) {
+        service.delete(id, username(auth));
+    }
+
     @DeleteMapping("/{id}/face")
     public void resetFace(@PathVariable UUID id) {
         faceService.reset(id);
