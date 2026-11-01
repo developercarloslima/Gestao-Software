@@ -13,7 +13,7 @@ FROM consultants AS collaborator
 WHERE account.consultant_id = collaborator.id
   AND account.role = 'CONSULTANT'
   AND account.created_by = 'CONSULTANT_AUTO_BOOTSTRAP'
-  AND collaborator.role = 'CONSULTANT'
+  AND collaborator.collaborator_role = 'CONSULTANT'
   AND collaborator.source = 'CREATED_IN_PORTAL'
   AND account.created_at <= collaborator.created_at + INTERVAL '2 minutes'
   AND account.active = TRUE;
