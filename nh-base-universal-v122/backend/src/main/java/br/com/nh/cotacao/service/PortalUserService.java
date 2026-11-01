@@ -497,6 +497,29 @@ public class PortalUserService {
         return candidate;
     }
 
+    /**
+     * Quando o ADM cria um acesso para um nome já presente na Área do Colaborador,
+     * reaproveita a conta antiga (se houver) e permite sua reativação consciente.
+     * A migração retroativa nunca apaga o vínculo nem o histórico da pessoa.
+     */
+    @Transactional
+    public String ensureConsultantAccountByAdmin(UUID consultantId, String adminUsername) {
+        String login = ensureConsultantAccount(consultantId);
+        repository.findByConsultantId(consultantId).ifPresent(account -> {
+            if (!account.isActive()) {
+                account.setActive(true);
+                account.requirePasswordChange();
+                repository.save(account);
+                auditRepository.save(CatalogChangeAudit.createText(
+                        "PORTAL_USER", null, account.getId().toString(),
+                        "Conta individual reativada pelo ADM — " + account.getUsername(),
+                        "inativa", "ativa; troca de senha necessária", adminUsername
+                ));
+            }
+        });
+        return login;
+    }
+
     private String consultantUsernameBase(String fullName) {
         String normalized = Consultant.normalize(fullName);
         if (normalized.isBlank()) return "consultor";

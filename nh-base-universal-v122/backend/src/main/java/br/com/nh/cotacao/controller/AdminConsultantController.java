@@ -27,7 +27,7 @@ public class AdminConsultantController {
     @ResponseStatus(HttpStatus.CREATED)
     public ConsultantResponse create(@Valid @RequestBody CreateConsultantRequest request, Authentication auth) {
         ConsultantResponse created = service.create(request.name(), request.role(), request.whatsapp(), request.city(), request.assignedAnalystId(), "ADMIN", username(auth));
-        if (created.role() == br.com.nh.cotacao.entity.CollaboratorRole.CONSULTANT) portalUserService.ensureConsultantAccount(created.id());
+        if (created.role() == br.com.nh.cotacao.entity.CollaboratorRole.CONSULTANT) portalUserService.ensureConsultantAccountByAdmin(created.id(), username(auth));
         return created;
     }
 
