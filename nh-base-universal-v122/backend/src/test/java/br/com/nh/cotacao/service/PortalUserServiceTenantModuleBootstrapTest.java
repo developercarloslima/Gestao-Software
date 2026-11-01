@@ -41,6 +41,17 @@ class PortalUserServiceTenantModuleBootstrapTest {
     }
 
     @Test
+    void startupSkipsAccountsForNamesCreatedInCollaboratorArea() {
+        Consultant portalOnly = Consultant.create("Carla Dias", "CREATED_IN_PORTAL");
+        when(consultants.findByActiveTrueAndRoleOrderByNameAsc(CollaboratorRole.CONSULTANT))
+                .thenReturn(java.util.List.of(portalOnly));
+
+        service.bootstrapConsultantAccounts();
+
+        verifyNoInteractions(users);
+    }
+
+    @Test
     void newGenericModuleAccountKeepsDefaultPasswordWithoutFirstLoginReset() {
         when(users.findByNormalizedUsername("colaborador")).thenReturn(Optional.empty());
         when(users.findByNormalizedUsername("consultor")).thenReturn(Optional.empty());

@@ -1274,7 +1274,7 @@ $('create-consultant').addEventListener('click', async () => {
     $('create-box').hidden = true;
     $('consultant-search').value = consultant.name;
     applyConsultant(await registerConsultantLogin(consultant));
-    message('Novo consultor cadastrado e selecionado. Ele já aparecerá no painel administrativo.', 'success');
+    message('Colaborador cadastrado e selecionado. Ele já aparecerá no ADM, sem criar login individual.', 'success');
   } catch (error) {
     message(error.message);
   }
