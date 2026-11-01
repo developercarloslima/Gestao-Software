@@ -117,6 +117,7 @@
       const href=a.getAttribute('href')||'';
       let module=null;
       if(/^\/?cota|\/comparacao|\/confirmacao-valor/i.test(href)) module='COTA';
+      else if(/\/financeiro\/gestao(?:\.html|\/|$)/i.test(href)) module='GESTAO_FINANCEIRA_COMERCIAL';
       else if(/\/(analise|supervisao|guincho|oficina|checklist|financeiro|aceite-evento|retrato)/i.test(href)) module='VISTORIA_EVENTOS';
       else if(/\/(associados|veiculos)/i.test(href)) module='GESTAO_FINANCEIRA_COMERCIAL';
       else if(/\/ponto/i.test(href)) module='APONTAMENTO_DIGITAL';

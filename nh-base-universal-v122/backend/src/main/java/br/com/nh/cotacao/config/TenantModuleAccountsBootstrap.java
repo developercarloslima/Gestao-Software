@@ -24,7 +24,7 @@ public class TenantModuleAccountsBootstrap {
     }
     @Scheduled(initialDelay=35000,fixedDelay=180000)
     public void provision() {
-        if(gestao.enabled("COTA")) {
+        if(gestao.enabled("COTA") || gestao.enabled("VISTORIA_EVENTOS")) {
             users.bootstrapTenantModuleUser("colaborador","Colaborador",PortalRole.CONSULTANT,password);
         }
         if(gestao.enabled("VISTORIA_EVENTOS")) {
