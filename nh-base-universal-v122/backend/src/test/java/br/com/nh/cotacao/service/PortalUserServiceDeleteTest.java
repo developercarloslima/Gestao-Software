@@ -33,13 +33,15 @@ class PortalUserServiceDeleteTest {
                 "bcrypt-value", PortalRole.CONSULTANT, "adm.empresa");
         login.linkConsultant(person.getId());
         when(users.findById(login.getId())).thenReturn(Optional.of(login));
+        when(collaborators.findById(person.getId())).thenReturn(Optional.of(person));
 
         service.delete(login.getId(), "adm.empresa");
 
         verify(users).delete(same(login));
         verify(users).flush();
         verify(audit).save(any(CatalogChangeAudit.class));
-        verifyNoInteractions(collaborators);
+        verify(collaborators, never()).delete(any(Consultant.class));
+        verify(collaborators, never()).save(any(Consultant.class));
         assertEquals(person.getId(), login.getConsultantId());
         assertTrue(person.isActive());
     }
