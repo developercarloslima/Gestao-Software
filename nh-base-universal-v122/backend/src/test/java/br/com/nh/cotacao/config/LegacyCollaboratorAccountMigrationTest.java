@@ -18,6 +18,7 @@ class LegacyCollaboratorAccountMigrationTest {
             assertTrue(sql.contains("SET active = FALSE"));
             assertTrue(sql.contains("account.created_by = 'CONSULTANT_AUTO_BOOTSTRAP'"));
             assertTrue(sql.contains("collaborator.source = 'CREATED_IN_PORTAL'"));
+            assertTrue(sql.contains("collaborator.collaborator_role = 'CONSULTANT'"));
             assertTrue(sql.contains("account.consultant_id = collaborator.id"));
             assertTrue(sql.contains("account.created_at <= collaborator.created_at + INTERVAL '2 minutes'"));
             assertFalse(sql.toUpperCase().contains("DELETE FROM"));
