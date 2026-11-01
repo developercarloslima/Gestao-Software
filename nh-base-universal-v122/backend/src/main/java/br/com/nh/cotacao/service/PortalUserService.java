@@ -462,6 +462,7 @@ public class PortalUserService {
         consultantRepository.findByActiveTrueAndRoleOrderByNameAsc(CollaboratorRole.CONSULTANT)
                 .stream()
                 .filter(consultant -> !"GESTAO_MODULE_BOOTSTRAP".equals(consultant.getSource()))
+                .filter(consultant -> !"CREATED_IN_PORTAL".equals(consultant.getSource()))
                 .forEach(consultant -> ensureConsultantAccount(consultant.getId()));
     }
 

@@ -38,9 +38,9 @@ public class ConsultantController {
         if (portalUserService.linkedConsultantId(principal.username()).isPresent()) {
             throw new IllegalArgumentException("Este login já está vinculado a um consultor específico.");
         }
-        ConsultantResponse created = service.create(request.name(), "CREATED_IN_PORTAL", principal.username());
-        portalUserService.ensureConsultantAccount(created.id());
-        return created;
+        // Cadastro pela Área do Colaborador cria apenas um nome selecionável.
+        // Somente o ADM cria usuários individuais com credenciais.
+        return service.create(request.name(), "CREATED_IN_PORTAL", principal.username());
     }
 
     @PostMapping("/{id}/portal-login")
