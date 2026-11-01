@@ -1283,6 +1283,15 @@ function syncConsultantWhatsappField() {
   if (isConsultant) populateConsultantAnalysts(consultants.find(value => value.id === $('consultant-id').value) || null);
 }
 
+function canDeleteUser(item) {
+  if (!item) return false;
+  const source = String(item.createdBy || '').toUpperCase();
+  if (source === 'BOOTSTRAP' || (source.endsWith('_BOOTSTRAP') && source !== 'CONSULTANT_AUTO_BOOTSTRAP')) return false;
+  if (String(item.username || '').toLowerCase() === currentAdminUsername.toLowerCase()) return false;
+  if (item.role === 'ADMIN' && item.active && users.filter(user => user.role === 'ADMIN' && user.active).length <= 1) return false;
+  return true;
+}
+
 function renderUsers() {
   $('users-body').innerHTML = users.map(item => `<tr>
     <td><strong>${esc(item.username)}</strong></td>
@@ -1300,6 +1309,7 @@ function renderUsers() {
       <button class="outline small-button" data-user-password="${item.id}" type="button">Alterar senha</button>
       ${item.role === 'ADMIN' && String(item.username || '').toLowerCase() === currentAdminUsername.toLowerCase() ? `<button class="outline small-button" data-admin-passkey-add-row type="button">+ Passkey</button>` : ''}
       <button class="${item.active ? 'danger' : 'outline'} small-button" data-user-toggle="${item.id}" type="button">${item.active ? 'Desativar' : 'Ativar'}</button>
+      ${canDeleteUser(item) ? `<button class="danger small-button" data-user-delete="${item.id}" type="button">Excluir</button>` : ''}
     </div></td>
   </tr>`).join('') || emptyRow(9, 'Nenhum usuário cadastrado.');
 
@@ -1308,6 +1318,7 @@ function renderUsers() {
   document.querySelectorAll('[data-user-face-reset]').forEach(button => button.addEventListener('click', () => resetUserFace(button.dataset.userFaceReset)));
   document.querySelectorAll('[data-admin-passkey-add-row]').forEach(button => button.addEventListener('click', registerAdminPasskey));
   document.querySelectorAll('[data-user-toggle]').forEach(button => button.addEventListener('click', () => toggleUser(button.dataset.userToggle)));
+  document.querySelectorAll('[data-user-delete]').forEach(button => button.addEventListener('click', () => deleteUser(button.dataset.userDelete)));
 }
 
 function populateUserConsultants(item = null) {
@@ -1526,6 +1537,24 @@ async function toggleUser(id) {
     message(`Usuário ${action === 'desativar' ? 'desativado' : 'ativado'}.`, 'success');
     await load();
   } catch (error) { message(error.message); }
+}
+
+async function deleteUser(id) {
+  const item = users.find(value => value.id === id);
+  if (!canDeleteUser(item)) return;
+  const confirmed = await confirmAction(
+    'Excluir usuário definitivamente?',
+    `A conta "${item.username}" será apagada do banco, e o login perderá acesso imediatamente. O nome do colaborador, as cotações, as vistorias e os históricos permanecem intactos. Não é possível desfazer a exclusão da conta.`,
+    'Excluir usuário'
+  );
+  if (!confirmed) return;
+  try {
+    await api(`/api/admin/users/${id}`, { method: 'DELETE' });
+    message('Conta de acesso excluída. Colaborador e históricos preservados.', 'success');
+    await load();
+  } catch (error) {
+    message(error.message);
+  }
 }
 
 async function deleteQuote(id) {

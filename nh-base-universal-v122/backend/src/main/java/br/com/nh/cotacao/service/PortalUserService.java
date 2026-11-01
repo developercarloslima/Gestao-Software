@@ -346,6 +346,34 @@ public class PortalUserService {
         return toResponse(saved);
     }
 
+    /**
+     * Exclui exclusivamente a conta de acesso. O cadastro do colaborador,
+     * as cotações, as vistorias e os registros de atividade permanecem.
+     * As passkeys e os tokens de redefinição pertencentes à conta são
+     * removidos pelas respectivas FKs ON DELETE CASCADE.
+     */
+    @Transactional
+    public void delete(UUID id, String adminUsername) {
+        PortalUser user = find(id);
+        assertNotProtectedDeveloper(user);
+        if (isSystemManagedAccount(user)) {
+            throw new IllegalArgumentException("Usuários padrão dos módulos e contas de implantação não podem ser excluídos.");
+        }
+        if (user.getNormalizedUsername().equals(PortalUser.normalizeUsername(adminUsername))) {
+            throw new IllegalArgumentException("Você não pode excluir seu próprio usuário enquanto está conectado.");
+        }
+        protectLastAdmin(user, user.getRole(), false);
+        String login = user.getUsername();
+        String previous = summary(user);
+        repository.delete(user);
+        repository.flush();
+        auditRepository.save(CatalogChangeAudit.createText(
+                "PORTAL_USER", null, id.toString(),
+                "Conta de acesso excluída — " + login, previous,
+                "Conta removida definitivamente; colaborador e históricos preservados", adminUsername
+        ));
+    }
+
     @Transactional
     public void changeOwnPassword(String username, String currentPassword, String newPassword) {
         PortalUser user = repository.findByNormalizedUsername(PortalUser.normalizeUsername(username))
@@ -457,13 +485,14 @@ public class PortalUserService {
         });
     }
 
+    /**
+     * Não recriar contas individuais automaticamente na inicialização.
+     * Somente o ADM pode liberar um acesso pessoal para um colaborador;
+     * caso contrário, ele é identificado na Área do Colaborador genérica.
+     */
     @Transactional
     public void bootstrapConsultantAccounts() {
-        consultantRepository.findByActiveTrueAndRoleOrderByNameAsc(CollaboratorRole.CONSULTANT)
-                .stream()
-                .filter(consultant -> !"GESTAO_MODULE_BOOTSTRAP".equals(consultant.getSource()))
-                .filter(consultant -> !"CREATED_IN_PORTAL".equals(consultant.getSource()))
-                .forEach(consultant -> ensureConsultantAccount(consultant.getId()));
+        // Intencionalmente vazio. Contas antigas existentes não são alteradas.
     }
 
     @Transactional
@@ -843,6 +872,13 @@ public class PortalUserService {
     private boolean faceValidationRequired(PortalUser user) {
         // v83.19: reconhecimento facial não é fator de login para nenhum perfil.
         return false;
+    }
+
+    private boolean isSystemManagedAccount(PortalUser user) {
+        if (user == null || user.getCreatedBy() == null) return false;
+        String source = user.getCreatedBy().toUpperCase(java.util.Locale.ROOT);
+        return "BOOTSTRAP".equals(source)
+                || (source.endsWith("_BOOTSTRAP") && !"CONSULTANT_AUTO_BOOTSTRAP".equals(source));
     }
 
     private boolean isProtectedDeveloper(PortalUser user) {
