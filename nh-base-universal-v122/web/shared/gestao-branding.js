@@ -1,6 +1,9 @@
 (() => {
   const MODULE_BY_PATH = [
     [/^\/(?:cota|comparacao|confirmacao-valor)(?:\/|$)/i,'COTA'],
+    [/^\/colaborador(?:\/|$)/i,'COTA_VISTORIA'],
+    [/^\/consultor(?:\/|$)/i,'GESTAO_FINANCEIRA_COMERCIAL'],
+    [/^\/financeiro\/gestao(?:\.html|\/|$)/i,'GESTAO_FINANCEIRA_COMERCIAL'],
     [/^\/(?:analise|supervisao|guincho|oficina|checklist|financeiro|aceite-evento|retrato)(?:\/|$)/i,'VISTORIA_EVENTOS'],
     [/^\/(?:associados|veiculos)(?:\/|$)/i,'GESTAO_FINANCEIRA_COMERCIAL'],
     [/^\/ponto(?:\/|$)/i,'APONTAMENTO_DIGITAL'],
@@ -121,8 +124,25 @@
     });
 
     const module=currentModule();
-    if(module&&!enabled.has(module)){
-      const target=c.defaultModuleLanding||'/colaborador/';
+    const licensed=module==='COTA_VISTORIA'
+      ? enabled.has('COTA')||enabled.has('VISTORIA_EVENTOS')
+      : enabled.has(module);
+    if(module&&!licensed){
+      // O botão do Consultor continua no menu; ao abrir a área sem licença,
+      // mostramos o motivo sem fingir que a conta perdeu a sessão.
+      if(module==='GESTAO_FINANCEIRA_COMERCIAL'&&/^\/consultor(?:\/|$)/i.test(location.pathname||'')){
+        const panel=document.getElementById('app');
+        if(panel)panel.hidden=true;
+        const login=document.getElementById('login');
+        if(login)login.hidden=false;
+        const notice=document.getElementById('login-msg');
+        if(notice){
+          notice.className='message error';
+          notice.textContent='A Área do Consultor individual pertence ao módulo Financeiro, que não está habilitado para esta empresa. Use a Área do Colaborador para cotações e vistorias.';
+        }
+        return;
+      }
+      const target=c.defaultModuleLanding||'/';
       if(location.pathname!==target) location.replace(target);
     }
   }

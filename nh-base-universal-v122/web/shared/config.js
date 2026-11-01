@@ -20,7 +20,7 @@
 // Roteamento unificado dos portais internos NH.
 (() => {
   const ROLE_PATHS = Object.freeze({
-    CONSULTANT: '/consultor/',
+    CONSULTANT: '/colaborador/',
     ANALYST: '/analise/',
     TOW_DRIVER: '/guincho/',
     WORKSHOP_MANAGER: '/oficina/',
