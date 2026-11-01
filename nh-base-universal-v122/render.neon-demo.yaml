@@ -71,7 +71,7 @@ services:
       - key: ASAAS_ENABLED
         value: "false"
       - key: JAVA_TOOL_OPTIONS
-        value: "-Dfile.encoding=UTF-8 -XX:MaxRAMPercentage=65.0"
+        value: "-Dfile.encoding=UTF-8 -XX:MaxRAMPercentage=45.0 -XX:+UseSerialGC -XX:ReservedCodeCacheSize=64m -Xss512k"
   - type: web
     name: nh122-demo-web
     runtime: docker
