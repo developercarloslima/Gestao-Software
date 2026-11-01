@@ -36,6 +36,20 @@ class ModuleEntitlementInterceptorTest {
         when(config.enabled("COTA")).thenReturn(false);
         when(config.enabled("VISTORIA_EVENTOS")).thenReturn(true);
         assertTrue(allowed("/api/consultant-dashboard/11111111-1111-1111-1111-111111111111"));
+        assertTrue(allowed("/api/consultants"));
+        assertTrue(allowed("/api/admin/consultants"));
+        assertFalse(allowed("/api/commercial/me/finance"));
+    }
+
+    @Test
+    void financeOnlyTenantCanUseIndividualConsultantHistory() throws Exception {
+        when(config.config()).thenReturn(Map.of("active", true));
+        when(config.enabled("GESTAO_FINANCEIRA_COMERCIAL")).thenReturn(true);
+        assertTrue(allowed("/api/consultant-dashboard/11111111-1111-1111-1111-111111111111"));
+        assertTrue(allowed("/api/admin/consultants"));
+        assertTrue(allowed("/api/commercial/me/finance"));
+        assertFalse(allowed("/api/consultants"));
+        assertFalse(allowed("/api/quotes"));
     }
 
     @Test

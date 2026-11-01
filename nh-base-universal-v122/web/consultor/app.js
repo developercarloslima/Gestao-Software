@@ -1,6 +1,6 @@
 const T='nhPortalToken',R='nhPortalRole';
 const $=id=>document.getElementById(id);
-let me=null,dashboard=null,finance=null,portfolio=[],financeDocs=[],financeEnabled=true;
+let me=null,dashboard=null,finance=null,portfolio=[],financeDocs=[];
 const api=p=>window.NH_API?.backend?window.NH_API.backend(p):p;
 const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const dt=v=>v?new Date(v).toLocaleString('pt-BR'):'—';
@@ -41,28 +41,26 @@ async function boot(){
       return;
     }
     await loadAll();
-  }catch(e){logout(e.message)}
+  }catch(e){
+    if(/módulo não contratado|módulo desativado/i.test(e.message)){
+      $('app').hidden=true;
+      $('login').hidden=false;
+      msg('login-msg','A Área do Consultor individual pertence ao módulo Financeiro, que não está habilitado para esta empresa. Use a Área do Colaborador para cotações e vistorias.');
+      return;
+    }
+    logout(e.message);
+  }
 }
 async function loadAll(){
-  dashboard=await req(`/api/consultant-dashboard/${me.consultantId}`);
-  financeEnabled=true;
-  try{
-    finance=await req('/api/commercial/me/finance');
-    [portfolio,financeDocs]=await Promise.all([
-      req('/api/commercial/me/portfolio'),req('/api/commercial/me/documents')
-    ]);
-  }catch(error){
-    if(!/módulo não contratado|módulo desativado/i.test(error.message))throw error;
-    financeEnabled=false;
-    finance={};portfolio=[];financeDocs=[];
-  }
+  // A área individual é um benefício exclusivo do módulo Financeiro.
+  // Validar a licença primeiro: sem ela nenhum histórico individual é exibido aqui.
+  finance=await req('/api/commercial/me/finance');
+  [dashboard,portfolio,financeDocs]=await Promise.all([
+    req(`/api/consultant-dashboard/${me.consultantId}`),
+    req('/api/commercial/me/portfolio'),
+    req('/api/commercial/me/documents')
+  ]);
   render();
-  document.querySelectorAll('[data-tab]').forEach(button=>{
-    if(button.dataset.tab!=='comercial')button.hidden=!financeEnabled;
-  });
-  if(!financeEnabled){
-    document.querySelector('[data-tab="comercial"]')?.click();
-  }
 }
 function render(){
   $('kpi-sales').textContent=finance.salesThisMonth||0;$('kpi-base').textContent=finance.activePayingBase||0;$('kpi-commission').textContent=money(finance.commissionThisMonth);$('kpi-balance').textContent=money(finance.availableBalance);$('kpi-career').textContent=finance.careerLevel||'BRONZE';$('kpi-vehicles').textContent=portfolio.length;

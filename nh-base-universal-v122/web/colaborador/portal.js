@@ -1229,7 +1229,7 @@ $('login-form').addEventListener('submit', async event => {
     else if (data.role === 'WORKSHOP_MANAGER') location.href = '/oficina/';
     else if (data.role === 'EVENT_OPERATOR') location.href = '/checklist/';
     else if (data.role === 'BUYER') location.href = '/financeiro/';
-    else if (data.role === 'CONSULTANT' && data.consultantId) location.href = '/consultor/';
+    else if (data.role === 'CONSULTANT') await boot();
     else await boot();
   } catch (error) {
     box.className = 'message error';
