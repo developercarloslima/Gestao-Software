@@ -18,18 +18,22 @@ import java.time.Duration;
 import java.util.*;
 
 @Service
-public class AsaasCheckoutService {
+public class AsaasCheckoutService implements PlatformPaymentProvider {
     private final JdbcTemplate db;
     private final ObjectMapper json;
-    private final String key,base;
+    private final String key,base,webhookSecret;
     private final HttpClient client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
     public AsaasCheckoutService(JdbcTemplate db,ObjectMapper json,
         @Value("${app.provisioning.asaas-key:}") String key,
-        @Value("${app.provisioning.asaas-base:https://api-sandbox.asaas.com/v3}") String base){
-        this.db=db;this.json=json;this.key=key;this.base=base;
+        @Value("${app.provisioning.asaas-base:https://api-sandbox.asaas.com/v3}") String base,
+        @Value("${app.provisioning.webhook-secret:}") String webhookSecret){
+        this.db=db;this.json=json;this.key=key;this.base=base;this.webhookSecret=webhookSecret;
     }
+    @Override public String code(){return "ASAAS";}
+    @Override public boolean ready(){return key!=null && !key.isBlank() && webhookSecret!=null && !webhookSecret.isBlank() &&
+            Set.of("https://api.asaas.com/v3","https://api-sandbox.asaas.com/v3").contains(base);}
     private void configured(){
-        if(key.isBlank()||!Set.of("https://api.asaas.com/v3","https://api-sandbox.asaas.com/v3").contains(base))
+        if(!ready())
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"Configure credenciais Asaas no servidor.");
     }
     private JsonNode call(String method,String route,Object body){

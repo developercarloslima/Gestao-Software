@@ -20,12 +20,12 @@ public class FinanceOfficeService {
     private final ConsultantRepository consultants;
     private final ConsultantWithdrawalRepository withdrawals;
     private final ConsultantCommissionGuideService commissions;
-    private final AsaasClient asaas;
+    private final FinancialProviderGateway asaas;
 
     public FinanceOfficeService(JdbcTemplate jdbc, ConsultantRepository consultants,
                                 ConsultantWithdrawalRepository withdrawals,
                                 ConsultantCommissionGuideService commissions,
-                                AsaasClient asaas) {
+                                FinancialProviderGateway asaas) {
         this.jdbc = jdbc;
         this.consultants = consultants;
         this.withdrawals = withdrawals;
@@ -205,7 +205,7 @@ public class FinanceOfficeService {
         if(w.getStatus()!=WithdrawalStatus.REQUESTED) throw new IllegalArgumentException("Somente solicitações pendentes podem ser processadas.");
         if(note!=null&&!note.isBlank()) w.financeNote(note);
         if(w.getPayoutMethod()==ConsultantPayoutMethod.PIX){
-            if(!asaas.enabled()) throw new IllegalStateException("Configure o Asaas para processar saques via Pix.");
+            if(!asaas.enabled()) throw new IllegalStateException("Configure a financeira para processar saques via Pix.");
             if(w.getPixKeyType()==null||w.getPixKey()==null||w.getPixKey().isBlank()) throw new IllegalArgumentException("A solicitação não possui chave Pix válida.");
             if(asaas.balance().compareTo(w.getAmount())<0) throw new IllegalArgumentException("Saldo da conta financeira insuficiente para processar o saque e sua tarifa.");
             try{

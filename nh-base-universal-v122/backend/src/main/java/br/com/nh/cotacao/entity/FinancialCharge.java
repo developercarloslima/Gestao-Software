@@ -45,6 +45,13 @@ public class FinancialCharge {
         if(invoiceUrl!=null)this.invoiceUrl=invoiceUrl; if(bankSlipUrl!=null)this.bankSlipUrl=bankSlipUrl; if(identificationField!=null)this.identificationField=identificationField;
         if(barCode!=null)this.barCode=barCode; if(pixPayload!=null)this.pixPayload=pixPayload; if(pixImage!=null)this.pixEncodedImage=pixImage; this.updatedAt=OffsetDateTime.now();
     }
+    /** Identifica a financeira da cobrança sem reescrever o histórico das cobranças antigas. */
+    public void selectProvider(String code) {
+        if(code==null || !code.matches("[A-Z0-9_]{2,20}"))throw new IllegalArgumentException("Código da financeira inválido.");
+        if(providerPaymentId!=null && !provider.equals(code))throw new IllegalStateException("Uma cobrança emitida não pode trocar de financeira.");
+        this.provider=code;
+        this.updatedAt=OffsetDateTime.now();
+    }
     public void updateFromWebhook(FinancialChargeStatus status, BigDecimal providerGrossValue, LocalDate dueDate, OffsetDateTime paidAt, String invoiceUrl, String bankSlipUrl) {
         if(status!=null)this.status=status; if(providerGrossValue!=null){this.grossValue=providerGrossValue;this.providerFee=providerGrossValue.subtract(this.value).max(BigDecimal.ZERO);} if(dueDate!=null)this.dueDate=dueDate; if(paidAt!=null)this.paidAt=paidAt;
         if(invoiceUrl!=null)this.invoiceUrl=invoiceUrl; if(bankSlipUrl!=null)this.bankSlipUrl=bankSlipUrl; this.updatedAt=OffsetDateTime.now();

@@ -11,7 +11,14 @@ async function err(r){try{const j=await r.json();return j.message||j.detail||j.e
 function msg(id,t,e=true){const x=$(id);if(!x)return;x.textContent=t||'';x.className=t?`message ${e?'error':'success'}`:''}
 function logout(){localStorage.removeItem(T);localStorage.removeItem(R);$('app').hidden=true;$('login').hidden=false;$('logout').hidden=true}
 async function boot(){if(!localStorage.getItem(T))return;try{const me=await req('/api/auth/me');if(!['BUYER','ADMIN'].includes(me.role))return logout();$('login').hidden=true;$('app').hidden=false;$('logout').hidden=false;await loadAll()}catch{logout()}}
-async function loadAll(){await Promise.all([loadDash(),loadConsultants(),loadWithdrawals(),loadDocs(),loadLedger(),loadSuppliers(),loadCards(),loadBudgets(),loadSettings(),loadRules(),loadCareer()])}
+async function loadAll(){await Promise.all([loadDash(),loadConsultants(),loadWithdrawals(),loadDocs(),loadLedger(),loadSuppliers(),loadCards(),loadBudgets(),loadSettings(),loadRules(),loadCareer(),loadProviderStatus()])}
+async function loadProviderStatus(){
+  try {const status=await req('/api/public/financial/status');
+    $('financial-provider-banner').textContent=status.configured
+      ? `Financeira ${status.provider} conectada. Cobranças e transferências dependem de confirmação do provedor.`
+      : `Aguardando integração financeira (${status.provider||'NONE'}). Lançamentos internos seguem disponíveis; operações bancárias externas estão desabilitadas.`;
+  }catch(e){$('financial-provider-banner').textContent='Não foi possível verificar a configuração da financeira: '+e.message;}
+}
 function metric(label,value,cls=''){return `<div class="metric-row"><span>${esc(label)}</span><span class="${cls}">${esc(value)}</span></div>`}
 async function loadDash(){
   const x=await req(`/api/finance-office/dashboard?range=${$('range').value}`);

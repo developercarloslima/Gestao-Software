@@ -70,6 +70,8 @@ services:
         value: "false"
       - key: ASAAS_ENABLED
         value: "false"
+      - key: FINANCIAL_PROVIDER
+        value: NONE
       - key: JAVA_TOOL_OPTIONS
         value: "-Dfile.encoding=UTF-8 -XX:MaxRAMPercentage=45.0 -XX:+UseSerialGC -XX:ReservedCodeCacheSize=64m -Xss512k"
   - type: web

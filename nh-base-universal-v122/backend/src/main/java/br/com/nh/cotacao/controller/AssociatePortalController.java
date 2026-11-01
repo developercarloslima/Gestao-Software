@@ -4,6 +4,7 @@ import br.com.nh.cotacao.dto.CommercialFinanceDtos.*;
 import br.com.nh.cotacao.security.PortalPrincipal;
 import br.com.nh.cotacao.service.CommercialFinanceService;
 import br.com.nh.cotacao.service.PortalUserService;
+import br.com.nh.cotacao.service.SecondCopyService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,10 +17,17 @@ import java.util.UUID;
 public class AssociatePortalController {
     private final CommercialFinanceService finance;
     private final PortalUserService users;
+    private final SecondCopyService secondCopy;
 
-    public AssociatePortalController(CommercialFinanceService finance, PortalUserService users) {
+    public AssociatePortalController(CommercialFinanceService finance, PortalUserService users, SecondCopyService secondCopy) {
         this.finance = finance;
         this.users = users;
+        this.secondCopy = secondCopy;
+    }
+
+    @GetMapping("/second-copy")
+    public SecondCopyService.SecondCopyResponse secondCopy(Authentication auth) {
+        return secondCopy.list(associateId(auth));
     }
 
     @GetMapping("/me")

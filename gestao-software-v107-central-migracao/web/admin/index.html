@@ -207,15 +207,16 @@
           <p class="form-help">Uma URL só será entregue depois de o ambiente responder com HTTPS e confirmar a empresa correta. Nenhum recurso é criado pelo simples preenchimento dos campos.</p>
         </article>
         <article class="panel">
-          <span class="section-kicker">PAGAMENTO</span><h2>Conferir cobrança Asaas</h2>
+          <span class="section-kicker">PAGAMENTO</span><h2>Conferir cobrança da financeira</h2>
+          <p id="onboarding-financial-provider" class="form-help" role="status">Aguardando verificação do provedor.</p>
           <label>Fatura da empresa<select id="payment-invoice"><option value="">Selecione uma empresa</option></select></label>
           <label>ID do pagamento no Asaas<input id="payment-asaas-id" placeholder="pay_..." autocomplete="off"></label>
           <div class="form-actions">
-            <button id="payment-create" type="button" class="button primary">Gerar cobrança no Asaas</button>
+            <button id="payment-create" type="button" class="button primary">Gerar cobrança na financeira</button>
             <button id="payment-verify" type="button" class="button outline">Confirmar pagamento recebido</button>
           </div>
           <div id="payment-checkout" class="onboarding-summary" hidden></div>
-          <p class="form-help">A conferência é feita pelo servidor junto ao Asaas. Não é suficiente mudar o status da fatura manualmente.</p>
+          <p class="form-help">O ID e a confirmação direta atualmente usam o adaptador Asaas. Uma futura financeira terá seu próprio verificador. Alterar o status da fatura manualmente não substitui confirmação bancária.</p>
         </article>
         <article class="panel"><span class="section-kicker">ACOMPANHAMENTO</span><h2>Implantações da empresa</h2><div id="deployment-history" class="onboarding-summary" aria-live="polite">Nenhum ambiente selecionado.</div></article>
       </div>
@@ -238,6 +239,11 @@
   </section>
 
   <section id="tab-finance" class="tab-panel">
+    <article class="panel" aria-live="polite">
+      <div class="panel-head"><div><span class="section-kicker">INTEGRAÇÃO FINANCEIRA</span><h2>Provedora das mensalidades Gestão Software</h2></div></div>
+      <p id="finance-provider-status" class="form-help">Verificando conexão com a financeira...</p>
+      <p class="form-help">A financeira é configurada no servidor. A receita do Control Plane é separada das cobranças dos associados de cada empresa. Sem homologação, nenhuma cobrança externa é criada.</p>
+    </article>
     <div class="finance-summary-grid">
       <article class="metric-card"><span>Faturado na competência</span><strong id="finance-billed">R$ 0,00</strong><small>Pago + em aberto</small></article>
       <article class="metric-card"><span>Recebido</span><strong id="finance-gross">R$ 0,00</strong><small>Receita bruta</small></article>
@@ -318,17 +324,17 @@
           <details class="calculator-advanced" open>
             <summary>Custos diretos e margem</summary>
             <div class="form-grid three">
-              <label>Tarifa Asaas no boleto/Pix<input id="calc-asaas-cost" type="number" min="0" step="0.01" value="2.00"></label>
+              <label>Tarifa da financeira por boleto/Pix<input id="calc-asaas-cost" type="number" min="0" step="0.01" value="2.00"></label>
               <label>Valor médio da cobrança<input id="calc-average-payment" type="number" min="0" step="0.01" value="100.00"></label>
               <label>Saques de consultores/mês<input id="calc-withdrawals" type="number" min="0" step="1" value="0"></label>
-              <label>Tarifa Asaas por saque<input id="calc-withdrawal-cost" type="number" min="0" step="0.01" value="2.00"></label>
+              <label>Tarifa da financeira por saque<input id="calc-withdrawal-cost" type="number" min="0" step="0.01" value="2.00"></label>
               <label>Outros custos diretos mensais<input id="calc-other-costs" type="number" min="0" step="0.01" value="0"></label>
               <label>Margem bruta alvo (%)<input id="calc-target-margin" type="number" min="10" max="90" step="1" value="55"></label>
               <label>Infraestrutura<select id="calc-infra-profile"><option value="AUTO">Automática pelo porte</option><option value="SHARED">Cloud compartilhada</option><option value="RESERVED">Recursos reservados</option><option value="DEDICATED">AWS dedicada</option><option value="HYBRID">AWS + DR físico</option></select></label>
               <label>Custo AWS estimado<input id="calc-aws-cost" type="number" min="0" step="100"></label>
             </div>
             <div class="margin-explanation"><strong>Margem bruta alvo</strong><span>É a porcentagem da mensalidade que deve sobrar depois dos custos diretos da operação, como AWS e outros custos informados. Não é lucro líquido: impostos, salários, comercial e despesas administrativas vêm depois.</span></div>
-            <div class="asaas-explanation"><strong>Asaas é repassado</strong><span>As tarifas de boleto/Pix e saque não reduzem a margem da Gestão Software. A tarifa é adicionada à cobrança do associado ou descontada do valor solicitado no saque.</span></div>
+            <div class="asaas-explanation"><strong>Tarifas da financeira são repassadas</strong><span>As tarifas de boleto/Pix e saque não reduzem a margem da Gestão Software. A tarifa é adicionada à cobrança do associado ou descontada do valor solicitado no saque, conforme condições contratadas.</span></div>
           </details>
 
           <div id="calc-validation" class="form-message" aria-live="polite"></div>

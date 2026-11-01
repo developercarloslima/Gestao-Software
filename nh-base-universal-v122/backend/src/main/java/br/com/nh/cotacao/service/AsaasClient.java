@@ -16,7 +16,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 
 @Service
-public class AsaasClient {
+public class AsaasClient implements FinancialProvider {
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private final ObjectMapper mapper;
     private final boolean enabled;
@@ -34,14 +34,15 @@ public class AsaasClient {
             @Value("${app.asaas.user-agent:NH-Gestao/1.0}") String userAgent
     ) {
         this.mapper = mapper;
-        this.enabled = enabled && apiKey != null && !apiKey.isBlank();
+        this.enabled = enabled && apiKey != null && !apiKey.isBlank() && webhookToken != null && !webhookToken.isBlank();
         this.baseUrl = baseUrl == null ? "https://api-sandbox.asaas.com/v3" : baseUrl.replaceAll("/+$", "");
         this.apiKey = apiKey == null ? "" : apiKey.trim();
         this.webhookToken = webhookToken == null ? "" : webhookToken.trim();
         this.userAgent = userAgent == null || userAgent.isBlank() ? "NH-Gestao/1.0" : userAgent.trim();
     }
 
-    public boolean enabled() { return enabled; }
+    @Override public String code() { return "ASAAS"; }
+    @Override public boolean enabled() { return enabled; }
     public boolean validWebhookToken(String received) {
         return !webhookToken.isBlank() && received != null && constantTimeEquals(webhookToken, received.trim());
     }
@@ -177,6 +178,4 @@ public class AsaasClient {
     private static String text(JsonNode n,String field){ if(n==null||n.path(field).isMissingNode()||n.path(field).isNull())return null;String v=n.path(field).asText();return v==null||v.isBlank()?null:v; }
     private static boolean constantTimeEquals(String a,String b){ if(a.length()!=b.length())return false;int r=0;for(int i=0;i<a.length();i++)r|=a.charAt(i)^b.charAt(i);return r==0; }
 
-    public record PaymentData(String id,String status,String invoiceUrl,String bankSlipUrl,String identificationField,String barCode,String pixPayload,String pixEncodedImage,String subscriptionId,String externalReference) {}
-    public record TransferData(String id,String status) {}
 }

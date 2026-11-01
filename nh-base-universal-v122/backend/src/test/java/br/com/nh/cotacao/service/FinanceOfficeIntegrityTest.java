@@ -36,7 +36,7 @@ class FinanceOfficeIntegrityTest {
         ConsultantWithdrawalRepository withdrawals = mock(ConsultantWithdrawalRepository.class);
         ConsultantWithdrawal withdrawal = mock(ConsultantWithdrawal.class);
         Consultant consultant = mock(Consultant.class);
-        AsaasClient asaas = mock(AsaasClient.class);
+        FinancialProviderGateway asaas = mock(FinancialProviderGateway.class);
         UUID id = UUID.randomUUID();
 
         when(withdrawals.findByIdForUpdate(id)).thenReturn(Optional.of(withdrawal));

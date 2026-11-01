@@ -115,7 +115,18 @@ async function reloadAll(){
       api(`/api/platform/expenses?month=${encodeURIComponent(currentMonth())}`),api('/api/platform/vps')
     ]);
     renderDashboard();renderCompanies();renderExpenses();renderVps();
+    await loadFinancialProviderStatus();
   }catch(error){setMessage(error.message)}
+}
+
+async function loadFinancialProviderStatus(){
+  const box=$('finance-provider-status');if(!box)return;
+  try {
+    const state=await api('/api/platform/finance/provider');
+    box.textContent=state.configured
+      ? `Conectada: ${state.provider}. Apta a emitir cobranças verificadas.`
+      : `Aguardando integração: ${state.provider||'NONE'}. Informe as credenciais e faça a homologação antes de receber pagamentos reais.`;
+  } catch(error){box.textContent=`Não foi possível verificar a financeira: ${error.message}`;}
 }
 
 function renderDashboard(){
