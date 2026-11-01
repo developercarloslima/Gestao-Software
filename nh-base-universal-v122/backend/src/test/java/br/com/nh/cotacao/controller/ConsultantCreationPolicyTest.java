@@ -68,6 +68,6 @@ class ConsultantCreationPolicyTest {
         );
 
         assertSame(created, result);
-        verify(users).ensureConsultantAccount(created.id());
+        verify(users).ensureConsultantAccountByAdmin(created.id(), "adm.empresa");
     }
 }

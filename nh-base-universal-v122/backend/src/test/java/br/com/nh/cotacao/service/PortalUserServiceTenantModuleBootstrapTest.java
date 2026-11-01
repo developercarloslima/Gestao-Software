@@ -133,6 +133,27 @@ class PortalUserServiceTenantModuleBootstrapTest {
     }
 
     @Test
+    void adminCanReactivateAnOldAutomaticallyGeneratedConsultantLogin() {
+        Consultant name = Consultant.create("Carla Dias", "CREATED_IN_PORTAL");
+        PortalUser oldAccount = PortalUser.create("carla.dias", "Carla Dias",
+                encoder.encode("SenhaAntiga2026"), PortalRole.CONSULTANT,
+                "CONSULTANT_AUTO_BOOTSTRAP");
+        oldAccount.linkConsultant(name.getId());
+        oldAccount.setActive(false);
+        when(consultants.findById(name.getId())).thenReturn(Optional.of(name));
+        when(users.findByConsultantId(name.getId())).thenReturn(Optional.of(oldAccount));
+        when(users.findByNormalizedUsername("carla.dias")).thenReturn(Optional.of(oldAccount));
+
+        String login = service.ensureConsultantAccountByAdmin(name.getId(), "adm.empresa");
+
+        assertEquals("carla.dias", login);
+        assertTrue(oldAccount.isActive());
+        assertTrue(oldAccount.isMustChangePassword());
+        verify(users).save(same(oldAccount));
+        assertEquals(name.getId(), oldAccount.getConsultantId());
+    }
+
+    @Test
     void adminCreatedConsultantLinksToRealCollaboratorAndRequiresPasswordChange() {
         Consultant person = Consultant.create("Maria Costa", "CREATED_WITH_PORTAL_USER");
         when(users.findByNormalizedUsername("maria.costa")).thenReturn(Optional.empty());
