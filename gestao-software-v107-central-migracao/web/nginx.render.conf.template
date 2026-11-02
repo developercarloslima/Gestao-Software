@@ -4,6 +4,13 @@ server {
   root /usr/share/nginx/html;
   index index.html;
   client_max_body_size 30m;
+  server_tokens off;
+
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options "DENY" always;
+  add_header Referrer-Policy "no-referrer" always;
+  add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+  add_header Content-Security-Policy "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" always;
 
   location /api/ {
     # Demo Render free: ingress HTTPS publico entre dois web services gratuitos.
@@ -24,10 +31,20 @@ server {
   # Interfaces administrativas sempre revalidam arquivos após novos deploys.
   location /admin/ {
     add_header Cache-Control "no-cache, must-revalidate" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" always;
     try_files $uri $uri/ /admin/index.html;
   }
   location /contract/ {
     add_header Cache-Control "no-cache, must-revalidate" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" always;
     try_files $uri $uri/ /contract/index.html;
   }
   location /shared/ {
@@ -36,6 +53,11 @@ server {
   }
   location = /index.html {
     add_header Cache-Control "no-cache, must-revalidate" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" always;
   }
   location / { try_files $uri $uri/ /index.html; }
 }

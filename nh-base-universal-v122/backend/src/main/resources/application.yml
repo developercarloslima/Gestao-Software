@@ -58,7 +58,8 @@ app:
   team-whatsapp-number: ${TEAM_WHATSAPP_NUMBER:}
   team-email: ${TEAM_EMAIL:}
   auth:
-    token-secret: ${AUTH_TOKEN_SECRET:troque-esta-chave-local-com-pelo-menos-32-caracteres}
+    # Obrigatório em cada implantação: sem chave privada, nenhuma sessão pode ser emitida.
+    token-secret: ${AUTH_TOKEN_SECRET:}
     token-hours: ${AUTH_TOKEN_HOURS:12}
     consultant-username: ${CONSULTANT_USERNAME:consultor}
     consultant-password: ${CONSULTANT_PASSWORD:}
