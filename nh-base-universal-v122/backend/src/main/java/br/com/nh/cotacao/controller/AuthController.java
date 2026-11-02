@@ -1,6 +1,7 @@
 package br.com.nh.cotacao.controller;
 
 import br.com.nh.cotacao.security.AccessTokenService;
+import br.com.nh.cotacao.security.AuthAttemptLimiter;
 import br.com.nh.cotacao.security.PortalPrincipal;
 import br.com.nh.cotacao.security.PortalRole;
 import br.com.nh.cotacao.service.PortalFaceService;
@@ -25,23 +26,28 @@ public class AuthController {
     private final PortalUserService portalUserService;
     private final PortalFaceService portalFaceService;
     private final PortalPasskeyService portalPasskeyService;
+    private final AuthAttemptLimiter limiter;
 
     public AuthController(
             AccessTokenService tokenService,
             PortalUserService portalUserService,
             PortalFaceService portalFaceService,
-            PortalPasskeyService portalPasskeyService
+            PortalPasskeyService portalPasskeyService,
+            AuthAttemptLimiter limiter
     ) {
         this.tokenService = tokenService;
         this.portalUserService = portalUserService;
         this.portalFaceService = portalFaceService;
         this.portalPasskeyService = portalPasskeyService;
+        this.limiter = limiter;
     }
 
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
+        limiter.login(request.username(),servletRequest);
         try {
             var authenticated = portalUserService.authenticate(request.username(), request.password());
+            limiter.successfulLogin(request.username());
             var face = portalFaceService.state(authenticated.username(), authenticated.role());
             if (face.required()) {
                 var challenge = tokenService.issueFaceChallenge(authenticated.username(), authenticated.role());
@@ -67,6 +73,7 @@ public class AuthController {
             }
             return issueAccess(authenticated.username());
         } catch (IllegalArgumentException exception) {
+            limiter.failedLogin(request.username(), servletRequest);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário ou senha inválidos.");
         }
     }
@@ -74,8 +81,10 @@ public class AuthController {
     @PostMapping(value = "/face/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public LoginResponse registerFace(
             @RequestParam("challenge") String challenge,
-            @RequestPart("image") MultipartFile image
+            @RequestPart("image") MultipartFile image,
+            HttpServletRequest servletRequest
     ) {
+        limiter.sensitiveAction(servletRequest);
         PortalPrincipal principal = facePrincipal(challenge);
         try {
             portalFaceService.register(principal.username(), principal.role(), image);
@@ -90,8 +99,10 @@ public class AuthController {
     @PostMapping(value = "/face/verify", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public LoginResponse verifyFace(
             @RequestParam("challenge") String challenge,
-            @RequestPart("image") MultipartFile image
+            @RequestPart("image") MultipartFile image,
+            HttpServletRequest servletRequest
     ) {
+        limiter.sensitiveAction(servletRequest);
         PortalPrincipal principal = facePrincipal(challenge);
         try {
             portalFaceService.verify(principal.username(), principal.role(), image);
@@ -104,7 +115,9 @@ public class AuthController {
     }
 
     @PostMapping("/passkey/register/finish")
-    public LoginResponse finishPasskeyRegistration(@Valid @RequestBody PasskeyRegistrationFinishRequest request) {
+    public LoginResponse finishPasskeyRegistration(@Valid @RequestBody PasskeyRegistrationFinishRequest request,
+                                                  HttpServletRequest servletRequest) {
+        limiter.sensitiveAction(servletRequest);
         try {
             portalPasskeyService.finishRegistration(
                     request.username(),
@@ -120,7 +133,9 @@ public class AuthController {
     }
 
     @PostMapping("/passkey/assertion/finish")
-    public LoginResponse finishPasskeyAssertion(@Valid @RequestBody PasskeyAssertionFinishRequest request) {
+    public LoginResponse finishPasskeyAssertion(@Valid @RequestBody PasskeyAssertionFinishRequest request,
+                                               HttpServletRequest servletRequest) {
+        limiter.sensitiveAction(servletRequest);
         try {
             portalPasskeyService.finishAssertion(
                     request.username(),
@@ -143,7 +158,9 @@ public class AuthController {
     }
 
     @PostMapping("/change-password")
-    public MeResponse changePassword(@Valid @RequestBody ChangeOwnPasswordRequest request, Authentication authentication) {
+    public MeResponse changePassword(@Valid @RequestBody ChangeOwnPasswordRequest request,
+                                     Authentication authentication, HttpServletRequest servletRequest) {
+        limiter.sensitiveAction(servletRequest);
         PortalPrincipal principal = (PortalPrincipal) authentication.getPrincipal();
         portalUserService.changeOwnPassword(principal.username(), request.currentPassword(), request.newPassword());
         var session = portalUserService.session(principal.username());

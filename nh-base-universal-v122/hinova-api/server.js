@@ -1,13 +1,13 @@
 import express from 'express';
-import consultar from './consultar-boletos-associado.js';
-import baixar from './baixar-boleto.js';
 
 const app = express();
 app.disable('x-powered-by');
 app.use(express.json({ limit: '1mb' }));
 app.get('/health', (_req, res) => res.type('text').send('ok'));
-app.post('/api/consultar-boletos-associado', consultar);
-app.get('/api/baixar-boleto', baixar);
+// Rotas legadas removidas: consulta somente por CPF e proxy de PDF sem autenticação.
+// A segunda via protegida reside no backend Java da Base Universal.
+app.all('/api/consultar-boletos-associado', (_req, res) => res.status(410).json({ message: 'Use a Área do Associado autenticada.' }));
+app.all('/api/baixar-boleto', (_req, res) => res.status(410).json({ message: 'Use a Área do Associado autenticada.' }));
 app.use((error, _req, res, _next) => {
   console.error(error);
   res.status(500).json({ message: 'Erro interno na integração de boletos.' });

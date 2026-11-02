@@ -1,10 +1,12 @@
 package br.com.gestaosoftware.control.controller;
 
 import br.com.gestaosoftware.control.security.AccessTokenService;
+import br.com.gestaosoftware.control.security.AuthAttemptLimiter;
 import br.com.gestaosoftware.control.security.PlatformPrincipal;
 import br.com.gestaosoftware.control.service.PlatformUserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -17,15 +19,21 @@ import java.time.Instant;
 public class AuthController {
     private final AccessTokenService tokens;
     private final PlatformUserService users;
-    public AuthController(AccessTokenService tokens, PlatformUserService users) { this.tokens=tokens; this.users=users; }
+    private final AuthAttemptLimiter limiter;
+    public AuthController(AccessTokenService tokens, PlatformUserService users, AuthAttemptLimiter limiter) {
+        this.tokens=tokens; this.users=users; this.limiter=limiter;
+    }
 
     @PostMapping("/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+    public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
+        limiter.login(request.username(), servletRequest);
         try {
             var user = users.authenticate(request.username(), request.password());
+            limiter.successfulLogin(request.username());
             var issued = tokens.issue(user.username());
             return new LoginResponse(issued.token(), Instant.ofEpochSecond(issued.expiresAtEpochSecond()), user.username(), user.displayName(), "PLATFORM_ADMIN", user.passwordChangeRequired());
         } catch (IllegalArgumentException ex) {
+            limiter.failedLogin(request.username(), servletRequest);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário ou senha inválidos.");
         }
     }
@@ -38,7 +46,9 @@ public class AuthController {
     }
 
     @PostMapping("/change-password")
-    public MeResponse changePassword(@Valid @RequestBody ChangePasswordRequest request, Authentication authentication) {
+    public MeResponse changePassword(@Valid @RequestBody ChangePasswordRequest request,
+                                     Authentication authentication, HttpServletRequest servletRequest) {
+        limiter.sensitiveAction(servletRequest);
         PlatformPrincipal p=(PlatformPrincipal) authentication.getPrincipal();
         try {
             var user=users.changePassword(p.username(),request.currentPassword(),request.newPassword());

@@ -23,7 +23,9 @@ app:
     # NONE = nenhuma operação externa. Integração atual: ASAAS.
     provider: ${GESTAO_FINANCIAL_PROVIDER:ASAAS}
   auth:
-    token-secret: ${AUTH_TOKEN_SECRET:gestao-software-local-secret-change-me-2026}
+    # Nunca use uma chave pública e previsível para assinar tokens de administradores.
+    # Sem AUTH_TOKEN_SECRET exclusivo, a aplicação falha ao iniciar.
+    token-secret: ${AUTH_TOKEN_SECRET:}
     token-hours: ${AUTH_TOKEN_HOURS:12}
   allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3100,http://127.0.0.1:3100,http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,https://gestaosoftware.com.br,https://www.gestaosoftware.com.br}
 

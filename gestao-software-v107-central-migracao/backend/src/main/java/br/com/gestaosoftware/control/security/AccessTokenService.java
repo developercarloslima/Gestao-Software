@@ -20,9 +20,13 @@ public class AccessTokenService {
 
     public AccessTokenService(@Value("${app.auth.token-secret}") String secret,
                               @Value("${app.auth.token-hours:12}") long tokenHours) {
-        if (secret == null || secret.length() < 32) throw new IllegalStateException("AUTH_TOKEN_SECRET precisa ter pelo menos 32 caracteres.");
+        if (secret == null || secret.length() < 32
+                || "gestao-software-local-secret-change-me-2026".equals(secret)
+                || secret.toLowerCase(java.util.Locale.ROOT).contains("troque-")) {
+            throw new IllegalStateException("AUTH_TOKEN_SECRET precisa ser uma chave privada exclusiva, com pelo menos 32 caracteres.");
+        }
         this.secret = secret.getBytes(StandardCharsets.UTF_8);
-        this.tokenSeconds = Math.max(1, tokenHours) * 3600L;
+        this.tokenSeconds = Math.min(24, Math.max(1, tokenHours)) * 3600L;
     }
 
     public TokenResult issue(String username) {
