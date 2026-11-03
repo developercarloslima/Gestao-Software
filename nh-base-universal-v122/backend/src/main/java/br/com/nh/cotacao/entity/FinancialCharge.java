@@ -74,6 +74,16 @@ public class FinancialCharge {
         BigDecimal normalized=fee==null?BigDecimal.ZERO:fee.max(BigDecimal.ZERO).setScale(2,java.math.RoundingMode.HALF_UP);
         this.providerFee=normalized;this.grossValue=this.value.add(normalized).setScale(2,java.math.RoundingMode.HALF_UP);this.updatedAt=OffsetDateTime.now();
     }
+    /** Permitido apenas antes da emissão no provedor; preserva pagamentos já documentados. */
+    public void relinkAssociateBeforeIssuance(Associate target) {
+        if (target == null) throw new IllegalArgumentException("Associado não informado.");
+        if (providerPaymentId != null) {
+            throw new IllegalStateException("Cobrança já emitida: solicite revisão ao Financeiro antes de mudar o associado.");
+        }
+        this.associate = target;
+        this.updatedAt = OffsetDateTime.now();
+    }
+
     public void markReceived(OffsetDateTime paidAt){this.status=FinancialChargeStatus.RECEIVED;this.paidAt=paidAt==null?OffsetDateTime.now():paidAt;this.updatedAt=OffsetDateTime.now();}
     public void setChargeType(FinancialChargeType type){if(type!=null){this.chargeType=type;this.updatedAt=OffsetDateTime.now();}}
     public void markError(){this.status=FinancialChargeStatus.ERROR;this.updatedAt=OffsetDateTime.now();}

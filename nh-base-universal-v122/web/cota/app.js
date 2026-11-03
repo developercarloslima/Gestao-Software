@@ -119,8 +119,6 @@ const state = {
   selectedPlanCode: '',
   selectedOptionalCodes: new Set(),
   discountPercent: 0,
-  associateId: null,
-  associateOptions: [],
   rearWindowBranding: 'NOT_APPLICABLE',
   discountConfirmed: false,
   quote: null,
@@ -1082,28 +1080,47 @@ function updateSelectionSummary() {
   $('confirm-plan').disabled = !plan || conditionalDiscountPending || (discountPercent > 0 && !selectedDiscountOption(discountPercent)?.available);
 }
 
-let associateLookupTimer = null;
+let cpfAssociateCheckTimer = null;
+let cpfAssociateCheckSerial = 0;
 
-async function searchAssociatesForQuote() {
-  if (isSelfService || !$('associateLookup')) return;
-  const q = $('associateLookup').value.trim();
-  if (q.length < 2) { state.associateOptions = []; $('associate-options').innerHTML = ''; state.associateId = null; return; }
-  try {
-    const rows = await api(`/api/commercial/associates?q=${encodeURIComponent(q)}`);
-    state.associateOptions = rows || [];
-    $('associate-options').innerHTML = state.associateOptions.map(a => `<option value="${escapeHtml(a.name)} • ${escapeHtml(a.document || 'sem CPF/CNPJ')}"></option>`).join('');
-  } catch (_) { }
+function showCpfAssociateFeedback(message, status = '') {
+  const target = $('cpf-associate-feedback');
+  if (!target) return;
+  target.textContent = message || '';
+  target.hidden = !message;
+  target.classList.toggle('cpf-conflict', status === 'NAME_CONFLICT');
+  target.classList.toggle('cpf-match', status === 'EXISTING_MATCH');
 }
 
-function applyAssociateSelection() {
-  const input = $('associateLookup'); if (!input) return;
-  const value = input.value.trim();
-  const found = (state.associateOptions || []).find(a => `${a.name} • ${a.document || 'sem CPF/CNPJ'}` === value);
-  state.associateId = found?.id || null;
-  if (!found) return;
-  $('customerName').value = found.name || '';
-  $('customerCpf').value = found.document || '';
-  if (found.whatsapp) $('whatsapp').value = found.whatsapp;
+async function checkAssociateCpfIdentity() {
+  if (isSelfService) return 'SKIPPED';
+  const cpf = String($('customerCpf')?.value || '').replace(/\\D/g, '');
+  const name = $('customerName')?.value.trim() || '';
+  if (cpf.length !== 11 || name.length < 2) {
+    showCpfAssociateFeedback('');
+    return 'EMPTY';
+  }
+  const serial = ++cpfAssociateCheckSerial;
+  const result = await api('/api/commercial/associates/cpf-check', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cpf, name })
+  });
+  if (serial !== cpfAssociateCheckSerial) return 'STALE';
+  showCpfAssociateFeedback(result.message, result.status);
+  if (result.status === 'NAME_CONFLICT') throw new Error(result.message);
+  return result.status;
+}
+
+function scheduleCpfAssociateCheck() {
+  ++cpfAssociateCheckSerial;
+  clearTimeout(cpfAssociateCheckTimer);
+  showCpfAssociateFeedback('');
+  if (isSelfService) return;
+  cpfAssociateCheckTimer = setTimeout(() => {
+    checkAssociateCpfIdentity().catch(error => {
+      showCpfAssociateFeedback(error.message || 'Não foi possível conferir o CPF.', 'NAME_CONFLICT');
+    });
+  }, 380);
 }
 
 function formPayload() {
@@ -1132,7 +1149,6 @@ function formPayload() {
     payload.consultantId = selectedConsultant.id;
     payload.discountPercent = Number(state.discountPercent || 0);
     payload.rearWindowBranding = state.rearWindowBranding || 'NOT_APPLICABLE';
-    payload.associateId = state.associateId || null;
     payload.adhesionPaymentMethod = $('adhesionPaymentMethod')?.value || 'BOLETO';
   }
   return payload;
@@ -1624,7 +1640,10 @@ document.querySelectorAll('.promo-motorcycle-option').forEach(button => {
 
 ['consultantName','customerName','customerCpf','whatsapp','plate','model','manufactureYear','fipeValue','carOrigin','region','observation'].forEach(id => {
   if (!$(id)) return;
-  $(id).addEventListener('input', () => { resetResults(); clearError(); persistSession(); });
+  $(id).addEventListener('input', () => {
+    resetResults(); clearError(); persistSession();
+    if (id === 'customerName' || id === 'customerCpf') scheduleCpfAssociateCheck();
+  });
 });
 
 
@@ -1708,6 +1727,7 @@ $('confirm-plan').addEventListener('click', async () => {
     if (!isSelfService && discountRequiresConfirmation() && !state.discountConfirmed) {
       throw new Error('Confirme a condição exigida para utilizar este desconto.');
     }
+    await checkAssociateCpfIdentity();
     const quote = await api(quoteApiPath(), {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formPayload())
     });
@@ -1909,5 +1929,4 @@ window.addEventListener('pageshow', event => {
   }
 });
 
-$('associateLookup')?.addEventListener('input', () => { state.associateId = null; clearTimeout(associateLookupTimer); associateLookupTimer = setTimeout(searchAssociatesForQuote, 250); });
-$('associateLookup')?.addEventListener('change', applyAssociateSelection);
+

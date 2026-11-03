@@ -84,21 +84,49 @@ public class CommercialFinanceService {
         return new AssociateDetail(a.getId(), a.getName(), a.getDocument(), a.getWhatsapp(), a.getEmail(), a.isActive(), list);
     }
 
+    public record AssociateCpfCheck(String status, String message) {}
+
+    @Transactional(readOnly = true)
+    public AssociateCpfCheck checkAssociateCpf(String rawCpf, String informedName) {
+        String cpf = AssociateIdentityPolicy.requireCpf(rawCpf);
+        String status = AssociateIdentityPolicy.matchStatus(associates.findByDocument(cpf), informedName);
+        String message = switch (status) {
+            case "EXISTING_MATCH" -> "Associado já possui cadastro. Este novo veículo será vinculado a ele.";
+            case "NAME_CONFLICT" -> "CPF utilizado por outro associado. Confira o nome informado.";
+            default -> "CPF sem cadastro anterior. Uma nova ficha será criada.";
+        };
+        return new AssociateCpfCheck(status, message);
+    }
+
+    @Transactional(readOnly = true)
+    public void assertCpfCompatible(String cpf, String informedName) {
+        String document = AssociateIdentityPolicy.requireCpf(cpf);
+        associates.findByDocument(document).ifPresent(a ->
+                AssociateIdentityPolicy.assertCompatible(a, informedName));
+    }
+
+    @Transactional
+    public Associate resolveAssociateForInspection(String cpf, String informedName, String whatsapp) {
+        String document = AssociateIdentityPolicy.requireCpf(cpf);
+        Associate found = associates.findByDocument(document).orElse(null);
+        AssociateIdentityPolicy.assertCompatible(found, informedName);
+        return found != null ? found
+                : associates.save(Associate.create(informedName, document, whatsapp, null));
+    }
+
+    /** A identidade cadastrada não pode ser alterada silenciosamente por uma nova cotação. */
     @Transactional
     public CommercialVehicle registerQuotation(Quotation q, UUID requestedAssociateId, AdhesionPaymentMethod method) {
-        Associate associate;
-        if (requestedAssociateId != null) {
-            associate = requireAssociate(requestedAssociateId);
-        } else {
-            String document = safeDocument(q.getCustomerCpf());
-            associate = document == null ? null : associates.findByDocument(document).orElse(null);
-            if (associate == null) {
-                associate = associates.save(Associate.create(q.getCustomerName(), document, q.getWhatsapp(), null));
-            } else {
-                associate.update(q.getCustomerName(), document, q.getWhatsapp(), associate.getEmail());
-                associate = associates.save(associate);
-            }
+        String document = Associate.normalizeDocument(q.getCustomerCpf());
+        Associate existing = document == null ? null : associates.findByDocument(document).orElse(null);
+        if (existing != null) AssociateIdentityPolicy.assertCompatible(existing, q.getCustomerName());
+        if (requestedAssociateId != null && (existing == null || !requestedAssociateId.equals(existing.getId()))) {
+            throw new IllegalArgumentException("O vínculo de associado é automático pelo CPF e nome. Remova a seleção manual.");
         }
+
+        Associate associate = existing == null
+                ? associates.save(Associate.create(q.getCustomerName(), document, q.getWhatsapp(), null))
+                : existing;
 
         CommercialVehicle vehicle = vehicles.findByQuotation_Id(q.getId()).orElse(null);
         if (vehicle == null) {
@@ -109,6 +137,45 @@ public class CommercialFinanceService {
             vehicle.syncFromQuotation(q);
         }
         return vehicles.save(vehicle);
+    }
+
+    /** Cotação com CPF opcional: ao informá-lo antes da vistoria, conserva a ficha/veículo. */
+    @Transactional
+    public void reconcileQuotationAssociate(Quotation q) {
+        String cpf = AssociateIdentityPolicy.requireCpf(q.getCustomerCpf());
+        Associate existing = associates.findByDocument(cpf).orElse(null);
+        AssociateIdentityPolicy.assertCompatible(existing, q.getCustomerName());
+        CommercialVehicle vehicle = vehicles.findByQuotation_Id(q.getId()).orElse(null);
+        if (vehicle == null) {
+            registerQuotation(q, null, AdhesionPaymentMethod.BOLETO);
+            return;
+        }
+        if (existing != null) {
+            if (!existing.getId().equals(vehicle.getAssociate().getId())) {
+                // Uma assinatura/cobrança emitida pertence ao CPF original no Asaas.
+                // Não reassociar silenciosamente um título pago ou enviado à financeira.
+                if (vehicle.getAsaasSubscriptionId() != null) {
+                    throw new IllegalArgumentException("Já existe assinatura financeira para este veículo. Solicite a vinculação ao Financeiro.");
+                }
+                List<FinancialCharge> financialHistory = charges.findAllByVehicle_IdOrderByDueDateDescCreatedAtDesc(vehicle.getId());
+                if (financialHistory.stream().anyMatch(c -> c.getProviderPaymentId() != null)) {
+                    throw new IllegalArgumentException("Já existe boleto emitido para este veículo. Solicite a vinculação ao Financeiro.");
+                }
+                for (FinancialCharge charge : financialHistory) {
+                    charge.relinkAssociateBeforeIssuance(existing);
+                }
+                charges.saveAll(financialHistory);
+                vehicle.setAssociate(existing);
+                vehicles.save(vehicle);
+            }
+            return;
+        }
+        Associate current = vehicle.getAssociate();
+        if (current.getDocument() != null && !cpf.equals(current.getDocument())) {
+            throw new IllegalArgumentException("O veículo está vinculado a outro CPF. Solicite correção ao administrador.");
+        }
+        current.update(q.getCustomerName(), cpf, current.getWhatsapp(), current.getEmail());
+        associates.save(current);
     }
 
     @Transactional

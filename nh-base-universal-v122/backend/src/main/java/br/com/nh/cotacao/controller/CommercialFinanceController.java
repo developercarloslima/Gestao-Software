@@ -24,6 +24,15 @@ public class CommercialFinanceController {
         this.users = users;
     }
 
+    public record CheckAssociateCpfRequest(String cpf, String name) {}
+
+    /** Não revela a ficha ou o nome cadastrado; só a compatibilidade com o nome digitado. */
+    @PostMapping("/associates/cpf-check")
+    public CommercialFinanceService.AssociateCpfCheck checkCpf(
+            @RequestBody CheckAssociateCpfRequest request) {
+        return service.checkAssociateCpf(request.cpf(), request.name());
+    }
+
     @GetMapping("/associates")
     public List<AssociateSummary> associates(@RequestParam(defaultValue="") String q) { return service.searchAssociates(q); }
 
