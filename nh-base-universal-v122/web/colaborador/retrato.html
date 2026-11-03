@@ -92,8 +92,9 @@
       <label class="span-2">Nome do associado
         <input id="associateName" required maxlength="140" placeholder="Nome completo">
       </label>
-      <label>CPF
+      <label>CPF *
         <input id="cpf" required inputmode="numeric" maxlength="14" placeholder="000.000.000-00">
+        <small id="cpf-associate-feedback" class="field-helper" role="status" aria-live="polite" hidden></small>
       </label>
       <label id="zero-km-field">O veículo é 0 km?
         <select id="zeroKm" required>
@@ -136,7 +137,7 @@
 
 <script src="/shared/config.js?v=20260923-v77"></script>
 <script src="/shared/url-tools.js?v=20260804-current-origin"></script>
-<script src="/colaborador/retrato-create.js?v=20260817-idle-20m-v2"></script>
+<script src="/colaborador/retrato-create.js?v=20261103-associate-cpf-v1"></script>
 <script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
 
   <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">

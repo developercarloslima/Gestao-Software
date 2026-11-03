@@ -340,11 +340,18 @@ public class QuoteService {
     @Transactional
     public String ensureCustomerCpf(Quotation quotation, String requestedCpf) {
         if (quotation == null) throw new IllegalArgumentException("Cotação não encontrada.");
-        if (hasValidCpf(quotation.getCustomerCpf())) return normalizeCpf(quotation.getCustomerCpf());
-
-        String cpf = normalizeAndValidateCpf(requestedCpf);
-        quotation.registerCustomerCpf(cpf);
-        quotationRepository.flush();
+        boolean stored = hasValidCpf(quotation.getCustomerCpf());
+        String cpf = stored ? normalizeCpf(quotation.getCustomerCpf()) : normalizeAndValidateCpf(requestedCpf);
+        if (stored && requestedCpf != null && !requestedCpf.isBlank()
+                && !cpf.equals(normalizeAndValidateCpf(requestedCpf))) {
+            throw new IllegalArgumentException("O CPF da vistoria precisa ser o mesmo da cotação aceita.");
+        }
+        commercialFinanceService.assertCpfCompatible(cpf, quotation.getCustomerName());
+        if (!stored) {
+            quotation.registerCustomerCpf(cpf);
+            quotationRepository.flush();
+        }
+        commercialFinanceService.reconcileQuotationAssociate(quotation);
         return cpf;
     }
 
@@ -379,9 +386,15 @@ public class QuoteService {
         validateYear(manufactureYear);
         String plate = validateAndNormalizePlate(requestedPlate, zeroKm);
 
+        if (cpf != null && !cpf.isBlank()) {
+            commercialFinanceService.assertCpfCompatible(cpf, customerName);
+        }
         quotation.updateNonPricingData(
                 customerName, cpf, whatsapp, plate, model, manufactureYear, zeroKm, observation
         );
+        if (cpf != null && !cpf.isBlank()) {
+            commercialFinanceService.reconcileQuotationAssociate(quotation);
+        }
     }
 
     private PlanSelection resolvePlan(

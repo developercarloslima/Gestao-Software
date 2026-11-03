@@ -1973,3 +1973,9 @@ footer .footer-developer a:focus-visible {
     min-height: 0 !important;
   }
 }
+
+/* Conferência de CPF/identidade sem campo de seleção manual de associado. */
+#cpf-associate-feedback { display: block; margin-top: 6px; font-size: 12px; line-height: 1.35; color: #53667f; }
+#cpf-associate-feedback[hidden] { display: none !important; }
+#cpf-associate-feedback.cpf-match { color: #167a4d; }
+#cpf-associate-feedback.cpf-conflict { color: #b42318; font-weight: 600; }

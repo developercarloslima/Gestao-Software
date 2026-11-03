@@ -37,6 +37,7 @@ public class RetratoService {
 
     private final InspectionRequestRepository repository;
     private final ConsultantService consultantService;
+    private final CommercialFinanceService commercialFinanceService;
     private final InspectionAssetStorageService storageService;
     private final RetratoPdfService pdfService;
     private final String publicWebUrl;
@@ -46,6 +47,7 @@ public class RetratoService {
     public RetratoService(
             InspectionRequestRepository repository,
             ConsultantService consultantService,
+            CommercialFinanceService commercialFinanceService,
             InspectionAssetStorageService storageService,
             RetratoPdfService pdfService,
             CommunicationSettingsService communicationSettings,
@@ -54,6 +56,7 @@ public class RetratoService {
     ) {
         this.repository = repository;
         this.consultantService = consultantService;
+        this.commercialFinanceService = commercialFinanceService;
         this.storageService = storageService;
         this.pdfService = pdfService;
         this.publicWebUrl = normalizePublicWebUrl(publicWebUrl);
@@ -73,6 +76,8 @@ public class RetratoService {
         Consultant consultant = consultantService.findActive(input.consultantId());
         boolean zeroKm = false;
         String plate = validateAndNormalizeManualPlate(input.plate(), input.requestType(), zeroKm);
+        Associate associate = commercialFinanceService.resolveAssociateForInspection(
+                cpf, input.associateName(), input.whatsapp());
         InspectionRequest request = InspectionRequest.create(
                 randomToken(),
                 input.requestType(),
@@ -84,6 +89,7 @@ public class RetratoService {
                 consultant,
                 input.contractedPlan()
         );
+        request.linkAssociate(associate);
         return toResponse(repository.save(request));
     }
 
@@ -103,6 +109,11 @@ public class RetratoService {
         var existing = repository.findByQuotation_Id(quotation.getId());
         if (existing.isPresent()) {
             assertNotExpiredWithoutPreservedFiles(existing.get());
+            if (existing.get().getAssociate() == null) {
+                Associate associate = commercialFinanceService.resolveAssociateForInspection(
+                        quotation.getCustomerCpf(), quotation.getCustomerName(), quotation.getWhatsapp());
+                existing.get().linkAssociate(associate);
+            }
             return toResponse(existing.get());
         }
         if (quotation.getStatus() != QuoteStatus.ACCEPTED) {
@@ -111,7 +122,11 @@ public class RetratoService {
         if (java.time.OffsetDateTime.now().isAfter(quotation.getValidUntil())) {
             throw new IllegalArgumentException("Vistoria/cotação vencida, precisa ser refeita.");
         }
-        return toResponse(repository.save(InspectionRequest.createForQuotation(randomToken(), quotation)));
+        Associate associate = commercialFinanceService.resolveAssociateForInspection(
+                quotation.getCustomerCpf(), quotation.getCustomerName(), quotation.getWhatsapp());
+        InspectionRequest request = InspectionRequest.createForQuotation(randomToken(), quotation);
+        request.linkAssociate(associate);
+        return toResponse(repository.save(request));
     }
 
     @Transactional(readOnly = true)

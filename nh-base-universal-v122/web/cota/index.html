@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="theme-color" content="#070c40">
-<link rel="stylesheet" href="./styles.css?v=20260831-mobile-plans-v50">
+<link rel="stylesheet" href="./styles.css?v=20261103-associate-cpf-v1">
   <title>NH Cotação Digital</title>
   <link rel="icon" type="image/png" href="/assets/identidade-pendente.svg" />
   <link rel="shortcut icon" type="image/png" href="/assets/identidade-pendente.svg" />
@@ -88,16 +88,10 @@
           <input id="customerName" required maxlength="140" placeholder="Informe seu nome completo" aria-label="Nome completo do cliente">
           <div id="customer-cpf-field" class="customer-identity-field">
             <input id="customerCpf" inputmode="numeric" maxlength="14" placeholder="CPF (opcional)" aria-label="CPF do cliente (opcional)">
+            <small id="cpf-associate-feedback" role="status" aria-live="polite" class="field-help" hidden></small>
           </div>
         </div>
         <label class="span-2">WhatsApp do cliente <span id="whatsapp-required"></span><input id="whatsapp" placeholder="(82) 99999-9999"></label>
-        <div id="associate-link-field" class="span-2">
-          <label>Associado existente (opcional)
-            <input id="associateLookup" list="associate-options" placeholder="Digite nome ou CPF para vincular; deixe vazio para criar automaticamente">
-            <datalist id="associate-options"></datalist>
-            <small class="field-help">Ao selecionar um associado existente, este veículo será vinculado à mesma ficha.</small>
-          </label>
-        </div>
         <label id="adhesion-payment-field" class="span-2">Recebimento da adesão
           <select id="adhesionPaymentMethod">
             <option value="BOLETO">Gerar boleto no Asaas (com opção de Pix)</option>
@@ -329,7 +323,7 @@
   <script src="/shared/config.js?v=20260923-v77"></script>
 <script src="/shared/url-tools.js?v=20260804-current-origin"></script>
   <script src="/shared/money-input.js?v=20260818-empty-placeholder-v1"></script>
-  <script src="./app.js?v=20261003-v83-85" defer></script>
+  <script src="./app.js?v=20261103-associate-cpf-v1" defer></script>
 <script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
 
   <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">

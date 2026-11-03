@@ -130,6 +130,47 @@ function normalizeCpf(value) {
   return digits.length === 11 ? digits : null;
 }
 
+let cpfAssociateCheckTimer = null;
+let cpfAssociateCheckSerial = 0;
+
+function showCpfAssociateFeedback(message, status = '') {
+  const output = $('cpf-associate-feedback');
+  if (!output) return;
+  output.textContent = message || '';
+  output.hidden = !message;
+  output.style.color = status === 'NAME_CONFLICT' ? '#b42318'
+    : status === 'EXISTING_MATCH' ? '#167a4d' : '';
+}
+
+async function checkAssociateCpfIdentity() {
+  const cpf = normalizeCpf($('cpf').value);
+  const name = $('associateName').value.trim();
+  if (!cpf || name.length < 2) {
+    showCpfAssociateFeedback('');
+    return 'EMPTY';
+  }
+  const serial = ++cpfAssociateCheckSerial;
+  const result = await api('/api/commercial/associates/cpf-check', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cpf, name })
+  });
+  if (serial !== cpfAssociateCheckSerial) return 'STALE';
+  showCpfAssociateFeedback(result.message, result.status);
+  if (result.status === 'NAME_CONFLICT') throw new Error(result.message);
+  return result.status;
+}
+
+function scheduleCpfAssociateCheck() {
+  ++cpfAssociateCheckSerial;
+  clearTimeout(cpfAssociateCheckTimer);
+  showCpfAssociateFeedback('');
+  cpfAssociateCheckTimer = setTimeout(() => {
+    checkAssociateCpfIdentity().catch(error =>
+      showCpfAssociateFeedback(error.message || 'Não foi possível conferir o CPF.', 'NAME_CONFLICT'));
+  }, 380);
+}
+
 function vehicleLabel(data) {
   return data.plate || 'Veículo 0 km — sem placa';
 }
@@ -169,6 +210,9 @@ async function validateLinkedQuote() {
     }
 
     $('associateName').value = quote.customerName || $('associateName').value;
+    $('cpf').value = quote.customerCpf || $('cpf').value;
+    setLockedInput($('cpf'), Boolean(quote.customerCpf));
+    scheduleCpfAssociateCheck();
     $('plate').value = (quote.plate || $('plate').value || '').toUpperCase();
     $('whatsapp').value = quote.whatsapp || $('whatsapp').value;
     $('zeroKm').value = String(Boolean(quote.zeroKm));
@@ -209,12 +253,8 @@ function configureFlow() {
     $('vehicleType').disabled = true;
     $('zeroKm').disabled = true;
 
-    $('cpf').required = false;
-    $('cpf').placeholder = 'Preencha somente se a cotação ainda não possuir CPF';
-    $('cpf').closest('label')?.insertAdjacentHTML(
-      'beforeend',
-      '<small class="field-helper">Se o CPF já estiver salvo na cotação, este campo pode ficar em branco.</small>'
-    );
+    $('cpf').required = true;
+    $('cpf').placeholder = 'CPF obrigatório para gerar o link da vistoria';
   } else {
     $('page-title').textContent = 'Atualização de boleto';
     $('page-description').textContent = 'Cadastre os dados atuais do associado e informe o plano que ele já possui.';
@@ -277,7 +317,10 @@ $('cpf').addEventListener('input', (event) => {
     .replace(/(\d{3})(\d)/, '$1.$2')
     .replace(/(\d{3})(\d)/, '$1.$2')
     .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  scheduleCpfAssociateCheck();
 });
+
+$('associateName').addEventListener('input', scheduleCpfAssociateCheck);
 
 $('plate').addEventListener('input', (event) => {
   event.target.value = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
@@ -319,17 +362,18 @@ $('inspection-form').addEventListener('submit', async (event) => {
   }
 
   const typedCpf = normalizeCpf($('cpf').value);
-  if (!linkedQuoteMode && !typedCpf) {
-    msg('Informe um CPF válido.');
+  if (!typedCpf) {
+    msg('Informe um CPF válido para gerar o link do Retrato NH ou da vistoria.');
     $('cpf').focus();
     return;
   }
 
   try {
+    await checkAssociateCpfIdentity();
     let data;
 
     if (linkedQuoteMode) {
-      const body = typedCpf ? { cpf: typedCpf } : {};
+      const body = { cpf: typedCpf };
       data = await api(
         `/api/consultant-dashboard/${encodeURIComponent(consultant.id)}/quotes/${encodeURIComponent(quoteId)}/inspection`,
         {

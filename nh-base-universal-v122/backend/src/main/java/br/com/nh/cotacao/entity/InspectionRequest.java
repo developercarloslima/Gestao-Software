@@ -32,6 +32,10 @@ public class InspectionRequest {
     @Column(nullable = false, length = 14)
     private String cpf;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "associate_id")
+    private Associate associate;
+
     @Column(length = 30)
     private String whatsapp;
 
@@ -1142,6 +1146,9 @@ public class InspectionRequest {
     public InspectionRequestType getRequestType() { return requestType; }
     public InspectionVehicleType getVehicleType() { return vehicleType; }
     public String getAssociateName() { return associateName; }
+    public Associate getAssociate() { return associate; }
+    public void linkAssociate(Associate associate) { this.associate = associate; this.updatedAt = OffsetDateTime.now(); }
+
     public String getCpf() { return cpf; }
     public String getWhatsapp() { return whatsapp; }
     public String getPlate() { return plate; }
