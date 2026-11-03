@@ -32,6 +32,8 @@ app:
   provisioning:
     asaas-key: ${GESTAO_ASAAS_API_KEY:}
     asaas-base: ${GESTAO_ASAAS_BASE_URL:https://api-sandbox.asaas.com/v3}
+    # AES-256 Base64 (32 bytes), exclusivo da criptografia das chaves das subcontas.
+    asaas-subaccount-encryption-key: ${GESTAO_ASAAS_SUBACCOUNT_ENCRYPTION_KEY:}
     webhook-secret: ${GESTAO_ASAAS_WEBHOOK_SECRET:}
     worker-token: ${PROVISIONER_WORKER_TOKEN:}
     auto-enabled: ${AUTO_PROVISION_ENABLED:false}

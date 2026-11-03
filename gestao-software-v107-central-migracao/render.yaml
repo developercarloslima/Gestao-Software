@@ -45,6 +45,12 @@ services:
         value: "false"
       - key: GESTAO_ASAAS_BASE_URL
         value: https://api-sandbox.asaas.com/v3
+      # A conta-pai apenas registra subcontas e emite as faturas SaaS do Gestão.
+      - key: GESTAO_ASAAS_API_KEY
+        sync: false
+      # Chave Base64 de 32 bytes, mantida exclusivamente em segredos do Render.
+      - key: GESTAO_ASAAS_SUBACCOUNT_ENCRYPTION_KEY
+        sync: false
       - key: GESTAO_FINANCIAL_PROVIDER
         value: NONE
   - type: web

@@ -14,7 +14,7 @@
   
   <link rel="stylesheet" href="/admin/cloud.css">
   <link rel="stylesheet" href="/shared/gestao-theme.css?v=20261030-logo-transparente">
-  <script src="/admin/app.js" defer></script>
+  <script src="/admin/app.js?v=20261103-asaas-subaccounts" defer></script>
   <script src="/admin/onboarding.js" defer></script>
   <script src="/admin/cloud.js" defer></script>
   <script src="/admin/migracao.js" defer></script>
@@ -549,6 +549,35 @@
     <div id="company-detail-message" class="form-message" role="status" aria-live="polite"></div>
     <div id="detail-company-content"></div>
   </div>
+</dialog>
+
+<dialog id="asaas-subaccount-dialog" class="platform-dialog wide-dialog">
+  <form id="asaas-subaccount-form" class="dialog-card" method="dialog">
+    <div class="dialog-head"><div><span class="section-kicker">ASAAS · CONTA DA EMPRESA</span><h2>Vincular subconta Asaas</h2><p id="asaas-subaccount-company"></p></div><button class="icon-close" type="button" data-close-dialog="asaas-subaccount-dialog">×</button></div>
+    <input id="asaas-subaccount-company-id" type="hidden">
+    <p class="form-help">A conta principal Gestão cria a subconta. O saldo, os pagamentos dos associados e os saques de consultores pertencem à empresa-cliente. A empresa terá acesso próprio ao Asaas pelo e-mail cadastrado. O Gestão cobra sua assinatura separadamente.</p>
+    <div class="form-grid two">
+      <label>E-mail do titular (igual ao cadastro da empresa)<input id="asaas-subaccount-email" type="email" required maxlength="180"></label>
+      <label>Celular com DDD<input id="asaas-subaccount-mobile" type="tel" placeholder="(82) 99999-9999" required maxlength="30"></label>
+    </div>
+    <div class="form-grid three">
+      <label>Faturamento mensal estimado (R$)<input id="asaas-subaccount-income" type="number" min="0.01" step="0.01" required></label>
+      <label>Tipo de empresa<select id="asaas-subaccount-type" required><option value="">Selecione</option><option value="MEI">MEI</option><option value="LIMITED">Limitada</option><option value="INDIVIDUAL">Empresário individual</option><option value="ASSOCIATION">Associação</option></select></label>
+      <label>Regime tributário<select id="asaas-subaccount-tax"><option value="">Não informado</option><option value="MEI">MEI</option><option value="NATIONAL_SIMPLE">Simples Nacional</option><option value="NORMAL_REGIME">Regime normal</option><option value="UNKNOWN">Desconhecido</option></select></label>
+    </div>
+    <div class="form-grid three">
+      <label>CEP<input id="asaas-subaccount-zip" required inputmode="numeric" maxlength="9" placeholder="57000-000"></label>
+      <label>Logradouro<input id="asaas-subaccount-address" maxlength="180" required></label>
+      <label>Número<input id="asaas-subaccount-number" maxlength="30" required></label>
+    </div>
+    <div class="form-grid two">
+      <label>Bairro<input id="asaas-subaccount-neighborhood" maxlength="140" required></label>
+      <label>Complemento<input id="asaas-subaccount-complement" maxlength="180"></label>
+    </div>
+    <p class="form-help">O Asaas poderá cobrar taxa de criação conforme seu contrato. No Sandbox, a ativação e os e-mails de teste podem ter comportamento específico. Não há criação automática ao apenas salvar a empresa: confirme os dados cadastrais antes de continuar.</p>
+    <div id="asaas-subaccount-message" class="form-message" role="status" aria-live="polite"></div>
+    <div class="form-actions end"><button class="button outline" type="button" data-close-dialog="asaas-subaccount-dialog">Cancelar</button><button class="button primary" type="submit">Criar subconta no Asaas</button></div>
+  </form>
 </dialog>
 
 <dialog id="invoice-dialog" class="platform-dialog wide-dialog">

@@ -1,60 +1,75 @@
-# Asaas Sandbox por empresa-cliente — Gestão Software
+# Asaas Sandbox — conta principal Gestão + subcontas das empresas-clientes
 
-## Princípios
+## Titularidade e isolamento financeiro
 
-- Cada empresa-cliente usa **sua própria conta Asaas Sandbox**, sua própria API Key, saldo e token de webhook. Nunca usar a chave Asaas do Gestão central para cobrar associados de uma empresa-cliente.
-- O Asaas do Control Plane (faturas do SaaS Gestão) é independente do Asaas de cada tenant (adesões, mensalidades, pagamentos de consultores).
-- A API Key deve existir **somente no backend** (Render Environment ou `secrets.env` privado da VPS). Nunca no frontend, banco sem criptografia, repositório ou conversa.
-- A configuração inicial é **fail-closed**: `ASAAS_ENABLED=false`. Sem chave própria e webhook homologado, não emitir nem transferir.
-- Sandbox não movimenta dinheiro real. Não usar chave ou URL de produção nesse ambiente.
+- **A conta principal Asaas da Gestão Software (CNPJ)** cria e administra a vinculação das subcontas. Suas cobranças SaaS (adesão/mensalidade das empresas-clientes) usam a conta principal e são separadas das cobranças dos associados.
+- **Cada empresa-cliente possui uma subconta Asaas não-BaaS vinculada**, com sua própria carteira, saldo, pagadores, cobranças, transferências e credencial. O dinheiro arrecadado de associados pertence **somente à empresa-cliente**, fica na subconta dela e é recebido/transferido conforme a titularidade e os dados bancários configurados no próprio Asaas.
+- Os saques/comissões Pix de consultores, após aprovação no financeiro **da empresa-cliente**, utilizam apenas o saldo/chave da subconta da empresa correspondente.
+- **Não configurar split automático** ou repasse de recebíveis de associados à conta Gestão. A assinatura SaaS que a empresa paga ao Gestão é uma cobrança **separada**, feita pela conta principal Gestão.
+- A empresa-cliente tem acesso **direto ao painel Asaas**: recebe convite de ativação, define senha e envia documentos pelo fluxo não-BaaS.
+- A criação de subcontas via API exige conta-pai CNPJ; subcontas podem passar por análise e limites regulatórios. Conferir taxas de criação do contrato Asaas.
 
-## Variáveis por backend de tenant
+## Criar subconta pelo Control Plane
+
+1. No Control Plane, cadastre a empresa com **CNPJ** e e-mail válido do seu responsável.
+2. Em **Empresas-clientes → Ver empresa → Subconta Asaas**, use **Cadastrar subconta da empresa**.
+3. Informe o celular, faturamento mensal estimado, tipo jurídico, CEP, logradouro, número e bairro. Confirme os dados do titular antes de enviar.
+4. O backend envia `POST /v3/accounts` usando **somente a credencial da conta-pai**. A empresa recebe a sua própria carteira `walletId` e API key específica. A API key nunca é exibida no navegador nem salva em claro: ela é criptografada com AES-256-GCM no banco central.
+5. A conta é registrada como `PENDING_ACTIVATION`: o titular faz ativação/validação documental **no Asaas**. Em Sandbox, as comunicações de teste podem ser encaminhadas ao e-mail da conta-raiz.
+6. O provisionamento financeiro **não está automático no tenant**: o operador deve vincular a chave exclusiva da subconta ao backend da empresa, configurar webhook e validar a aprovação antes de habilitar cobranças. O registro no Control Plane, por si só, **não ativa** `ASAAS_ENABLED`. Isso evita receber valores na carteira errada.
+
+A API usa uma reserva única por empresa. Se a requisição ao Asaas ficar com resultado incerto, o cadastro entra em `REVIEW_REQUIRED` e **não deve ser repetido automaticamente**: concilie primeiro com o Asaas para não abrir duas contas.
+
+## Segredos do servidor central
+
+| Variável | Uso |
+| --- | --- |
+| `GESTAO_ASAAS_API_KEY` | Chave da **conta-pai CNPJ** no Asaas. |
+| `GESTAO_ASAAS_BASE_URL` | `https://api-sandbox.asaas.com/v3` na homologação. |
+| `GESTAO_ASAAS_SUBACCOUNT_ENCRYPTION_KEY` | Base64 de **32 bytes aleatórios**, gerado e armazenado somente no Render/VPS. Protege as API keys das subcontas no banco central. Fazer backup seguro desta chave; perdê-la impede recuperar as credenciais cifradas. |
+
+A chave de criptografia deve ser exclusiva deste ambiente (Sandbox vs Produção), nunca ir para GitHub, documentação, frontend ou logs.
+
+## Segredos por backend da empresa (tenant)
 
 | Variável | Valor inicial | Regra |
 | --- | --- | --- |
-| `FINANCIAL_PROVIDER` | `ASAAS` | Cada tenant seleciona seu próprio provedor. |
-| `ASAAS_ENABLED` | `false` | Alterar para `true` somente após configurar os dois segredos e testar. |
-| `ASAAS_BASE_URL` | `https://api-sandbox.asaas.com/v3` | Sempre Sandbox na homologação. |
-| `ASAAS_API_KEY` | vazio | Chave Sandbox **da própria empresa**. |
-| `ASAAS_WEBHOOK_TOKEN` | gerado individualmente na VPS / informado no Render | Token independente da API Key, configurado também no painel Asaas. |
-| `FINANCIAL_PAYMENT_FEE` | `2.00` | Tarifa repassada na cobrança conforme regra da empresa. |
-| `FINANCIAL_WITHDRAWAL_FEE` | `2.00` | Tarifa informada antes do saque do consultor. |
+| `FINANCIAL_PROVIDER` | `ASAAS` | Provedor financeiro do tenant. |
+| `ASAAS_ENABLED` | `false` | Habilitar somente após configurar chave, webhook e homologar. |
+| `ASAAS_BASE_URL` | `https://api-sandbox.asaas.com/v3` | Nunca misturar ambientes. |
+| `ASAAS_API_KEY` | vazio | **Chave da subconta da empresa**, nunca da conta principal. |
+| `ASAAS_WEBHOOK_TOKEN` | token aleatório exclusivo | Igual ao token configurado no webhook desta subconta. |
+| `FINANCIAL_PAYMENT_FEE` | `2.00` | Conferir a tarifa contratual e política de cobrança. |
+| `FINANCIAL_WITHDRAWAL_FEE` | `2.00` | Conferir a tarifa e política para saques de consultores. |
 
-Para uma empresa criada em VPS pelo agente, o arquivo privado `secrets.env` do **respectivo tenant** já terá os campos e um token de webhook aleatório. Preencha a chave da conta da empresa, revise tarifas e só então habilite. Reinicie **apenas o backend desse tenant**. Contas/segredos dos demais tenants não devem ser alterados.
+Em VPS com agente, os dados residem no `secrets.env` privado de **cada tenant**, não em uma variável compartilhada. No Render, a chave deve residir somente na seção Environment do serviço backend **daquela empresa**; em Blueprints existentes, `sync: false` não preenche valores retroativamente. Somente habilite `ASAAS_ENABLED=true` depois de conferir a aprovação cadastral e o webhook.
 
-Para uma empresa criada no Render, informe os segredos em **Environment** do serviço de backend da própria empresa. Os arquivos `render.yaml` pedem credenciais com `sync: false` apenas na criação inicial do Blueprint. Em serviços existentes, o preenchimento deve ser manual pelo Dashboard. Execute um deploy do backend para ativar mudanças.
+## Webhook e homologação
 
-## Webhook da empresa
-
-No painel Asaas Sandbox dessa empresa, configure uma única URL HTTPS, sem redirecionamento:
+Endereço de webhook da **subconta da empresa**:
 
 ```
 https://DOMINIO_DA_EMPRESA/api/public/financial/asaas/webhook
 ```
 
-Use como token de autenticação **exatamente** o valor de `ASAAS_WEBHOOK_TOKEN` do backend dessa empresa. Não use a API Key como token de webhook.
+O token HTTP recebido em `asaas-access-token` deve ser comparado com o `ASAAS_WEBHOOK_TOKEN` exclusivo do tenant. Não use a API key como token de webhook. Acompanhe eventos de pagamento (como `PAYMENT_RECEIVED`, `PAYMENT_CONFIRMED`, `PAYMENT_OVERDUE`, `PAYMENT_REFUNDED`) e transferência (`TRANSFER_DONE`, `TRANSFER_FAILED`, `TRANSFER_CANCELLED`). Confirme deduplicação pelo ID do evento.
 
-Escute os eventos de cobrança necessários à conciliação (incluindo `PAYMENT_RECEIVED`, `PAYMENT_CONFIRMED`, `PAYMENT_OVERDUE`, `PAYMENT_REFUNDED`) e os de transferência `TRANSFER_DONE`, `TRANSFER_FAILED`, `TRANSFER_CANCELLED`. O backend valida `asaas-access-token` e deduplica eventos pelo identificador recebido. Consulte a lista atual de eventos no próprio Asaas.
+1. Confirme no Asaas o titular correto e a aprovação da subconta.
+2. Vincule a chave da subconta **somente** ao tenant dela; configure webhook.
+3. Teste `GET /api/public/financial/status` do tenant para confirmar `configured=true`, `paymentsEnabled=true`.
+4. Faça aceite de teste com associado e verifique adesão, boleto/Pix e faturas futuras, sempre na **subconta da empresa**.
+5. Simule liquidação pelo Sandbox, valide webhook, baixa e acesso do associado.
+6. Simule comissão e transferência Pix do consultor, conferindo débito **apenas** da subconta da empresa.
+7. Confira que faturas SaaS Gestão aparecem na **conta-pai**, sem misturar recebíveis.
+8. Teste isolamento entre duas empresas: uma não pode ver clientes, pagamentos, saldo ou transferências da outra. Teste webhook duplicado e idempotência.
+9. Migre cada subconta a produção somente após aprovação regulatória e validação de titularidade.
 
-## Homologação obrigatória por empresa
-
-1. Crie/acesse a conta **Sandbox da empresa** e gere a API Key no painel Asaas.
-2. Configure `ASAAS_API_KEY` e `ASAAS_WEBHOOK_TOKEN` no backend exclusivo da empresa; configure o webhook no Asaas.
-3. Defina `FINANCIAL_PROVIDER=ASAAS` e `ASAAS_ENABLED=true`. Faça o deploy/restart do backend.
-4. Confira `GET /api/public/financial/status` no domínio da empresa: `provider=ASAAS`, `configured=true`, `paymentsEnabled=true`.
-5. Faça um **novo aceite digital de teste** com associado e cotação válidos. Verifique a geração da adesão, boleto, Pix e 12 cobranças futuras individuais, sem cobranças duplicadas.
-6. Simule o pagamento no Sandbox e confira a baixa via webhook, o histórico e o painel do associado.
-7. Com os dez boletos de fechamento quitados de teste, verifique a comissão, uma solicitação de saque Pix, a aprovação do Financeiro, a transferência no Sandbox e o webhook de conclusão/falha.
-8. Faça testes de duplicação de webhook e confira se a mesma cobrança/comissão/transferência não é contabilizada duas vezes.
-9. Somente após passar por essa lista avalie a migração **individual** para produção, com outra chave/URL e aprovação operacional específica.
-
-**Atenção às cobranças antigas:** ativar a financeira depois do aceite não cria automaticamente uma nova cobrança de adesão para todos os históricos. Revise pendências e use a reconciliação financeira do veículo/contrato, conferindo antes a existência de títulos no Asaas para evitar duplicidade.
+**Aviso de histórico:** não recrie automaticamente boletos já emitidos antes de habilitar Asaas. Reconcilie os títulos existentes antes de voltar a cobrar.
 
 ## Fontes oficiais
 
-- https://docs.asaas.com/docs/sandbox
-- https://docs.asaas.com/docs/api-keys
+- https://docs.asaas.com/reference/criar-subconta
+- https://docs.asaas.com/docs/criacao-de-subcontas
+- https://docs.asaas.com/docs/detalhamento-do-fluxo-de-aprovacao-de-subcontas
 - https://docs.asaas.com/docs/sobre-os-webhooks
-- https://docs.asaas.com/docs/webhook-para-transferencias
 - https://render.com/docs/configure-environment-variables
-- https://render.com/docs/blueprint-spec
