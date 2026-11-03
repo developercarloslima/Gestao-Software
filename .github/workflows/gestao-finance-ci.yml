@@ -26,5 +26,8 @@ jobs:
           cache-dependency-path: gestao-software-v107-central-migracao/backend/pom.xml
       - name: Compilar e executar testes Java
         run: mvn -B -ntp -f gestao-software-v107-central-migracao/backend/pom.xml clean verify
-      - name: Validar sintaxe do painel
-        run: node --check gestao-software-v107-central-migracao/web/admin/app.js
+      - name: Validar sintaxe de todos os scripts do painel
+        run: |
+          for script in gestao-software-v107-central-migracao/web/admin/{app,onboarding,cloud,migracao}.js; do node --check "$script"; done
+      - name: Testar interações e botões do Control Plane
+        run: node --test gestao-software-v107-central-migracao/web/admin/tests/*.test.cjs

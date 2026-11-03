@@ -33,4 +33,16 @@ class PlatformFinancialIntegrityTest {
         assertDoesNotThrow(() -> PlatformManagementService.assertManualInvoiceChangeAllowed("PENDING", null, false));
         assertDoesNotThrow(() -> PlatformManagementService.assertManualInvoiceChangeAllowed("OVERDUE", "PENDING", false));
     }
+    @Test
+    void invoiceDueDayIsClampedForShorterMonths() {
+        assertEquals(java.time.LocalDate.of(2026, 11, 30),
+                PlatformManagementService.defaultInvoiceDueDate(java.time.LocalDate.of(2026, 11, 1), 31));
+        assertEquals(java.time.LocalDate.of(2027, 2, 28),
+                PlatformManagementService.defaultInvoiceDueDate(java.time.LocalDate.of(2027, 2, 1), 31));
+        assertEquals(java.time.LocalDate.of(2028, 2, 29),
+                PlatformManagementService.defaultInvoiceDueDate(java.time.LocalDate.of(2028, 2, 1), 31));
+        assertEquals(java.time.LocalDate.of(2026, 12, 15),
+                PlatformManagementService.defaultInvoiceDueDate(java.time.LocalDate.of(2026, 12, 1), 15));
+    }
+
 }

@@ -198,6 +198,22 @@
       $('onboarding-next-action').scrollIntoView({behavior:'smooth',block:'center'});
     }
   });
+  // Mantém a lista de faturas sincronizada mesmo quando a empresa foi editada em outra aba.
+  window.addEventListener('gestao:invoice-updated',async event=>{
+    if(String(event.detail?.companyId||'')===String(companyId||''))await loadCompany();
+  });
+  window.addEventListener('gestao:invoice-selected',async event=>{
+    const selectedCompany=String(event.detail?.companyId||''),invoiceId=String(event.detail?.invoiceId||'');
+    if(!selectedCompany)return;
+    await populate();
+    if(!Array.from($('onboarding-company').options).some(option=>option.value===selectedCompany)){hint('Empresa não encontrada na implantação.',true);return;}
+    $('onboarding-company').value=selectedCompany;
+    await loadCompany();
+    const invoiceExists=Array.from($('payment-invoice').options).some(option=>option.value===invoiceId);
+    if(invoiceExists)$('payment-invoice').value=invoiceId;
+    $('payment-invoice').scrollIntoView({behavior:'smooth',block:'center'});
+    hint(invoiceExists?'Fatura selecionada. Confira o valor e gere a cobrança no Asaas.':'Não foi possível localizar essa fatura; selecione outra.',!invoiceExists);
+  });
   const tab=document.querySelector('[data-tab="onboarding"]');
   if(tab)tab.addEventListener('click',populate);
   stages();nextAction();
