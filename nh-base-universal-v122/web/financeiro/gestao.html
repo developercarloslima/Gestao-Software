@@ -13,7 +13,9 @@
     .fin-shell{max-width:1420px;margin:auto;padding:24px 18px 60px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.tabs button{border:1px solid #dbe2ef;background:#fff;border-radius:10px;padding:9px 12px}.tabs button.active{background:#070c40;color:#fff}.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.kpi,.panel{background:#fff;border:1px solid #e3e8f1;border-radius:18px;padding:18px}.kpi span{display:block;color:#6c7589;font-size:.84rem}.kpi strong{font-size:1.28rem;font-weight:400}.table-wrap{overflow:auto}.grid-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.grid-form input,.grid-form select,.grid-form textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccd5e7;border-radius:9px}.section{margin-top:16px}.status{display:inline-flex;padding:5px 9px;border-radius:999px;background:#eef3ff;font-weight:400}.login-wrap{min-height:70vh;display:grid;place-items:center}.login-card{width:min(450px,calc(100% - 30px))}.actions{display:flex;gap:7px;flex-wrap:wrap}.muted{color:#6c7589}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.risk-list,.dre-list{display:grid;gap:9px}.metric-row{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #edf0f6;padding:8px 0}.metric-row span:last-child{font-weight:400}.danger{color:#a61b1b}.ok{color:#0d7b4b}.warning{color:#8a5a00}.compact-note{font-size:.9rem;color:#697386}.doc-context{background:#f6f8fc;border-radius:12px;padding:10px 12px;margin-top:8px;display:none}@media(max-width:850px){.two-col{grid-template-columns:1fr}}
   </style>
   <script defer src="/shared/config.js"></script>
-  <script defer src="/financeiro/gestao.js"></script>
+  <script defer src="/financeiro/gestao.js?v=20261103-v1"></script>
+  <script defer src="/shared/receivables.js?v=20261103-v1"></script>
+  <link rel="stylesheet" href="/shared/receivables.css?v=20261103-v1">
   <script src="/shared/gestao-branding.js" defer></script>
 </head>
 <body>
@@ -22,7 +24,7 @@
 <main id="app" class="fin-shell" hidden>
 <div class="panel section" role="status" aria-live="polite"><strong>Integração de cobranças e transferências</strong><p id="financial-provider-banner" class="muted">Verificando a financeira desta empresa...</p></div>
 <section class="hero-panel"><span class="eyebrow">CONTROLE FINANCEIRO</span><h1>Financeiro da empresa</h1><p>Caixa, consultores, contas, documentos, conciliação, fornecedores, orçamento, DRE e indicadores.</p></section>
-<div class="tabs" id="tabs"><button data-tab="overview" class="active">Visão geral</button><button data-tab="consultants">Consultores e saques</button><button data-tab="documents">Documentos</button><button data-tab="ledger">Contas e caixa</button><button data-tab="reconciliation">Conciliação</button><button data-tab="suppliers">Fornecedores/cartões</button><button data-tab="budget">Orçamento e KPIs</button><button data-tab="rules">Comissionamento</button><button data-tab="company-payout" id="company-payout-tab" hidden>Conta de recebimento</button></div>
+<div class="tabs" id="tabs"><button data-tab="overview" class="active">Visão geral</button><button data-tab="consultants">Consultores e saques</button><button data-tab="receivables">Boletos dos associados</button><button data-tab="documents">Documentos</button><button data-tab="ledger">Contas e caixa</button><button data-tab="reconciliation">Conciliação</button><button data-tab="suppliers">Fornecedores/cartões</button><button data-tab="budget">Orçamento e KPIs</button><button data-tab="rules">Comissionamento</button><button data-tab="company-payout" id="company-payout-tab" hidden>Conta de recebimento</button></div>
 
 <section id="tab-overview">
   <div class="panel"><div class="section-head"><div><h2>Visão gerencial</h2><p>Receita filtrável por semana, mês, semestre ou ano.</p></div><select id="range"><option value="week">Semana</option><option value="month" selected>Mês</option><option value="semester">Semestre</option><option value="year">Ano</option></select></div>
@@ -37,6 +39,9 @@
   <div class="panel section"><h2>Fluxo de caixa diário</h2><div class="table-wrap"><table><thead><tr><th>Data</th><th>Entradas</th><th>Saídas</th><th>Saldo do dia</th></tr></thead><tbody id="cashflow"></tbody></table></div></div>
 </section>
 
+<section id="tab-receivables" hidden class="panel section">
+  <div data-receivables-root data-receivables-base="/api/finance-office/receivables"></div>
+</section>
 <section id="tab-consultants" hidden>
   <div class="panel"><h2>Comissões dos consultores</h2><div class="table-wrap"><table><thead><tr><th>Consultor</th><th>Carreira</th><th>Base ativa</th><th>Receita da base</th><th>Vendas mês</th><th>Comissão mês</th><th>Indicador</th></tr></thead><tbody id="consultants"></tbody></table></div></div>
   <div class="panel section"><h2>Solicitações de saque</h2><p class="compact-note">Pix: o Financeiro aprova e a transferência é enviada ao Asaas. TED: a solicitação fica em processamento até o pagamento bancário e anexação do comprovante.</p><div class="table-wrap"><table><thead><tr><th>Consultor</th><th>Forma</th><th>Solicitado</th><th>Taxa</th><th>Líquido</th><th>Status</th><th>Dados/nota</th><th>Ação</th></tr></thead><tbody id="withdrawals"></tbody></table></div></div>

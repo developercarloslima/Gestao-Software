@@ -41,6 +41,7 @@ public class FinancialProviderGateway {
     public FinancialProvider.PaymentData createCharge(String c,FinancialBillingType b,BigDecimal v,LocalDate d,String desc,String ref){return active().createCharge(c,b,v,d,desc,ref);}
     public String createMonthlySubscription(String c,FinancialBillingType b,BigDecimal v,LocalDate d,String desc,String ref){return active().createMonthlySubscription(c,b,v,d,desc,ref);}
     public FinancialProvider.PaymentData refreshPayment(String id){return active().refreshPayment(id);}
+    public FinancialProvider.PaymentData updatePaymentDueDate(String id,LocalDate date){return active().updatePaymentDueDate(id,date);}
     public BigDecimal balance(){return active().balance();}
     public FinancialProvider.TransferData transferPix(BigDecimal a,PixKeyType k,String key,String desc,String ref){return active().transferPix(a,k,key,desc,ref);}
 }

@@ -29,6 +29,7 @@
       href="/shared/brand-system.css?v=20260923-v73"
     />
   
+  <link rel="stylesheet" href="/shared/receivables.css?v=20261103-v1" />
   <style id="nh-dev-credit-style">
     .nh-dev-credit {
       width: 100%;
@@ -221,6 +222,7 @@
         <button type="button" data-tab="tow">Guincho / Reboque</button>
         <button type="button" data-tab="nh-ponto">Apontamento Digital</button>
         <button type="button" data-tab="consultants">Colaboradores</button>
+        <button type="button" data-tab="receivables">Cobranças dos associados</button>
         <button type="button" data-tab="users">Usuários</button>
         <button type="button" data-tab="quotes">Cotações</button>
         <button type="button" data-tab="inspections">Retrato NH</button>
@@ -448,6 +450,12 @@
         <div class="card settings-card" style="margin-top:22px">
           <div class="section-head" style="margin-top:0"><div><h3>Comissões e saldo dos consultores</h3><p>Defina a regra de comissão que será lançada quando boletos recorrentes forem pagos. A adesão não gera comissão.</p></div></div>
           <div class="table-wrap"><table><thead><tr><th>Consultor</th><th>Comissão</th><th>Valor</th><th>Fechamentos</th><th>Bloqueado</th><th>Disponível</th><th>Já sacado</th><th></th></tr></thead><tbody id="consultant-finance-body"></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="tab-receivables" hidden>
+        <div class="card">
+          <div data-receivables-root data-receivables-base="/api/admin/commercial/receivables"></div>
         </div>
       </section>
 
@@ -2065,6 +2073,7 @@
     <script src="/shared/inspection-documents.js?v=20261016-v83-129"></script>
 <script src="/shared/fipe-picker.js?v=20261016-v83-137"></script>
 <script src="/admin/admin.js?v=20261030-forgot-mail-v5"></script>
+    <script src="/shared/receivables.js?v=20261103-v1"></script>
     <script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
   
   <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">

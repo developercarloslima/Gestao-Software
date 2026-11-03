@@ -100,6 +100,25 @@ public class AsaasClient implements FinancialProvider {
         return enrichPayment(paymentId, fromPayment(get("/payments/" + paymentId)));
     }
 
+    @Override
+    public PaymentData updatePaymentDueDate(String paymentId, LocalDate dueDate) {
+        requireEnabled();
+        if (paymentId == null || !paymentId.matches("[a-zA-Z0-9_-]{3,100}")) {
+            throw new IllegalArgumentException("Identificador Asaas inválido.");
+        }
+        if (dueDate == null || !dueDate.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Informe novo vencimento após a data de hoje.");
+        }
+        ObjectNode body = mapper.createObjectNode();
+        body.put("dueDate", dueDate.toString());
+        JsonNode updated = request("PUT", "/payments/" + paymentId, body);
+        if (!paymentId.equals(text(updated, "id"))) {
+            throw new IllegalStateException("Asaas não confirmou o identificador da cobrança atualizada.");
+        }
+        // O código do boleto muda após atualização de vencimento.
+        return enrichPayment(paymentId, fromPayment(updated));
+    }
+
     public BigDecimal balance() {
         requireEnabled();
         JsonNode node = get("/finance/balance");

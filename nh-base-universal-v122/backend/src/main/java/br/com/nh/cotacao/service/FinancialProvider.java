@@ -14,6 +14,8 @@ public interface FinancialProvider {
     String createMonthlySubscription(String customerId, FinancialBillingType billingType, BigDecimal amount,
                                      LocalDate nextDueDate, String description, String externalReference);
     PaymentData refreshPayment(String paymentId);
+    /** Atualiza vencimento da cobrança existente, sem criar um novo título. */
+    PaymentData updatePaymentDueDate(String paymentId, LocalDate dueDate);
     BigDecimal balance();
     TransferData transferPix(BigDecimal amount, PixKeyType keyType, String key,
                              String description, String externalReference);
