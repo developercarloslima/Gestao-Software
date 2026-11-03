@@ -2,6 +2,8 @@ package br.com.nh.cotacao.controller;
 
 import br.com.nh.cotacao.service.AsaasClient;
 import br.com.nh.cotacao.service.CommercialFinanceService;
+import br.com.nh.cotacao.service.CompanyPayoutService;
+import org.springframework.beans.factory.annotation.Autowired;
 import br.com.nh.cotacao.service.FinancialProviderGateway;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,7 @@ public class AsaasWebhookController {
     private final AsaasClient asaas;
     private final CommercialFinanceService service;
     private final FinancialProviderGateway gateway;
+    @Autowired private CompanyPayoutService companyPayout;
     public AsaasWebhookController(AsaasClient asaas, CommercialFinanceService service, FinancialProviderGateway gateway){
         this.asaas=asaas;this.service=service;this.gateway=gateway;
     }
@@ -21,6 +24,8 @@ public class AsaasWebhookController {
     public ResponseEntity<Void> webhook(@RequestHeader(value="asaas-access-token",required=false) String token,@RequestBody JsonNode event){
         if(!"ASAAS".equals(gateway.code()) || !gateway.enabled() || !asaas.validWebhookToken(token)) return ResponseEntity.status(401).build();
         service.handleAsaasWebhook(event);
+        // Atualiza também os repasses próprios da empresa, apenas após validação do token.
+        if (companyPayout != null) companyPayout.handleVerifiedTransferEvent(event);
         return ResponseEntity.ok().build();
     }
 }

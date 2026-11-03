@@ -118,6 +118,18 @@ public class AsaasClient implements FinancialProvider {
         return new TransferData(text(node,"id"), text(node,"status"));
     }
 
+    /** Saída da própria subconta para a conta bancária verificada da empresa. */
+    public TransferData transferBank(BigDecimal amount, ObjectNode bankAccount, String externalReference) {
+        requireEnabled();
+        if (bankAccount == null || bankAccount.isEmpty()) throw new IllegalArgumentException("Conta bancária ausente.");
+        ObjectNode body = mapper.createObjectNode();
+        body.put("value", amount);
+        body.set("bankAccount", bankAccount.deepCopy());
+        if (externalReference != null) body.put("externalReference", externalReference);
+        JsonNode node = post("/transfers", body);
+        return new TransferData(text(node,"id"), text(node,"status"));
+    }
+
     private PaymentData enrichPayment(String paymentId, PaymentData base) {
         String identification = base.identificationField();
         String barCode = base.barCode();

@@ -51,6 +51,12 @@ app:
     # Aliases antigos permanecem válidos para não alterar a tarifa já contratada.
     payment-fee: ${FINANCIAL_PAYMENT_FEE:${ASAAS_PAYMENT_FEE:2.00}}
     withdrawal-fee: ${FINANCIAL_WITHDRAWAL_FEE:${ASAAS_WITHDRAWAL_FEE:2.00}}
+  company-payout:
+    # Sem credencial AES, os dados bancários não podem ser cadastrados.
+    encryption-key: ${COMPANY_PAYOUT_ENCRYPTION_KEY_B64:}
+    # Sandbox somente: nunca habilitar transferência real por padrão.
+    sandbox-execution-enabled: ${COMPANY_PAYOUT_SANDBOX_EXECUTION_ENABLED:false}
+    daily-cron: "${COMPANY_PAYOUT_DAILY_CRON:0 0 18 * * *}"
   demo-associate:
     enabled: ${DEMO_ASSOCIATE_ENABLED:false}
   public-api-url: ${PUBLIC_API_URL:${RENDER_EXTERNAL_URL:http://localhost:8080}}
