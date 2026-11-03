@@ -47,7 +47,8 @@
     const dialog = document.createElement('dialog');
     dialog.className = 'rc-modal';
     dialog.innerHTML = '<div class="rc-dialog-head"><div class="rc-dialog-title"></div>' +
-      '<button class="rc-button rc-close" type="button" aria-label="Fechar">Fechar</button></div>' +
+      '<div><button class="rc-button rc-sync-plate" type="button">Sincronizar boletos da placa</button> ' +
+      '<button class="rc-button rc-close" type="button" aria-label="Fechar">Fechar</button></div></div>' +
       '<p class="rc-dialog-info"></p><div class="rc-dialog-content"></div>' +
       '<p class="rc-dialog-feedback" role="status" aria-live="polite"></p>';
     root.append(dialog);
@@ -223,6 +224,25 @@
     dialog.addEventListener('click', async event => {
       const element = event.target.closest('button');
       if (!element) return;
+      if (element.classList.contains('rc-sync-plate')) {
+        if (!selectedVehicle) return;
+        const vehicleId = selectedVehicle;
+        element.disabled = true;
+        setMessage('Sincronizando cobranças emitidas no Asaas...', dialog.querySelector('.rc-dialog-feedback'));
+        try {
+          const result = await request(endpoint + '/vehicles/' + encodeURIComponent(vehicleId) + '/sync',
+            { method: 'POST' });
+          if (vehicleId !== selectedVehicle) return;
+          renderBills(result.bills);
+          setMessage('Boletos verificados: ' + Number(result.checked || 0) +
+            '. Falhas: ' + Number(result.failed || 0) + '. Nenhuma nova cobrança foi emitida.',
+            dialog.querySelector('.rc-dialog-feedback'));
+          await load();
+        } catch (error) {
+          setMessage(error.message, dialog.querySelector('.rc-dialog-feedback'));
+        } finally { element.disabled = false; }
+        return;
+      }
       if (element.dataset.copy) return renew(element.dataset.copy);
       if (element.dataset.code) {
         try {

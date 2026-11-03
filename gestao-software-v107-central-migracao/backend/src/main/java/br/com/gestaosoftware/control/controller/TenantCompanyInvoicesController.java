@@ -1,6 +1,7 @@
 package br.com.gestaosoftware.control.controller;
 
 import org.springframework.beans.factory.annotation.Value;
+import br.com.gestaosoftware.control.service.ProvisioningService;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,11 +35,13 @@ import java.util.UUID;
 @RequestMapping("/api/public/platform/tenant-invoices")
 public class TenantCompanyInvoicesController {
     private final JdbcTemplate db;
+    private final ProvisioningService provisioning;
     private final String master;
 
-    public TenantCompanyInvoicesController(JdbcTemplate db,
+    public TenantCompanyInvoicesController(JdbcTemplate db, ProvisioningService provisioning,
             @Value("${GESTAO_TENANT_BRANDING_MASTER:}") String master) {
         this.db = db;
+        this.provisioning = provisioning;
         this.master = master;
     }
 
@@ -124,6 +127,38 @@ public class TenantCompanyInvoicesController {
         result.put("overdueCount", overdueCount);
         result.put("overdueAmount", overdue);
         return result;
+    }
+
+    /** Reconsulta títulos existentes no Asaas, sem emitir nem cobrar novamente. */
+    @org.springframework.web.bind.annotation.PostMapping("/sync")
+    public Map<String, Object> synchronize(@RequestHeader("X-Gestao-Tenant-Host") String host,
+                                           @RequestHeader("X-Gestao-Tenant-Token") String token) {
+        Map<String, Object> snapshot = list(host, token);
+        UUID companyId = UUID.fromString((String) snapshot.get("companyId"));
+        List<UUID> ids = db.query("""
+                SELECT i.id FROM platform_company_invoices i
+                JOIN gs_invoice_checkout c ON c.invoice_id=i.id
+                WHERE i.company_id=? AND c.status='CREATED' AND c.provider_payment_id IS NOT NULL
+                  AND i.status IN ('PENDING','OVERDUE','CONFIRMED','PAID','PAID_IN_CASH')
+                ORDER BY CASE WHEN i.status IN ('PENDING','OVERDUE','CONFIRMED') THEN 0 ELSE 1 END,
+                         i.reference_month DESC
+                LIMIT 5
+                """, (rs, row) -> rs.getObject(1, UUID.class), companyId);
+        int checked = 0, changed = 0, failed = 0;
+        for (UUID invoiceId : ids) {
+            try {
+                Map<String, Object> updated = provisioning.synchronizeAsaasInvoice(invoiceId);
+                checked++;
+                if (Boolean.TRUE.equals(updated.get("changed"))) changed++;
+            } catch (RuntimeException ignored) {
+                failed++;
+            }
+        }
+        Map<String, Object> updated = new LinkedHashMap<>(list(host, token));
+        updated.put("checked", checked);
+        updated.put("changed", changed);
+        updated.put("failed", failed);
+        return updated;
     }
 
     static boolean authorized(String secret, String host, String token) {

@@ -167,6 +167,42 @@ public class ReceivablesService {
         return bills(charge.getVehicle().getId());
     }
 
+    /** Reconcilia somente cobranças já emitidas para esta placa; nunca cria mensalidades. */
+    public VehicleSync synchronizeVehicle(UUID vehicleId) {
+        CommercialVehicle vehicle = vehicles.findById(vehicleId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veículo não encontrado."));
+        if (!provider.enabled()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "A financeira desta empresa ainda não está configurada.");
+        }
+        List<FinancialCharge> issued = charges.findAllByVehicle_IdOrderByDueDateDescCreatedAtDesc(vehicle.getId())
+                .stream()
+                .filter(c -> c.getBillingType() == FinancialBillingType.BOLETO
+                        && c.getProviderPaymentId() != null
+                        && !c.getProviderPaymentId().isBlank()
+                        && c.getStatus() != FinancialChargeStatus.CANCELLED)
+                .sorted(Comparator.<FinancialCharge>comparingInt(c -> OPEN.contains(c.getStatus()) ? 0 : 1)
+                        .thenComparing(FinancialCharge::getDueDate, Comparator.nullsLast(Comparator.naturalOrder())))
+                .limit(25).toList();
+        int checked = 0;
+        int failed = 0;
+        for (FinancialCharge charge : issued) {
+            try {
+                finance.refreshCharge(charge.getId(), null, PortalRole.ADMIN);
+                checked++;
+            } catch (RuntimeException ex) {
+                failed++;
+            }
+        }
+        if (failed > 0 && checked == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "Não foi possível sincronizar as cobranças da placa com o Asaas.");
+        }
+        return new VehicleSync(bills(vehicle.getId()), checked, failed);
+    }
+
+    public record VehicleSync(VehicleBills bills, int checked, int failed) {}
+
     static String businessStatus(CommercialVehicleStatus contract, long maxDays) {
         if (contract == CommercialVehicleStatus.CANCELLED || maxDays > 60) return "CANCELADO";
         if (maxDays > 6) return "INADIMPLENTE";

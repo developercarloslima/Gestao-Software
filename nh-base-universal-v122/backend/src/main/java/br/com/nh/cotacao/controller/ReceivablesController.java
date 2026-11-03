@@ -24,6 +24,11 @@ public class ReceivablesController {
         return service.bills(vehicleId);
     }
 
+    @PostMapping("/vehicles/{vehicleId}/sync")
+    public VehicleSync synchronizeVehicle(@PathVariable UUID vehicleId) {
+        return service.synchronizeVehicle(vehicleId);
+    }
+
     @PostMapping("/charges/{chargeId}/refresh")
     public VehicleBills refresh(@PathVariable UUID chargeId) {
         return service.refreshAndList(chargeId);

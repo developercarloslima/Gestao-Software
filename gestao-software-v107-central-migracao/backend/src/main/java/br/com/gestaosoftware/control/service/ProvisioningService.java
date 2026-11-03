@@ -156,23 +156,151 @@ public class ProvisioningService {
         BigDecimal received=remote.path("value").decimalValue();
         if(received.compareTo((BigDecimal)inv.get("amount"))!=0 || received.signum()<=0)
             throw new ResponseStatusException(HttpStatus.CONFLICT,"O valor confirmado pelo provedor é diferente da fatura.");
-        jdbc.update("INSERT INTO gs_verified_payment(invoice_id,provider,provider_payment_id,provider_status) VALUES(?,'ASAAS',?,'RECEIVED') ON CONFLICT(invoice_id) DO UPDATE SET provider_payment_id=EXCLUDED.provider_payment_id,provider_status='RECEIVED',verified_at=NOW()",invoiceId,paymentId);
-        jdbc.update("UPDATE platform_company_invoices SET status='PAID',paid_at=COALESCE(paid_at,NOW()),updated_at=NOW() WHERE id=?",invoiceId);
+        jdbc.update("INSERT INTO gs_verified_payment(invoice_id,provider,provider_payment_id,provider_status) VALUES(?,'ASAAS',?,'RECEIVED') ON CONFLICT(invoice_id) DO UPDATE SET provider_payment_id=EXCLUDED.provider_payment_id,provider_status=EXCLUDED.provider_status,verified_at=NOW()",invoiceId,paymentId);
+        jdbc.update("UPDATE platform_company_invoices SET status=?,paid_at=COALESCE(paid_at,NOW()),updated_at=NOW() WHERE id=?",invoiceId);
         return readiness((UUID)inv.get("companyId"));
     }
-    public void verifiedAsaasWebhook(String supplied,JsonNode event){
-        checkSecret(supplied,webhookSecret,"Webhook não autorizado.");
-        if(!"PAYMENT_RECEIVED".equals(event.path("event").asText()))return;
-        String reference=event.path("payment").path("externalReference").asText("");
-        String payment=event.path("payment").path("id").asText("");
-        try{
-            UUID invoiceId=UUID.fromString(reference);
-            Map<String,Object> state=verifyAsaasPayment(invoiceId,payment);
-            if(autoProvision && workerToken.length()>=32 && Boolean.TRUE.equals(state.get("canQueue"))){
-                UUID company=jdbc.queryForObject("SELECT company_id FROM platform_company_invoices WHERE id=?",UUID.class,invoiceId);
-                try{queue(company,"ASAAS_VERIFIED_AUTO");}catch(ResponseStatusException ignored){ /* falha de deploy não desfaz pagamento verificado */ }
+    /**
+     * Compara o estado ATUAL do pagamento no Asaas com a fatura vinculada.
+     * O navegador/webhook nunca informa valores ou estados a serem gravados.
+     */
+    @Transactional
+    public Map<String,Object> synchronizeAsaasInvoice(UUID invoiceId) {
+        if (asaasKey == null || asaasKey.isBlank()
+                || !Set.of("https://api.asaas.com/v3", "https://api-sandbox.asaas.com/v3").contains(asaasBase)) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Provedor Asaas não configurado.");
+        }
+        List<Map<String,Object>> rows = jdbc.query("""
+                SELECT i.amount,i.status,i.due_date,co.provider_payment_id
+                  FROM platform_company_invoices i
+                  JOIN gs_invoice_checkout co ON co.invoice_id=i.id AND co.status='CREATED' AND co.provider_payment_id IS NOT NULL
+                 WHERE i.id=?
+                """, (rs, n) -> Map.of(
+                    "amount", rs.getBigDecimal("amount"), "status", rs.getString("status"),
+                    "dueDate", rs.getDate("due_date").toLocalDate(),
+                    "paymentId", rs.getString("provider_payment_id")), invoiceId);
+        if (rows.isEmpty()) throw new ResponseStatusException(HttpStatus.CONFLICT, "Fatura ainda não vinculada a uma cobrança Asaas.");
+        Map<String,Object> existing = rows.get(0);
+        String paymentId = (String) existing.get("paymentId");
+        if (paymentId == null || !paymentId.matches("pay_[A-Za-z0-9]{4,100}")) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Identificador Asaas ausente ou inválido.");
+        }
+        JsonNode remote;
+        try {
+            HttpRequest request = HttpRequest.newBuilder(URI.create(asaasBase + "/payments/" + paymentId))
+                    .header("access_token", asaasKey).header("Accept", "application/json")
+                    .header("User-Agent", "GestaoSoftware/1.0").timeout(Duration.ofSeconds(10)).GET().build();
+            HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Asaas não retornou o estado da cobrança.");
             }
-        }catch(IllegalArgumentException e){throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Pagamento sem referência válida.");}
+            remote = json.readTree(response.body());
+        } catch (ResponseStatusException e) { throw e; }
+        catch (Exception e) { throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Falha ao consultar cobrança Asaas."); }
+        if (!paymentId.equals(remote.path("id").asText()) ||
+                !invoiceId.toString().equals(remote.path("externalReference").asText()) ||
+                !remote.path("value").isNumber() ||
+                remote.path("value").decimalValue().compareTo((BigDecimal) existing.get("amount")) != 0 ||
+                ((BigDecimal) existing.get("amount")).signum() <= 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Identidade ou valor da cobrança não conferem com a fatura.");
+        }
+        String remoteStatus = remote.path("status").asText("");
+        String currentStatus = (String) existing.get("status");
+        String nextStatus = reconciledInvoiceStatus(currentStatus, remoteStatus,
+                (java.time.LocalDate) existing.get("dueDate"), java.time.LocalDate.now());
+        if (nextStatus == null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Status Asaas ainda não homologado para reconciliação.");
+        }
+        if (!nextStatus.equals(currentStatus)) {
+            if ("PAID".equals(nextStatus) || "PAID_IN_CASH".equals(nextStatus)) {
+                jdbc.update("""
+                    INSERT INTO gs_verified_payment(invoice_id,provider,provider_payment_id,provider_status)
+                    VALUES (?,'ASAAS',?,?)
+                    ON CONFLICT(invoice_id) DO UPDATE
+                      SET provider_payment_id=EXCLUDED.provider_payment_id,
+                          provider_status=EXCLUDED.provider_status,verified_at=NOW()
+                    """, invoiceId, paymentId, "PAID".equals(nextStatus) ? "RECEIVED" : "RECEIVED_IN_CASH");
+                jdbc.update("""
+                    UPDATE platform_company_invoices
+                       SET status=?,paid_at=COALESCE(paid_at,NOW()),updated_at=NOW()
+                     WHERE id=?
+                    """, nextStatus, invoiceId);
+            } else {
+                if ("PAID_IN_CASH".equals(currentStatus)) {
+                    // Baixa manual revertida: deixar rastro no webhook, sem pagamento verificado ativo.
+                    jdbc.update("DELETE FROM gs_verified_payment WHERE invoice_id=? AND provider_status='RECEIVED_IN_CASH'", invoiceId);
+                    jdbc.update("UPDATE platform_company_invoices SET status=?,paid_at=NULL,updated_at=NOW() WHERE id=?",
+                            nextStatus, invoiceId);
+                } else {
+                    jdbc.update("UPDATE platform_company_invoices SET status=?,updated_at=NOW() WHERE id=?",
+                            nextStatus, invoiceId);
+                }
+            }
+        }
+        Map<String,Object> result = new LinkedHashMap<>();
+        result.put("invoiceId", invoiceId.toString());
+        result.put("status", nextStatus);
+        result.put("providerStatus", remoteStatus);
+        result.put("changed", !nextStatus.equals(currentStatus));
+        return result;
+    }
+
+    /** Estado financeiro é derivado do Asaas; eventos antigos não reabrem títulos quitados. */
+    static String reconciledInvoiceStatus(String current, String provider, java.time.LocalDate due,
+                                          java.time.LocalDate today) {
+        if ("REFUNDED".equals(current)) return "REFUNDED";
+        if (Set.of("REFUNDED", "PARTIALLY_REFUNDED").contains(provider)) return "REFUNDED";
+        if (Set.of("RECEIVED").contains(provider)) return "PAID";
+        if ("PAID".equals(current)) return "PAID";
+        if ("PAID_IN_CASH".equals(current) && !Set.of("PENDING", "OVERDUE", "DELETED").contains(provider)) return "PAID_IN_CASH";
+        return switch (provider) {
+            case "RECEIVED_IN_CASH" -> "PAID_IN_CASH";
+            case "CONFIRMED" -> "CONFIRMED";
+            case "OVERDUE" -> "OVERDUE";
+            case "PENDING", "AWAITING_RISK_ANALYSIS" -> due != null && due.isBefore(today) ? "OVERDUE" : "PENDING";
+            case "DELETED" -> "CANCELLED";
+            default -> null;
+        };
+    }
+
+    @Transactional
+    public void verifiedAsaasWebhook(String supplied, JsonNode event) {
+        checkSecret(supplied, webhookSecret, "Webhook não autorizado.");
+        String eventType = event.path("event").asText("");
+        if (!Set.of("PAYMENT_CONFIRMED", "PAYMENT_RECEIVED", "PAYMENT_OVERDUE",
+                    "PAYMENT_REFUNDED", "PAYMENT_PARTIALLY_REFUNDED",
+                    "PAYMENT_RECEIVED_IN_CASH_UNDONE").contains(eventType)) return;
+        String eventId = event.path("id").asText("");
+        String paymentId = event.path("payment").path("id").asText("");
+        String reference = event.path("payment").path("externalReference").asText("");
+        if (eventId.isBlank() || eventId.length() > 190) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Identificador do evento inválido.");
+        }
+        UUID invoiceId;
+        try { invoiceId = UUID.fromString(reference); }
+        catch (IllegalArgumentException e) { return; } // outros pagamentos da conta não bloqueiam a fila
+        boolean ownsPayment = Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT EXISTS(
+                  SELECT 1 FROM gs_invoice_checkout WHERE invoice_id=? AND provider_payment_id=?
+                )
+                """, Boolean.class, invoiceId, paymentId));
+        if (!ownsPayment) return;
+        int inserted = jdbc.update("""
+                INSERT INTO gs_asaas_webhook_events(event_id,event_type,payment_id)
+                VALUES (?,?,?) ON CONFLICT(event_id) DO NOTHING
+                """, eventId, eventType, paymentId);
+        if (inserted == 0) return;
+        Map<String,Object> current = synchronizeAsaasInvoice(invoiceId);
+        if ("PAYMENT_RECEIVED".equals(eventType) && "PAID".equals(current.get("status"))
+                && autoProvision && workerToken.length() >= 32) {
+            Map<String,Object> state = readiness(
+                    jdbc.queryForObject("SELECT company_id FROM platform_company_invoices WHERE id=?", UUID.class, invoiceId));
+            if (Boolean.TRUE.equals(state.get("canQueue"))) {
+                UUID company = jdbc.queryForObject("SELECT company_id FROM platform_company_invoices WHERE id=?", UUID.class, invoiceId);
+                try { queue(company, "ASAAS_VERIFIED_AUTO"); }
+                catch (ResponseStatusException ignored) { /* Implantação é independente da baixa financeira. */ }
+            }
+        }
     }
     private void checkSecret(String provided,String expected,String error){
         if(expected==null||expected.length()<32 || provided==null || !MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8),provided.getBytes(StandardCharsets.UTF_8)))

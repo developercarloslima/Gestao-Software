@@ -20,4 +20,9 @@ public class CompanySubscriptionController {
     public Map<String, Object> list() {
         return gestao.companySubscription();
     }
+
+    @org.springframework.web.bind.annotation.PostMapping("/sync")
+    public Map<String, Object> synchronize() {
+        return gestao.synchronizeCompanySubscription();
+    }
 }
