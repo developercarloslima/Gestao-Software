@@ -207,6 +207,7 @@ public class ProvisioningService {
         String remoteStatus = remote.path("status").asText("");
         String currentStatus = (String) existing.get("status");
         String nextStatus = reconciledInvoiceStatus(currentStatus, remoteStatus,
+                remote.path("billingType").asText(""),
                 (java.time.LocalDate) existing.get("dueDate"), java.time.LocalDate.now());
         if (nextStatus == null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Status Asaas ainda não homologado para reconciliação.");
@@ -220,11 +221,15 @@ public class ProvisioningService {
                       SET provider_payment_id=EXCLUDED.provider_payment_id,
                           provider_status=EXCLUDED.provider_status,verified_at=NOW()
                     """, invoiceId, paymentId, "PAID".equals(nextStatus) ? "RECEIVED" : "RECEIVED_IN_CASH");
+                java.time.LocalDate asaasDate = asaasPaymentDate(remote);
+                java.sql.Timestamp paidAt = asaasDate == null
+                        ? java.sql.Timestamp.from(java.time.Instant.now())
+                        : java.sql.Timestamp.valueOf(asaasDate.atStartOfDay());
                 jdbc.update("""
                     UPDATE platform_company_invoices
-                       SET status=?,paid_at=COALESCE(paid_at,NOW()),updated_at=NOW()
+                       SET status=?,paid_at=COALESCE(paid_at,?),updated_at=NOW()
                      WHERE id=?
-                    """, nextStatus, invoiceId);
+                    """, nextStatus, paidAt, invoiceId);
             } else {
                 if ("PAID_IN_CASH".equals(currentStatus)) {
                     // Baixa manual revertida: deixar rastro no webhook, sem pagamento verificado ativo.
@@ -245,11 +250,27 @@ public class ProvisioningService {
         return result;
     }
 
+    /** Preserva a data de pagamento informada pelo Asaas, inclusive a baixa manual antecipada. */
+    static java.time.LocalDate asaasPaymentDate(JsonNode payment) {
+        String value = payment.path("paymentDate").asText("");
+        try {
+            return java.time.LocalDate.parse(value);
+        } catch (java.time.format.DateTimeParseException ignored) {
+            return null;
+        }
+    }
+
     /** Estado financeiro é derivado do Asaas; eventos antigos não reabrem títulos quitados. */
     static String reconciledInvoiceStatus(String current, String provider, java.time.LocalDate due,
                                           java.time.LocalDate today) {
+        return reconciledInvoiceStatus(current, provider, "", due, today);
+    }
+
+    static String reconciledInvoiceStatus(String current, String provider, String billingType,
+                                          java.time.LocalDate due, java.time.LocalDate today) {
         if ("REFUNDED".equals(current)) return "REFUNDED";
         if (Set.of("REFUNDED", "PARTIALLY_REFUNDED").contains(provider)) return "REFUNDED";
+        if ("RECEIVED".equals(provider) && "RECEIVED_IN_CASH".equals(billingType)) return "PAID_IN_CASH";
         if (Set.of("RECEIVED").contains(provider)) return "PAID";
         if ("PAID".equals(current)) return "PAID";
         if ("PAID_IN_CASH".equals(current) && !Set.of("PENDING", "OVERDUE", "DELETED").contains(provider)) return "PAID_IN_CASH";

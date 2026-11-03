@@ -112,9 +112,13 @@
         const data = await response.json();
         render(data);
         loaded = true;
+        const failures = Number(data.failed || 0);
         message.textContent = synchronize
-          ? 'Sincronização concluída: ' + Number(data.checked || 0) + ' verificada(s), ' +
-            Number(data.changed || 0) + ' atualizada(s), ' + Number(data.failed || 0) + ' falha(s).'
+          ? failures > 0
+            ? 'Sincronização parcial: ' + Number(data.checked || 0) + ' cobrança(s) conferida(s) e ' +
+              failures + ' não verificada(s) no Asaas. Confira a integração no Gestão Software.'
+            : 'Sincronização concluída: ' + Number(data.checked || 0) + ' verificada(s), ' +
+              Number(data.changed || 0) + ' atualizada(s).'
           : 'Consulta atualizada.';
       } catch (error) {
         message.textContent = error.message || 'Erro ao consultar as mensalidades.';
@@ -129,12 +133,12 @@
       }
     }
 
-    button.addEventListener('click', () => load(false));
+    button.addEventListener('click', () => load(true));
     syncButton.addEventListener('click', () => load(true));
     const tab = root.closest('[id^="tab-"]');
     const tabName = tab ? tab.id.replace(/^tab-/, '') : '';
     document.querySelectorAll('[data-tab="' + tabName + '"]').forEach(element =>
-      element.addEventListener('click', () => { if (!loaded) load(); }));
-    if (!tab || !tab.hidden) load();
+      element.addEventListener('click', () => { if (!loaded) load(true); }));
+    if (!tab || !tab.hidden) load(true);
   });
 })();
