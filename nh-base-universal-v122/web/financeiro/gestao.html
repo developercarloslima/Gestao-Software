@@ -15,7 +15,9 @@
   <script defer src="/shared/config.js"></script>
   <script defer src="/financeiro/gestao.js?v=20261103-v1"></script>
   <script defer src="/shared/receivables.js?v=20261103-v1"></script>
+  <script defer src="/shared/company-subscription.js?v=20261103-v1"></script>
   <link rel="stylesheet" href="/shared/receivables.css?v=20261103-v1">
+  <link rel="stylesheet" href="/shared/company-subscription.css?v=20261103-v1">
   <script src="/shared/gestao-branding.js" defer></script>
 </head>
 <body>
@@ -24,7 +26,7 @@
 <main id="app" class="fin-shell" hidden>
 <div class="panel section" role="status" aria-live="polite"><strong>Integração de cobranças e transferências</strong><p id="financial-provider-banner" class="muted">Verificando a financeira desta empresa...</p></div>
 <section class="hero-panel"><span class="eyebrow">CONTROLE FINANCEIRO</span><h1>Financeiro da empresa</h1><p>Caixa, consultores, contas, documentos, conciliação, fornecedores, orçamento, DRE e indicadores.</p></section>
-<div class="tabs" id="tabs"><button data-tab="overview" class="active">Visão geral</button><button data-tab="consultants">Consultores e saques</button><button data-tab="receivables">Boletos dos associados</button><button data-tab="documents">Documentos</button><button data-tab="ledger">Contas e caixa</button><button data-tab="reconciliation">Conciliação</button><button data-tab="suppliers">Fornecedores/cartões</button><button data-tab="budget">Orçamento e KPIs</button><button data-tab="rules">Comissionamento</button><button data-tab="company-payout" id="company-payout-tab" hidden>Conta de recebimento</button></div>
+<div class="tabs" id="tabs"><button data-tab="overview" class="active">Visão geral</button><button data-tab="consultants">Consultores e saques</button><button data-tab="receivables">Boletos dos associados</button><button data-tab="company-subscription">Mensalidades da empresa</button><button data-tab="documents">Documentos</button><button data-tab="ledger">Contas e caixa</button><button data-tab="reconciliation">Conciliação</button><button data-tab="suppliers">Fornecedores/cartões</button><button data-tab="budget">Orçamento e KPIs</button><button data-tab="rules">Comissionamento</button><button data-tab="company-payout" id="company-payout-tab" hidden>Conta de recebimento</button></div>
 
 <section id="tab-overview">
   <div class="panel"><div class="section-head"><div><h2>Visão gerencial</h2><p>Receita filtrável por semana, mês, semestre ou ano.</p></div><select id="range"><option value="week">Semana</option><option value="month" selected>Mês</option><option value="semester">Semestre</option><option value="year">Ano</option></select></div>
@@ -41,6 +43,9 @@
 
 <section id="tab-receivables" hidden class="panel section">
   <div data-receivables-root data-receivables-base="/api/finance-office/receivables"></div>
+</section>
+<section id="tab-company-subscription" hidden class="panel section">
+  <div data-company-subscription-root data-endpoint="/api/finance-office/company-subscription"></div>
 </section>
 <section id="tab-consultants" hidden>
   <div class="panel"><h2>Comissões dos consultores</h2><div class="table-wrap"><table><thead><tr><th>Consultor</th><th>Carreira</th><th>Base ativa</th><th>Receita da base</th><th>Vendas mês</th><th>Comissão mês</th><th>Indicador</th></tr></thead><tbody id="consultants"></tbody></table></div></div>
