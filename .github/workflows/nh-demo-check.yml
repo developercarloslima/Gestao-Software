@@ -31,6 +31,25 @@ jobs:
         run: |
           python3 -m pip install pyyaml
           python3 -c "import yaml; d=yaml.safe_load(open('nh-base-universal-v122/render.neon-demo.yaml',encoding='utf-8')); assert 'databases' not in d; assert len(d['services'])==2; assert all(s['plan']=='free' and s['type']=='web' for s in d['services']); print('Blueprint demo isolado: OK')"
+      - name: Testar o provisionador e o isolamento financeiro de cada empresa
+        working-directory: gestao-cloud-agente-v123
+        run: python3 -m unittest -v test_provisioner_agent test_orchestrator_agent
+      - name: Verificar que Compose só habilita Asaas por tenant com credenciais
+        run: |
+          python3 - <<'PY'
+          import yaml
+          for path in ('gestao-cloud-agente-v123/compose.yaml',
+                       'nh-base-universal-v122/deployment/compose.tenant.yaml'):
+              with open(path, encoding='utf-8') as stream:
+                  compose = yaml.safe_load(stream)
+              env = compose['services']['backend']['environment']
+              assert env['FINANCIAL_PROVIDER'] == '${FINANCIAL_PROVIDER:-NONE}'
+              assert env['ASAAS_ENABLED'] == '${ASAAS_ENABLED:-false}'
+              assert env['ASAAS_API_KEY'] == '${ASAAS_API_KEY:-}'
+              assert env['ASAAS_WEBHOOK_TOKEN'] == '${ASAAS_WEBHOOK_TOKEN:-}'
+              assert env['ASAAS_BASE_URL'] == '${ASAAS_BASE_URL:-https://api-sandbox.asaas.com/v3}'
+              print(path, 'isolamento financeiro OK')
+          PY
       - name: Compilar container Nginx com proxy HTTPS publico
         run: docker build -f nh-base-universal-v122/web/Dockerfile.render-public nh-base-universal-v122/web
   backend:
