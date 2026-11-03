@@ -88,6 +88,8 @@ function compareByDateField(a, b, field, direction = 'desc') {
   return direction === 'asc' ? createdLeft - createdRight : createdRight - createdLeft;
 }
 const REGION_LABELS = Object.freeze({ NATIONAL: 'Nacional', NORTHEAST: 'Nordeste', CAPITAL: 'Capital' });
+const PRICING_REGION_LABELS = Object.freeze({ NORTHEAST: 'Nordeste', OUTSIDE_NORTHEAST: 'Fora do Nordeste' });
+const pricingRegionLabel = value => PRICING_REGION_LABELS[value] || 'Não informada';
 const MOTORCYCLE_ORIGIN_LABELS = Object.freeze({ NORTHEAST: 'Demais cidades do Nordeste', CAPITAL: 'Capital' });
 const QUOTE_STATUS_LABELS = Object.freeze({
   CREATED: ['Pendente', 'warn'], UNDER_REVIEW: ['Em análise', 'warn'], ACCEPTED: ['Aceita', 'ok'],
@@ -3010,10 +3012,10 @@ function renderPrices() {
       // A tabela promocional usa as três faixas fixas próprias; não mistura faixas FIPE comuns.
       if (promoPlanId && String(item.planId) === promoPlanId) return false;
       if (selectedPlan && String(item.planId) !== selectedPlan) return false;
-      return `${item.planName} ${item.category} ${item.region} ${regionLabel(item.region)} ${item.motorcycleOrigin || ''} ${motorcycleOriginLabel(item.motorcycleOrigin)}`.toLowerCase().includes(filter);
+      return `${item.planName} ${item.category} ${item.region} ${regionLabel(item.region)} ${item.pricingRegion} ${pricingRegionLabel(item.pricingRegion)} ${item.motorcycleOrigin || ''} ${motorcycleOriginLabel(item.motorcycleOrigin)}`.toLowerCase().includes(filter);
     })
     .map(item => `<tr>
-      <td><strong class="catalog-name">${esc(item.planName)}</strong></td><td>${esc(item.category)}</td><td>${esc(regionLabel(item.region))}<small class="table-code">${esc(motorcycleOriginLabel(item.motorcycleOrigin))}</small></td>
+      <td><strong class="catalog-name">${esc(item.planName)}</strong></td><td>${esc(item.category)}</td><td>${esc(pricingRegionLabel(item.pricingRegion))}<small class="table-code">${esc(regionLabel(item.region))} · ${esc(motorcycleOriginLabel(item.motorcycleOrigin))}</small></td>
       <td>${brl.format(item.minValue)} a ${brl.format(item.maxValue)}</td><td><strong>${brl.format(item.monthlyPrice)}</strong></td>
       <td><div class="row-actions"><button class="secondary small-button" data-price-edit="${item.id}" type="button">Editar</button><button class="danger small-button" data-price-delete="${item.id}" type="button">Excluir</button></div></td>
     </tr>`);
@@ -3065,6 +3067,7 @@ function openPriceModal(id = null) {
   $('price-id').value = item?.id || '';
   $('price-plan').value = item?.planId || plans[0]?.id || '';
   $('price-plan').disabled = Boolean(item);
+  $('price-region').value = item?.pricingRegion || 'NORTHEAST';
   $('price-min').value = item ? moneyInput(item.minValue) : '';
   $('price-max').value = item ? moneyInput(item.maxValue) : '';
   $('price-monthly').value = item ? moneyInput(item.monthlyPrice) : '';
@@ -3971,11 +3974,30 @@ $('promo-motorcycle-price-form').addEventListener('submit', async event => {
 $('price-form').addEventListener('submit', async event => {
   event.preventDefault();
   const id = $('price-id').value;
-  const base = {
-    minValue: parseMoney($('price-min').value), maxValue: parseMoney($('price-max').value),
-    monthlyPrice: parseMoney($('price-monthly').value)
-  };
-  const payload = id ? base : { ...base, planId: Number($('price-plan').value) };
+  const pricingRegion = $('price-region').value;
+  const planId = Number($('price-plan').value);
+  let base;
+  try {
+    if (!Object.hasOwn(PRICING_REGION_LABELS, pricingRegion)) {
+      throw new Error('Selecione uma região válida para esta tabela FIPE.');
+    }
+    base = {
+      pricingRegion,
+      minValue: parseMoney($('price-min').value),
+      maxValue: parseMoney($('price-max').value),
+      monthlyPrice: parseMoney($('price-monthly').value)
+    };
+    if (base.maxValue < base.minValue) {
+      throw new Error('O valor FIPE máximo deve ser maior ou igual ao mínimo.');
+    }
+    if (!id && (!Number.isInteger(planId) || planId <= 0)) {
+      throw new Error('Selecione um plano válido.');
+    }
+  } catch (error) {
+    message(error.message || 'Revise os dados da faixa FIPE.');
+    return;
+  }
+  const payload = id ? base : { ...base, planId };
   try {
     await api(id ? `/api/admin/catalog/prices/${id}` : '/api/admin/catalog/prices', {
       method: id ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
