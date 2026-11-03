@@ -13,6 +13,21 @@ class AsaasInvoiceReconciliationTest {
         return ProvisioningService.reconciledInvoiceStatus(current, provider, due, today);
     }
 
+    @Test void manualCashReceiptHasProviderStatusReceivedButBillingTypeReceivedInCash() {
+        assertEquals("PAID_IN_CASH", ProvisioningService.reconciledInvoiceStatus(
+                "PENDING", "RECEIVED", "RECEIVED_IN_CASH", future, today));
+        assertEquals("PAID", ProvisioningService.reconciledInvoiceStatus(
+                "PENDING", "RECEIVED", "PIX", future, today));
+    }
+
+    @Test void paidAtUsesAsaasPaymentDateInsteadOfReconciliationDate() throws Exception {
+        var provider = new com.fasterxml.jackson.databind.ObjectMapper().readTree(
+                "{\"paymentDate\":\"2026-11-03\"}");
+        assertEquals(today, ProvisioningService.asaasPaymentDate(provider));
+        assertNull(ProvisioningService.asaasPaymentDate(
+                new com.fasterxml.jackson.databind.ObjectMapper().readTree("{}")));
+    }
+
     @Test void pendingFutureBoletoDoesNotBecomeOverdue() {
         assertEquals("PENDING", state("PENDING", "PENDING", future));
     }
