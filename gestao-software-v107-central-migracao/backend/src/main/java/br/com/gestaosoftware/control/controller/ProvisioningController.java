@@ -41,7 +41,7 @@ public class ProvisioningController {
         return svc.verifyAsaasPayment(invoiceId,request.paymentId());
     }
     @PostMapping("/api/public/implantacao/asaas-webhook")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public void webhook(@RequestHeader(value="asaas-access-token",required=false) String token,@RequestBody JsonNode event){
         if(!"ASAAS".equals(checkout.code()) || !checkout.ready())throw new org.springframework.web.server.ResponseStatusException(HttpStatus.UNAUTHORIZED);
         svc.verifiedAsaasWebhook(token,event);
