@@ -75,6 +75,15 @@
       }
     }
     .header-actions .nh-fixed-shortcut { display:inline-flex !important; }
+    /* Os botões de Pix e saque não devem esticar com os campos da linha. */
+    #finance-save-pix,
+    #finance-withdraw {
+      align-self: end;
+      height: 46px;
+      min-height: 46px;
+      max-height: 46px;
+      box-sizing: border-box;
+    }
   </style>
 <link rel="stylesheet" href="/shared/responsive.css?v=20260928-v83-24" />
   <script defer src="/shared/portal-nav.js?v=20261030-v122"></script>
