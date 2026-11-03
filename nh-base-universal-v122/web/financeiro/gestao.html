@@ -22,7 +22,7 @@
 <main id="app" class="fin-shell" hidden>
 <div class="panel section" role="status" aria-live="polite"><strong>Integração de cobranças e transferências</strong><p id="financial-provider-banner" class="muted">Verificando a financeira desta empresa...</p></div>
 <section class="hero-panel"><span class="eyebrow">CONTROLE FINANCEIRO</span><h1>Financeiro da empresa</h1><p>Caixa, consultores, contas, documentos, conciliação, fornecedores, orçamento, DRE e indicadores.</p></section>
-<div class="tabs" id="tabs"><button data-tab="overview" class="active">Visão geral</button><button data-tab="consultants">Consultores e saques</button><button data-tab="documents">Documentos</button><button data-tab="ledger">Contas e caixa</button><button data-tab="reconciliation">Conciliação</button><button data-tab="suppliers">Fornecedores/cartões</button><button data-tab="budget">Orçamento e KPIs</button><button data-tab="rules">Comissionamento</button></div>
+<div class="tabs" id="tabs"><button data-tab="overview" class="active">Visão geral</button><button data-tab="consultants">Consultores e saques</button><button data-tab="documents">Documentos</button><button data-tab="ledger">Contas e caixa</button><button data-tab="reconciliation">Conciliação</button><button data-tab="suppliers">Fornecedores/cartões</button><button data-tab="budget">Orçamento e KPIs</button><button data-tab="rules">Comissionamento</button><button data-tab="company-payout" id="company-payout-tab" hidden>Conta de recebimento</button></div>
 
 <section id="tab-overview">
   <div class="panel"><div class="section-head"><div><h2>Visão gerencial</h2><p>Receita filtrável por semana, mês, semestre ou ano.</p></div><select id="range"><option value="week">Semana</option><option value="month" selected>Mês</option><option value="semester">Semestre</option><option value="year">Ano</option></select></div>
@@ -66,6 +66,45 @@
   <div class="panel section"><h2>Parâmetros dos KPIs</h2><p class="muted">Esses valores alimentam ROI e alerta de liquidez; não alteram movimentações financeiras.</p><form id="settings-form" class="grid-form"><label>Capital investido<input id="setting-invested" type="number" min="0" step="0.01"></label><label>Reserva mínima de caixa<input id="setting-reserve" type="number" min="0" step="0.01"></label><button class="primary">Salvar parâmetros</button></form><div id="settings-msg"></div></div>
 </section>
 
+<section id="tab-company-payout" hidden>
+  <div class="panel">
+    <h2>Conta bancária ou Pix da empresa</h2>
+    <p class="compact-note">Configure somente uma conta da própria empresa. Os dados são protegidos por criptografia no servidor e exibidos apenas de forma mascarada. Transferências ficam desativadas até a homologação Sandbox.</p>
+    <p id="company-payout-summary" class="muted">Carregando configuração...</p>
+    <form id="company-payout-form" class="grid-form">
+      <label>Destino do repasse
+        <select id="company-payout-type" required>
+          <option value="PIX">Chave Pix</option><option value="BANK">Conta bancária</option>
+        </select>
+      </label>
+      <div id="company-payout-pix">
+        <label>Tipo da chave Pix
+          <select id="company-payout-pix-type"><option value="CNPJ">CNPJ</option><option value="CPF">CPF</option><option value="EMAIL">E-mail</option><option value="PHONE">Telefone</option><option value="EVP">Chave aleatória</option></select>
+        </label>
+        <label>Chave Pix<input id="company-payout-pix-key" autocomplete="off" maxlength="255" placeholder="Chave cadastrada no banco da empresa"></label>
+      </div>
+      <div id="company-payout-bank" hidden>
+        <label>Código do banco<input id="company-payout-bank-code" inputmode="numeric" maxlength="3"></label>
+        <label>Titular<input id="company-payout-owner-name" maxlength="160"></label>
+        <label>CPF/CNPJ do titular<input id="company-payout-owner-document" inputmode="numeric" maxlength="18"></label>
+        <label>Agência<input id="company-payout-agency" maxlength="20"></label>
+        <label>Conta<input id="company-payout-account" maxlength="30"></label>
+        <label>Dígito<input id="company-payout-digit" maxlength="4"></label>
+        <label>Tipo de conta<select id="company-payout-account-type"><option value="CONTA_CORRENTE">Conta corrente</option><option value="CONTA_POUPANCA">Poupança</option></select></label>
+      </div>
+      <label>Reserva mínima adicional (R$)<input id="company-payout-reserve" type="number" min="0" step="0.01" value="0" required></label>
+      <label>Tarifa estimada de transferência da conta Asaas (R$)<input id="company-payout-fee" type="number" min="0" step="0.01" value="0" required></label>
+      <label><input id="company-payout-confirm" type="checkbox" required> Confirmo que a conta indicada pertence à empresa e que tenho autorização para cadastrá-la.</label>
+      <label><input id="company-payout-auto" type="checkbox"> Solicitar repasse diário do saldo disponível (após reservas e obrigações).</label>
+      <button class="primary">Salvar destino da empresa</button>
+    </form>
+    <div id="company-payout-msg" aria-live="polite"></div>
+    <p class="compact-note">Importante: habilitar aqui não inicia movimentações. O processamento exige credenciais da subconta, aprovação Asaas e ativação exclusiva do Sandbox pelo operador técnico.</p>
+  </div>
+  <div class="panel section"><h2>Histórico dos repasses</h2>
+    <div class="table-wrap"><table><thead><tr><th>Data</th><th>Valor</th><th>Tarifa estimada</th><th>Reserva protegida</th><th>Situação</th></tr></thead><tbody id="company-payout-history"></tbody></table></div>
+  </div>
+</section>
 <section id="tab-rules" hidden><div class="panel"><h2>Guia de Comissionamento 2026</h2><p class="muted">Valores pré-cadastrados conforme o Guia de Comissionamento e Plano de Carreira da Empresa Cliente. Alterações ficam registradas com usuário e data.</p><div class="table-wrap"><table><thead><tr><th>Regra</th><th>Valor</th><th>Unidade</th><th>Ativa</th><th>Atualização</th><th></th></tr></thead><tbody id="rules"></tbody></table></div></div><div class="panel section"><h2>Plano de carreira</h2><div class="table-wrap"><table><thead><tr><th>Nível</th><th>Base ativa</th><th>Auxílio</th><th>Benefícios</th></tr></thead><tbody id="career-levels"></tbody></table></div></div><div class="panel section"><h2>Premiações por base ativa</h2><div class="table-wrap"><table><thead><tr><th>Placas ativas</th><th>Premiação</th><th>Valor quando monetário</th></tr></thead><tbody id="base-prizes"></tbody></table></div></div></section>
 </main>
 </body></html>

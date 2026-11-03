@@ -10,8 +10,31 @@ async function req(path,opt={}){const h={...(opt.headers||{})};const t=localStor
 async function err(r){try{const j=await r.json();return j.message||j.detail||j.error||'Erro'}catch{return await r.text()||'Erro'}}
 function msg(id,t,e=true){const x=$(id);if(!x)return;x.textContent=t||'';x.className=t?`message ${e?'error':'success'}`:''}
 function logout(){localStorage.removeItem(T);localStorage.removeItem(R);$('app').hidden=true;$('login').hidden=false;$('logout').hidden=true}
-async function boot(){if(!localStorage.getItem(T))return;try{const me=await req('/api/auth/me');if(!['BUYER','ADMIN'].includes(me.role))return logout();$('login').hidden=true;$('app').hidden=false;$('logout').hidden=false;await loadAll()}catch{logout()}}
-async function loadAll(){await Promise.all([loadDash(),loadConsultants(),loadWithdrawals(),loadDocs(),loadLedger(),loadSuppliers(),loadCards(),loadBudgets(),loadSettings(),loadRules(),loadCareer(),loadProviderStatus()])}
+async function boot(){if(!localStorage.getItem(T))return;try{const me=await req('/api/auth/me');if(!['BUYER','ADMIN'].includes(me.role))return logout();localStorage.setItem(R,me.role);$('company-payout-tab').hidden=me.role!=='ADMIN';$('login').hidden=true;$('app').hidden=false;$('logout').hidden=false;await loadAll()}catch{logout()}}
+async function loadAll(){await Promise.all([loadDash(),loadConsultants(),loadWithdrawals(),loadDocs(),loadLedger(),loadSuppliers(),loadCards(),loadBudgets(),loadSettings(),loadRules(),loadCareer(),loadProviderStatus(),localStorage.getItem(R)==='ADMIN'?loadCompanyPayout():Promise.resolve()])}
+function companyPayoutMode(){
+  const bank=$('company-payout-type').value==='BANK';
+  $('company-payout-bank').hidden=!bank;
+  $('company-payout-pix').hidden=bank;
+}
+async function loadCompanyPayout(){
+  try{
+    const [profile,history]=await Promise.all([req('/api/finance-office/company-payout'),req('/api/finance-office/company-payout/history')]);
+    $('company-payout-summary').textContent=profile.configured
+      ? 'Destino: '+profile.maskedDestination+' | Repasse diário solicitado: '+(profile.autoDailyEnabled?'Sim':'Não')+
+        ' | Execução Sandbox habilitada: '+(profile.sandboxExecutionEnabled?'Sim':'Não')
+      : 'Nenhuma conta de recebimento cadastrada nesta empresa.';
+    if(profile.configured){
+      $('company-payout-reserve').value=Number(profile.minimumReserve||0);
+      $('company-payout-fee').value=Number(profile.transferFeeEstimate||0);
+      $('company-payout-auto').checked=Boolean(profile.autoDailyEnabled);
+    }
+    $('company-payout-history').innerHTML=history.map(x=>
+      '<tr><td>'+esc(x.date)+'</td><td>'+money(x.amount)+'</td><td>'+money(x.estimatedFee)+
+      '</td><td>'+money(x.reservedAmount)+'</td><td>'+esc(x.status)+'</td></tr>'
+    ).join('')||'<tr><td colspan="5">Nenhum repasse solicitado.</td></tr>';
+  }catch(e){msg('company-payout-msg',e.message);}
+}
 async function loadProviderStatus(){
   try {const status=await req('/api/public/financial/status');
     $('financial-provider-banner').textContent=status.configured
@@ -38,7 +61,7 @@ async function loadWithdrawals(){
 }
 async function processWithdrawal(id){const note=prompt('Observação da aprovação (opcional):')||'';try{const w=await req(`/api/finance-office/withdrawals/${id}/process`,{method:'POST',body:JSON.stringify({note})});alert(w.payoutMethod==='PIX'?'Pix aprovado e enviado ao Asaas. Aguarde a confirmação para anexar o comprovante.':'TED aprovada. Faça o pagamento bancário, anexe o comprovante e marque como paga.');await loadWithdrawals()}catch(e){alert(e.message)}}
 async function changeWithdrawal(id,status){const note=prompt('Observação do Financeiro (opcional):')||'';try{await req(`/api/finance-office/withdrawals/${id}`,{method:'PATCH',body:JSON.stringify({status,note})});await loadAll()}catch(e){alert(e.message)}}
-function showTab(name){document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));['overview','consultants','documents','ledger','reconciliation','suppliers','budget','rules'].forEach(t=>$(`tab-${t}`).hidden=t!==name)}
+function showTab(name){document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));['overview','consultants','documents','ledger','reconciliation','suppliers','budget','rules','company-payout'].forEach(t=>$(`tab-${t}`).hidden=t!==name)}
 function prepareReceipt(withdrawalId,consultantId,name){showTab('documents');$('doc-type').value='CONSULTANT_PAYMENT_RECEIPT';$('doc-person').value=consultantId||'';$('doc-withdrawal').value=withdrawalId;$('doc-title').value=`Comprovante de pagamento - ${name||'consultor'}`;$('doc-context').style.display='block';$('doc-context').textContent=`Comprovante vinculado ao saque ${withdrawalId}.`;window.scrollTo({top:$('tab-documents').offsetTop-80,behavior:'smooth'})}
 async function loadDocs(){const x=await req('/api/finance-office/documents');$('documents').innerHTML=x.map(v=>`<tr><td>${esc(v.documentType)}</td><td>${esc(v.title)}</td><td>${esc(v.collaboratorName||people.find(p=>p.id===v.consultantId)?.name||'—')}</td><td>${d(v.referenceMonth)}</td><td>${esc(v.fileName)}</td><td>${esc(v.uploadedBy||'—')}</td><td><a href="#" data-doc="${v.id}" data-name="${esc(v.fileName)}">Baixar</a></td></tr>`).join('')||'<tr><td colspan="7">Nenhum documento.</td></tr>';document.querySelectorAll('[data-doc]').forEach(a=>a.onclick=async e=>{e.preventDefault();const r=await fetch(api(`/api/finance-office/documents/${a.dataset.doc}/file`),{headers:{Authorization:`Bearer ${localStorage.getItem(T)}`}});if(!r.ok)return alert(await err(r));const b=await r.blob();const u=URL.createObjectURL(b);const x=document.createElement('a');x.href=u;x.download=a.dataset.name||'documento';x.click();URL.revokeObjectURL(u)})}
 async function loadLedger(){const x=await req('/api/finance-office/ledger');$('ledger').innerHTML=x.map(v=>`<tr><td>${esc(v.entryType)}</td><td>${esc(v.description)}</td><td>${esc(v.costNature||'—')}</td><td>${money(v.amount)}</td><td>${d(v.dueDate)}</td><td>${d(v.effectiveDate)}</td><td>${esc(v.status)}</td><td>${v.reconciled?'Sim':'Não'}</td><td>${v.status==='PENDING'?`<button data-entry="${v.id}" data-status="${v.entryType==='REVENUE'||v.entryType==='RECEIVABLE'?'RECEIVED':'PAID'}">Baixar</button>`:''}</td></tr>`).join('')||'<tr><td colspan="9">Nenhum lançamento.</td></tr>';$('reconciliation').innerHTML=x.filter(v=>['PAID','RECEIVED'].includes(v.status)).map(v=>`<tr><td>${d(v.effectiveDate||v.dueDate)}</td><td>${esc(v.description)}</td><td>${money(v.amount)}</td><td>${esc(v.status)}</td><td>${v.reconciled?'Sim':'Não'}</td><td>${!v.reconciled?`<button data-rec="${v.id}">Conciliar</button>`:''}</td></tr>`).join('')||'<tr><td colspan="6">Nenhum movimento para conciliar.</td></tr>';document.querySelectorAll('[data-entry]').forEach(b=>b.onclick=async()=>{await req(`/api/finance-office/ledger/${b.dataset.entry}/status`,{method:'PATCH',body:JSON.stringify({status:b.dataset.status,effectiveDate:new Date().toISOString().slice(0,10)})});await loadAll()});document.querySelectorAll('[data-rec]').forEach(b=>b.onclick=async()=>{const note=prompt('Referência do extrato/observação:')||'';await req(`/api/finance-office/ledger/${b.dataset.rec}/reconcile`,{method:'PATCH',body:JSON.stringify({note})});await loadAll()})}
@@ -56,4 +79,40 @@ $('supplier-form').onsubmit=async e=>{e.preventDefault();try{await req('/api/fin
 $('card-form').onsubmit=async e=>{e.preventDefault();try{await req('/api/finance-office/cards',{method:'POST',body:JSON.stringify({label:$('card-label').value,holder:$('card-holder').value,last4:$('card-last4').value,creditLimit:Number($('card-limit').value||0)})});e.target.reset();await loadCards()}catch(x){alert(x.message)}};
 $('budget-form').onsubmit=async e=>{e.preventDefault();try{await req('/api/finance-office/budgets',{method:'POST',body:JSON.stringify({department:$('budget-dept').value,periodStart:$('budget-start').value,periodEnd:$('budget-end').value,plannedAmount:Number($('budget-amount').value)})});e.target.reset();await loadBudgets()}catch(x){alert(x.message)}};
 $('settings-form').onsubmit=async e=>{e.preventDefault();try{await req('/api/finance-office/settings/INVESTED_CAPITAL',{method:'PATCH',body:JSON.stringify({value:Number($('setting-invested').value||0)})});await req('/api/finance-office/settings/MINIMUM_CASH_RESERVE',{method:'PATCH',body:JSON.stringify({value:Number($('setting-reserve').value||0)})});msg('settings-msg','Parâmetros atualizados.',false);await loadDash()}catch(x){msg('settings-msg',x.message)}};
+$('company-payout-type').onchange=companyPayoutMode;
+$('company-payout-form').onsubmit=async e=>{
+  e.preventDefault();
+  try{
+    const bank=$('company-payout-type').value==='BANK';
+    const values={
+      destinationType:bank?'BANK':'PIX',
+      minimumReserve:$('company-payout-reserve').value,
+      transferFeeEstimate:$('company-payout-fee').value,
+      ownerConfirmed:$('company-payout-confirm').checked,
+      autoDailyEnabled:$('company-payout-auto').checked
+    };
+    if(bank)Object.assign(values,{
+      bankCode:$('company-payout-bank-code').value,
+      ownerName:$('company-payout-owner-name').value,
+      cpfCnpj:$('company-payout-owner-document').value,
+      agency:$('company-payout-agency').value,
+      account:$('company-payout-account').value,
+      accountDigit:$('company-payout-digit').value,
+      bankAccountType:$('company-payout-account-type').value
+    });
+    else Object.assign(values,{pixKeyType:$('company-payout-pix-type').value,pixKey:$('company-payout-pix-key').value});
+    await req('/api/finance-office/company-payout',{method:'PUT',body:JSON.stringify(values)});
+    $('company-payout-pix-key').value='';
+    $('company-payout-bank-code').value='';
+    $('company-payout-owner-name').value='';
+    $('company-payout-owner-document').value='';
+    $('company-payout-agency').value='';
+    $('company-payout-account').value='';
+    $('company-payout-digit').value='';
+    $('company-payout-confirm').checked=false;
+    msg('company-payout-msg','Destino salvo com segurança. Aguarde a homologação antes de ativar transferências.',false);
+    await loadCompanyPayout();
+  }catch(x){msg('company-payout-msg',x.message);}
+};
+companyPayoutMode();
 boot();
