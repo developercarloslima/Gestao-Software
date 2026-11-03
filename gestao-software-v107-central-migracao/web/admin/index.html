@@ -14,7 +14,7 @@
   
   <link rel="stylesheet" href="/admin/cloud.css">
   <link rel="stylesheet" href="/shared/gestao-theme.css?v=20261030-logo-transparente">
-  <script src="/admin/app.js?v=20261103-asaas-subaccounts" defer></script>
+  <script src="/admin/app.js?v=20261103-asaas-retry" defer></script>
   <script src="/admin/onboarding.js" defer></script>
   <script src="/admin/cloud.js" defer></script>
   <script src="/admin/migracao.js" defer></script>
@@ -553,7 +553,7 @@
 
 <dialog id="asaas-subaccount-dialog" class="platform-dialog wide-dialog">
   <form id="asaas-subaccount-form" class="dialog-card" method="dialog">
-    <div class="dialog-head"><div><span class="section-kicker">ASAAS · CONTA DA EMPRESA</span><h2>Vincular subconta Asaas</h2><p id="asaas-subaccount-company"></p></div><button class="icon-close" type="button" data-close-dialog="asaas-subaccount-dialog">×</button></div>
+    <div class="dialog-head"><div><span class="section-kicker">ASAAS · CONTA DA EMPRESA</span><h2 id="asaas-subaccount-title">Vincular subconta Asaas</h2><p id="asaas-subaccount-company"></p></div><button class="icon-close" type="button" data-close-dialog="asaas-subaccount-dialog">×</button></div>
     <input id="asaas-subaccount-company-id" type="hidden">
     <p class="form-help">A conta principal Gestão cria a subconta. O saldo, os pagamentos dos associados e os saques de consultores pertencem à empresa-cliente. A empresa terá acesso próprio ao Asaas pelo e-mail cadastrado. O Gestão cobra sua assinatura separadamente.</p>
     <div class="form-grid two">
@@ -576,7 +576,7 @@
     </div>
     <p class="form-help">O Asaas poderá cobrar taxa de criação conforme seu contrato. No Sandbox, a ativação e os e-mails de teste podem ter comportamento específico. Não há criação automática ao apenas salvar a empresa: confirme os dados cadastrais antes de continuar.</p>
     <div id="asaas-subaccount-message" class="form-message" role="status" aria-live="polite"></div>
-    <div class="form-actions end"><button class="button outline" type="button" data-close-dialog="asaas-subaccount-dialog">Cancelar</button><button class="button primary" type="submit">Criar subconta no Asaas</button></div>
+    <div class="form-actions end"><button class="button outline" type="button" data-close-dialog="asaas-subaccount-dialog">Cancelar</button><button id="asaas-subaccount-submit" class="button primary" type="submit">Criar subconta no Asaas</button></div>
   </form>
 </dialog>
 
