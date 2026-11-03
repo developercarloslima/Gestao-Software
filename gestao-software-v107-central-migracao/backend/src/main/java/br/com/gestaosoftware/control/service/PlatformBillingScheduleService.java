@@ -62,6 +62,23 @@ public class PlatformBillingScheduleService {
                 Date.valueOf(start.plusYears(1)),companyId);
     }
 
+
+    /**
+     * Se uma empresa nasceu com mensalidade zero, não houve emissão do ciclo.
+     * Quando o valor é corrigido, completa apenas o primeiro ciclo ainda vigente;
+     * ON CONFLICT preserva pagamentos e cobranças já existentes.
+     * Não reabre ciclos antigos, não altera a renovação e não reenvia cobranças.
+     */
+    @Transactional
+    public void completeExistingFirstCycle(UUID companyId) {
+        Plan plan = find(companyId, true);
+        if (plan == null || !plan.enabled() || plan.monthly().signum() <= 0 ||
+                plan.renewalDate() == null || plan.start() == null) return;
+        if (!plan.renewalDate().equals(plan.start().plusYears(1))) return;
+        if (plan.start().isBefore(today().minusYears(1))) return;
+        generate(plan, plan.start(), true);
+    }
+
     static record Installment(int monthOffset, int coveredMonths) {}
 
     /**
