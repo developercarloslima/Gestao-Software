@@ -74,7 +74,8 @@ public class AsaasSubaccountService {
     public Map<String, Object> status(UUID companyId) {
         company(companyId);
         List<Map<String, Object>> rows = jdbc.query("""
-                SELECT state, asaas_account_id, wallet_id, owner_email, created_at, updated_at
+                SELECT state, asaas_account_id, wallet_id, owner_email, created_at, updated_at,
+                       attempt_count, last_http_status
                 FROM platform_asaas_subaccounts WHERE company_id=?
                 """, (rs, n) -> {
             Map<String, Object> data = new LinkedHashMap<>();
@@ -84,6 +85,8 @@ public class AsaasSubaccountService {
             data.put("ownerEmail", rs.getString(4));
             data.put("createdAt", rs.getObject(5).toString());
             data.put("updatedAt", rs.getObject(6).toString());
+            data.put("attemptCount", rs.getInt(7));
+            data.put("lastHttpStatus", rs.getObject(8, Integer.class));
             return data;
         }, companyId);
         if (rows.isEmpty()) return Map.of(
@@ -196,15 +199,25 @@ public class AsaasSubaccountService {
         if (taxRegime != null) request.put("taxRegime", taxRegime);
         if (optional(data.complement()) != null) request.put("complement", optional(data.complement()));
 
-        // A reserva única impede dupla criação. Falhas incertas exigem conciliação
-        // manual no Asaas; não repetimos POST por tentativa automática.
+        // Só é seguro repetir quando a resposta anterior foi rejeição HTTP 4xx:
+        // a requisição não criou uma subconta. Um timeout/5xx permanece bloqueado
+        // como REVIEW_REQUIRED até conciliação manual no Asaas.
         int reserved = jdbc.update("""
-                INSERT INTO platform_asaas_subaccounts(company_id,owner_email,state,requested_by)
-                VALUES (?,?, 'CREATING',?) ON CONFLICT (company_id) DO NOTHING
-                """, companyId, email, operator);
+                UPDATE platform_asaas_subaccounts
+                   SET state='CREATING',owner_email=?,requested_by=?,updated_at=NOW(),
+                       attempt_count=attempt_count+1,last_http_status=NULL,
+                       asaas_account_id=NULL,wallet_id=NULL,encrypted_api_key=NULL
+                 WHERE company_id=? AND state='REJECTED'
+                """, email, operator, companyId);
+        if (reserved == 0) {
+            reserved = jdbc.update("""
+                    INSERT INTO platform_asaas_subaccounts(company_id,owner_email,state,requested_by)
+                    VALUES (?,?, 'CREATING',?) ON CONFLICT (company_id) DO NOTHING
+                    """, companyId, email, operator);
+        }
         if (reserved != 1)
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Já existe cadastro ou tentativa de criação para esta empresa. Consulte o status antes de repetir.");
+                    "Já existe subconta ou uma tentativa em andamento. Resultados incertos exigem conciliação manual.");
 
         try {
             HttpRequest asaasRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/accounts"))
@@ -217,9 +230,9 @@ public class AsaasSubaccountService {
                     .build();
             HttpResponse<String> response = http.send(asaasRequest, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                jdbc.update("UPDATE platform_asaas_subaccounts SET state=?, updated_at=NOW() WHERE company_id=?",
+                jdbc.update("UPDATE platform_asaas_subaccounts SET state=?, last_http_status=?, updated_at=NOW() WHERE company_id=?",
                         response.statusCode() >= 400 && response.statusCode() < 500 ? "REJECTED" : "REVIEW_REQUIRED",
-                        companyId);
+                        response.statusCode(), companyId);
                 throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
                         "O Asaas não aceitou o cadastro. Confira os dados e concilie o status antes de nova tentativa.");
             }
