@@ -546,8 +546,24 @@
 <dialog id="company-detail-dialog" class="platform-dialog extra-wide-dialog">
   <div class="dialog-card">
     <div class="dialog-head"><div><span class="section-kicker">EMPRESA-CLIENTE</span><h2 id="detail-company-name">Empresa</h2><p id="detail-company-subtitle"></p></div><button class="icon-close" type="button" data-close-dialog="company-detail-dialog">×</button></div>
+    <div id="company-detail-message" class="form-message" role="status" aria-live="polite"></div>
     <div id="detail-company-content"></div>
   </div>
+</dialog>
+
+<dialog id="invoice-dialog" class="platform-dialog wide-dialog">
+  <form id="invoice-form" class="dialog-card" method="dialog">
+    <div class="dialog-head"><div><span class="section-kicker">FINANCEIRO DA EMPRESA</span><h2>Gerar mensalidade</h2><p id="invoice-company-name"></p></div><button class="icon-close" type="button" data-close-dialog="invoice-dialog" aria-label="Fechar">×</button></div>
+    <input id="invoice-company-id" type="hidden">
+    <div class="form-grid three">
+      <label>Competência<input id="invoice-month" type="month" required></label>
+      <label>Valor (R$)<input id="invoice-amount" type="number" step="0.01" min="0.01" required></label>
+      <label>Vencimento<input id="invoice-due-date" type="date" required></label>
+    </div>
+    <p class="form-help">A cobrança será gerada somente depois, na aba Implantação. Uma mensalidade paga ou vinculada ao Asaas não pode ser sobrescrita.</p>
+    <div id="invoice-form-message" class="form-message" role="status" aria-live="polite"></div>
+    <div class="form-actions end"><button class="button outline" type="button" data-close-dialog="invoice-dialog">Cancelar</button><button id="invoice-save" class="button primary" type="submit">Salvar mensalidade</button></div>
+  </form>
 </dialog>
 
 <dialog id="hosting-dialog" class="platform-dialog wide-dialog">

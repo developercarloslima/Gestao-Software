@@ -323,13 +323,19 @@ public class PlatformManagementService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Pagamento só pode ser confirmado após verificação pelo provedor.");
     }
 
+    /** Vencimentos no dia 29/30/31 usam o último dia do mês quando necessário. */
+    static LocalDate defaultInvoiceDueDate(LocalDate reference, int billingDueDay) {
+        YearMonth month = YearMonth.from(reference);
+        int normalizedDay = Math.min(Math.max(billingDueDay, 1), month.lengthOfMonth());
+        return month.atDay(normalizedDay);
+    }
     @Transactional
     public Map<String, Object> generateInvoice(UUID companyId, InvoiceInput input) {
         Map<String, Object> company = getCompany(companyId);
         LocalDate reference = firstOfMonth(input.referenceMonth() == null ? LocalDate.now() : input.referenceMonth());
         BigDecimal amount = input.amount() == null ? (BigDecimal) company.get("monthlyFee") : money(input.amount());
         LocalDate due = input.dueDate() == null
-                ? YearMonth.from(reference).atDay((Integer) company.get("billingDueDay"))
+                ? defaultInvoiceDueDate(reference, (Integer) company.get("billingDueDay"))
                 : input.dueDate();
         UUID id = UUID.randomUUID();
         int changed = jdbc.update("""
