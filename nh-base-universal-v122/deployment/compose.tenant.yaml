@@ -169,7 +169,14 @@ services:
       NH_PONTO_INTERNAL_TOKEN: ${PONTO_JWT_SECRET:?}
       FACE_API_INTERNAL_URL: http://face-api:8000
       FACE_API_KEY: ${PONTO_JWT_SECRET:?}
-      ASAAS_ENABLED: 'false'
+      # Asaas independente para cada empresa: a chave fica no secrets.env exclusivo do tenant.
+      FINANCIAL_PROVIDER: ${FINANCIAL_PROVIDER:-NONE}
+      ASAAS_ENABLED: ${ASAAS_ENABLED:-false}
+      ASAAS_BASE_URL: ${ASAAS_BASE_URL:-https://api-sandbox.asaas.com/v3}
+      ASAAS_API_KEY: ${ASAAS_API_KEY:-}
+      ASAAS_WEBHOOK_TOKEN: ${ASAAS_WEBHOOK_TOKEN:-}
+      FINANCIAL_PAYMENT_FEE: ${FINANCIAL_PAYMENT_FEE:-2.00}
+      FINANCIAL_WITHDRAWAL_FEE: ${FINANCIAL_WITHDRAWAL_FEE:-2.00}
       TEAM_EMAIL: ${TENANT_EMAIL:-}
       TEAM_WHATSAPP_NUMBER: ${TENANT_WHATSAPP:-}
     networks: [internal]
