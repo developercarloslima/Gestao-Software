@@ -63,10 +63,8 @@ public class PortalUserService {
     @Transactional
     public AuthenticatedPortalUser authenticate(String username, String password) {
         String normalized = PortalUser.normalizeUsername(username);
+        // Contas de associado são provisionadas no envio para aceite, nunca no login.
         PortalUser user = repository.findByNormalizedUsername(normalized).orElse(null);
-        if (user == null) {
-            user = provisionAssociateOnFirstLogin(username, password);
-        }
         if (user == null || !user.isActive() || !encoder.matches(password == null ? "" : password, user.getPasswordHash())) {
             throw new IllegalArgumentException("Usuário ou senha inválidos.");
         }
@@ -467,36 +465,63 @@ public class PortalUserService {
     }
 
 
-    private PortalUser provisionAssociateOnFirstLogin(String username, String password) {
-        if ("true".equalsIgnoreCase(System.getenv("GS_TENANT_MODE"))) return null; // contas por convite, sem senha compartilhada
-        String document = username == null ? "" : username.replaceAll("\\D", "");
-        if ((document.length() != 11 && document.length() != 14) || !initialPassword().equals(password)) return null;
-        var associate = associateRepository.findByDocument(document).filter(br.com.nh.cotacao.entity.Associate::isActive).orElse(null);
-        if (associate == null) return null;
-        var existing = repository.findByAssociateId(associate.getId()).orElse(null);
-        if (existing != null) return existing;
-        PortalUser user = PortalUser.create(
-                document, associate.getName(), encoder.encode(initialPassword()), PortalRole.ASSOCIATE, "ASSOCIATE_AUTO_BOOTSTRAP"
-        );
-        user.linkAssociate(associate.getId());
-        user.requirePasswordChange();
-        return repository.save(user);
-    }
-
+    /**
+     * Reserva o login CPF do associado quando o dossiê é enviado para aceite.
+     * A conta nova só pode autenticar depois dos três aceites WebAuthn.
+     * Outros veículos nunca substituem a senha ou desativam contas existentes.
+     */
     @Transactional
-    public String ensureAssociateAccount(UUID associateId) {
+    public String prepareAssociateAccountForAcceptance(UUID associateId) {
         var associate = associateRepository.findById(associateId)
                 .filter(br.com.nh.cotacao.entity.Associate::isActive)
-                .orElseThrow(() -> new IllegalArgumentException("Associado não encontrado."));
-        if (associate.getDocument() == null) throw new IllegalArgumentException("Cadastre CPF/CNPJ para liberar a Área do Associado.");
-        return repository.findByAssociateId(associateId).map(PortalUser::getUsername).orElseGet(() -> {
-            PortalUser user = PortalUser.create(
-                    associate.getDocument(), associate.getName(), encoder.encode(initialPassword()), PortalRole.ASSOCIATE, "ASSOCIATE_AUTO_BOOTSTRAP"
-            );
-            user.linkAssociate(associateId);
-            user.requirePasswordChange();
-            return repository.save(user).getUsername();
-        });
+                .orElseThrow(() -> new IllegalArgumentException("Associado não encontrado ou inativo."));
+        String cpf = AssociateIdentityPolicy.requireCpf(associate.getDocument());
+        PortalUser account = repository.findByAssociateId(associateId).orElse(null);
+        if (account == null) {
+            account = repository.findByNormalizedUsername(PortalUser.normalizeUsername(cpf)).orElse(null);
+        }
+        if (account != null) {
+            if (account.getRole() != PortalRole.ASSOCIATE
+                    || (account.getAssociateId() != null && !associateId.equals(account.getAssociateId()))) {
+                throw new IllegalArgumentException("Este CPF já está vinculado a outra conta de acesso.");
+            }
+            if (!PortalUser.normalizeUsername(cpf).equals(account.getNormalizedUsername())) {
+                throw new IllegalArgumentException("O usuário do associado não corresponde ao CPF cadastrado.");
+            }
+            if (account.getAssociateId() == null) {
+                account.linkAssociate(associateId);
+                repository.save(account);
+            }
+            return account.getUsername();
+        }
+
+        PortalUser pending = PortalUser.create(cpf, associate.getName(),
+                encoder.encode(defaultNewUserPassword), PortalRole.ASSOCIATE, "ASSOCIATE_AUTO_BOOTSTRAP");
+        pending.linkAssociate(associateId);
+        pending.requirePasswordChange();
+        pending.setActive(false);
+        return repository.save(pending).getUsername();
+    }
+
+    /** A ativação exige a confirmação do fluxo de aceite na camada de vistoria. */
+    @Transactional
+    public void activateAssociateAccountAfterAcceptance(UUID associateId) {
+        String cpf = prepareAssociateAccountForAcceptance(associateId);
+        PortalUser account = repository.findByNormalizedUsername(PortalUser.normalizeUsername(cpf))
+                .orElseThrow(() -> new IllegalStateException("Acesso do associado não foi encontrado."));
+        if (!account.isActive() && "ASSOCIATE_AUTO_BOOTSTRAP".equals(account.getCreatedBy())) {
+            account.setActive(true);
+            repository.save(account);
+        }
+    }
+
+    /**
+     * Compatibilidade com chamadas administrativas antigas: provisiona sem liberar
+     * autenticação. A liberação depende do aceite digital real.
+     */
+    @Transactional
+    public String ensureAssociateAccount(UUID associateId) {
+        return prepareAssociateAccountForAcceptance(associateId);
     }
 
     /**

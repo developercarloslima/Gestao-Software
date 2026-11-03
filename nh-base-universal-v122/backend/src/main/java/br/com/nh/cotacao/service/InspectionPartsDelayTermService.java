@@ -55,6 +55,7 @@ public class InspectionPartsDelayTermService {
     private final PartsDelayTermPdfService pdfService;
     private final ObjectMapper jsonMapper;
     private final PartsDelayTermAcceptanceAttemptService attemptService;
+    private final org.springframework.context.ApplicationEventPublisher acceptanceEvents;
     private final SecureRandom secureRandom = new SecureRandom();
     private final String publicWebUrl;
 
@@ -63,12 +64,14 @@ public class InspectionPartsDelayTermService {
             PartsDelayTermPdfService pdfService,
             ObjectMapper jsonMapper,
             PartsDelayTermAcceptanceAttemptService attemptService,
+            org.springframework.context.ApplicationEventPublisher acceptanceEvents,
             @Value("${app.public-web-url:https://aforma-demo.vercel.app}") String publicWebUrl
     ) {
         this.jdbc = jdbc;
         this.pdfService = pdfService;
         this.jsonMapper = jsonMapper;
         this.attemptService = attemptService;
+        this.acceptanceEvents = acceptanceEvents;
         this.publicWebUrl = trimSlash(publicWebUrl);
     }
 
@@ -331,6 +334,7 @@ public class InspectionPartsDelayTermService {
             if (latest.acceptedAt() != null) return info(latest);
             throw new IllegalStateException("Não foi possível registrar o aceite digital deste termo.");
         }
+        acceptanceEvents.publishEvent(new AssociatePortalAccessActivationListener.AcceptanceRecorded(row.inspectionId()));
         return info(findById(row.id(), false));
     }
 
