@@ -1,4 +1,5 @@
 """Segurança do agente: sem conexão com VPS real e sem executar Docker."""
+import json
 import os
 import pathlib
 import tempfile
@@ -49,6 +50,30 @@ class AgentDeploymentTests(unittest.TestCase):
             self.assertEqual(a,b)
             self.assertEqual(secret.stat().st_mode & 0o777,0o600)
             self.assertEqual(run.call_count,2)
+
+    def test_financial_sandbox_is_isolated_and_disabled_until_homologated(self):
+        config={k:'registry.local/gs/'+k.lower()+'@sha256:'+'f'*64 for k in agent.required if k.endswith('_IMAGE')}
+        config.update({k:'test-value' for k in agent.required if not k.endswith('_IMAGE')})
+        other_id=str(uuid.uuid4())
+        second=dict(VALID,company_id=other_id,requested_host='outro.gestaosoftware.com.br')
+        with patch.dict(os.environ,config),patch.object(agent.subprocess,'run') as run:
+            run.return_value.returncode=0
+            agent.install(dict(VALID))
+            agent.install(second)
+
+        def load_tenant(company_id):
+            path=pathlib.Path(self.tmp.name)/('c'+uuid.UUID(company_id).hex[:16])/'secrets.env'
+            return {k:json.loads(v) for k,v in
+                    (line.split('=',1) for line in path.read_text().splitlines())}
+        a=load_tenant(COMPANY)
+        b=load_tenant(other_id)
+        for tenant in (a,b):
+            self.assertEqual(tenant['FINANCIAL_PROVIDER'],'ASAAS')
+            self.assertEqual(tenant['ASAAS_ENABLED'],'false')
+            self.assertEqual(tenant['ASAAS_BASE_URL'],'https://api-sandbox.asaas.com/v3')
+            self.assertEqual(tenant['ASAAS_API_KEY'],'')
+            self.assertEqual(len(tenant['ASAAS_WEBHOOK_TOKEN']),64)
+        self.assertNotEqual(a['ASAAS_WEBHOOK_TOKEN'],b['ASAAS_WEBHOOK_TOKEN'])
 
     def test_refuse_domain_change_for_existing_workspace(self):
         folder=pathlib.Path(self.tmp.name)/('c'+uuid.UUID(COMPANY).hex[:16]);folder.mkdir()

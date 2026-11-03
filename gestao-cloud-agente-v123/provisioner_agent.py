@@ -168,6 +168,15 @@ def _install_locked(job,cid,host,doc):
         config['TENANT_REQUIRES_COMMERCIAL_CATALOG']='true' if modules & {'COTA','VISTORIA_EVENTOS','GESTAO_FINANCEIRA_COMERCIAL'} else 'false'
         config['TENANT_REQUIRES_PAYMENT_INTEGRATION']='true' if 'GESTAO_FINANCEIRA_COMERCIAL' in modules else 'false'
         config['TENANT_REQUIRES_PONTO_SETUP']='true' if 'APONTAMENTO_DIGITAL' in modules else 'false'
+        # Configuração isolada por empresa. Emissão/repasses ficam desativados até
+        # inserir a API Key Sandbox própria do tenant e homologar o webhook.
+        config['FINANCIAL_PROVIDER']='ASAAS' if modules & {'COTA','VISTORIA_EVENTOS','GESTAO_FINANCEIRA_COMERCIAL'} else 'NONE'
+        config['ASAAS_ENABLED']='false'
+        config['ASAAS_BASE_URL']='https://api-sandbox.asaas.com/v3'
+        config['ASAAS_API_KEY']=''
+        config['ASAAS_WEBHOOK_TOKEN']=secrets.token_hex(32)
+        config['FINANCIAL_PAYMENT_FEE']='2.00'
+        config['FINANCIAL_WITHDRAWAL_FEE']='2.00'
         profiles=[]
         if 'APONTAMENTO_DIGITAL' in modules: profiles.append('ponto')
         if modules & {'COTA','VISTORIA_EVENTOS'}: profiles.append('fipe')

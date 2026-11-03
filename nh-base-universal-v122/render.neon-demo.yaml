@@ -68,10 +68,21 @@ services:
         value: "false"
       - key: DEMO_ASSOCIATE_ENABLED
         value: "false"
+      # Sandbox individual de cada empresa. Sem chaves, nunca emite/transfere.
+      - key: FINANCIAL_PROVIDER
+        value: ASAAS
       - key: ASAAS_ENABLED
         value: "false"
-      - key: FINANCIAL_PROVIDER
-        value: NONE
+      - key: ASAAS_BASE_URL
+        value: https://api-sandbox.asaas.com/v3
+      - key: ASAAS_API_KEY
+        sync: false
+      - key: ASAAS_WEBHOOK_TOKEN
+        sync: false
+      - key: FINANCIAL_PAYMENT_FEE
+        value: "2.00"
+      - key: FINANCIAL_WITHDRAWAL_FEE
+        value: "2.00"
       - key: JAVA_TOOL_OPTIONS
         value: "-Dfile.encoding=UTF-8 -XX:MaxRAMPercentage=45.0 -XX:+UseSerialGC -XX:ReservedCodeCacheSize=64m -Xss512k"
   - type: web
