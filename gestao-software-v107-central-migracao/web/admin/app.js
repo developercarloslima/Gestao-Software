@@ -361,15 +361,17 @@ async function loadAsaasSubaccountStatus(companyId){
       box.innerHTML=`<p>Sem subconta Asaas. As cobranças dos associados desta empresa ainda não devem usar a conta principal do Gestão.</p><p><strong>Conta principal:</strong> ${s.parentConfigured?'Configurada':'Credencial não configurada'} · ${s.sandbox?'Sandbox':'Produção'}</p><button class="button primary small" type="button" data-create-asaas-subaccount="${companyId}" ${!s.parentConfigured?'disabled':''}>Cadastrar subconta da empresa</button>`;
       return;
     }
-    const labels={CREATING:'Criação em andamento',REJECTED:'Asaas rejeitou os dados; conciliar manualmente',REVIEW_REQUIRED:'Resultado incerto; conferir no Asaas',PENDING_ACTIVATION:'Criada; aguardando ativação e implantação no tenant',ACTIVE:'Subconta aprovada no Asaas'};
-    box.innerHTML=`<p><strong>Situação:</strong> ${esc(labels[s.state]||s.state)}.</p><p><strong>Titular:</strong> ${esc(s.ownerEmail||'—')}<br><strong>Conta:</strong> ${esc(s.accountId||'—')}<br><strong>Carteira exclusiva:</strong> ${esc(s.walletId||'—')}</p><p class="form-help">A empresa recebe e mantém o saldo em sua própria subconta. Para emitir cobranças no sistema da empresa, é preciso configurar com segurança a API key específica dela no backend do tenant. O cadastro no Control Plane, sozinho, não habilita cobranças.</p>`;
+    const labels={CREATING:'Criação em andamento',REJECTED:'Dados rejeitados pelo Asaas; corrija e tente novamente',REVIEW_REQUIRED:'Resultado incerto; conferir no Asaas',PENDING_ACTIVATION:'Criada; aguardando ativação e implantação no tenant',ACTIVE:'Subconta aprovada no Asaas'};
+    box.innerHTML=`<p><strong>Situação:</strong> ${esc(labels[s.state]||s.state)}.</p><p><strong>Titular:</strong> ${esc(s.ownerEmail||'—')}<br><strong>Conta:</strong> ${esc(s.accountId||'—')}<br><strong>Carteira exclusiva:</strong> ${esc(s.walletId||'—')}</p><p class="form-help">A empresa recebe e mantém o saldo em sua própria subconta. Para emitir cobranças no sistema da empresa, é preciso configurar com segurança a API key específica dela no backend do tenant. O cadastro no Control Plane, sozinho, não habilita cobranças.</p>${s.state==='REJECTED'?`<div class="form-actions"><p class="form-help">${s.lastHttpStatus===401||s.lastHttpStatus===403?'Falha de autorização do Asaas: confira a credencial da conta principal antes de reenviar.':'Confira CNPJ, e-mail, faturamento, celular e endereço antes de reenviar.'} Tentativa nº ${esc(s.attemptCount||1)}.</p><button class="button primary small" type="button" data-create-asaas-subaccount="${companyId}" data-asaas-retry="true" ${!s.parentConfigured?'disabled':''}>Tentar novamente</button></div>`:''}`;
   }catch(e){box.textContent='Não foi possível consultar o vínculo Asaas: '+e.message;}
 }
-function openAsaasSubaccountDialog(companyId){
+function openAsaasSubaccountDialog(companyId, retry=false){
   const c=currentCompany;if(!c||c.id!==companyId)return;
   $('asaas-subaccount-form').reset();
   $('asaas-subaccount-company-id').value=companyId;
   $('asaas-subaccount-company').textContent=`${c.tradeName} · ${c.document||'CNPJ não cadastrado'}`;
+  $('asaas-subaccount-title').textContent=retry?'Corrigir dados e tentar novamente':'Vincular subconta Asaas';
+  $('asaas-subaccount-submit').textContent=retry?'Reenviar cadastro ao Asaas':'Criar subconta no Asaas';
   $('asaas-subaccount-email').value=c.contactEmail||'';
   $('asaas-subaccount-mobile').value=c.contactPhone||'';
   formMessage('asaas-subaccount-message');
@@ -461,7 +463,7 @@ function resetExpense(){$('expense-form').reset();$('expense-id').value='';$('ex
 $('cancel-expense').addEventListener('click',resetExpense);
 
 document.addEventListener('click',async e=>{
-  const asaasBtn=e.target.closest('[data-create-asaas-subaccount]');if(asaasBtn){openAsaasSubaccountDialog(asaasBtn.dataset.createAsaasSubaccount);return}
+  const asaasBtn=e.target.closest('[data-create-asaas-subaccount]');if(asaasBtn){openAsaasSubaccountDialog(asaasBtn.dataset.createAsaasSubaccount, asaasBtn.dataset.asaasRetry==='true');return}
   const open=e.target.closest('[data-open-company]');if(open){await openCompany(open.dataset.openCompany);return}
   const editRow=e.target.closest('[data-edit-company-row]');if(editRow){await editCompany(editRow.dataset.editCompanyRow);return}
   const deactivate=e.target.closest('[data-deactivate-company]');if(deactivate){
