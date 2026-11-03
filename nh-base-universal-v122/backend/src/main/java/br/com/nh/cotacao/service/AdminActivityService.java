@@ -758,6 +758,10 @@ public class AdminActivityService {
                 ? normalizeAssociatePhone(inspection.getWhatsapp())
                 : null;
         inspection.markDecisionMessageSent(destination);
+        if (inspection.getStatus() == InspectionRequestStatus.APPROVED) {
+            acceptanceWorkflow.prepareAssociatePortalAccess(inspection);
+            acceptanceWorkflow.activateAssociatePortalAccessIfComplete(inspection.getId());
+        }
         inspectionRepository.flush();
         return toInspection(inspection, revealCpf);
     }

@@ -62,6 +62,7 @@ public class InspectionDigitalAcceptanceService {
     private final AcceptedDossierRefreshService acceptedDossierRefreshService;
     private final InspectionReportDownloadService reportDownloadService;
     private final ObjectMapper jsonMapper;
+    private final org.springframework.context.ApplicationEventPublisher acceptanceEvents;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public InspectionDigitalAcceptanceService(
@@ -69,13 +70,15 @@ public class InspectionDigitalAcceptanceService {
             InspectionAssetStorageService storageService,
             AcceptedDossierRefreshService acceptedDossierRefreshService,
             InspectionReportDownloadService reportDownloadService,
-            ObjectMapper jsonMapper
+            ObjectMapper jsonMapper,
+            org.springframework.context.ApplicationEventPublisher acceptanceEvents
     ) {
         this.repository = repository;
         this.storageService = storageService;
         this.acceptedDossierRefreshService = acceptedDossierRefreshService;
         this.reportDownloadService = reportDownloadService;
         this.jsonMapper = jsonMapper;
+        this.acceptanceEvents = acceptanceEvents;
     }
 
     @Transactional(readOnly = true)
@@ -268,6 +271,7 @@ public class InspectionDigitalAcceptanceService {
                 acceptedAt
         );
         repository.flush();
+        acceptanceEvents.publishEvent(new AssociatePortalAccessActivationListener.AcceptanceRecorded(request.getId()));
 
         // A prova e persistida antes de tentar regenerar o PDF. Se a geracao do
         // relatorio falhar (inclusive por restricao de integridade), a assinatura

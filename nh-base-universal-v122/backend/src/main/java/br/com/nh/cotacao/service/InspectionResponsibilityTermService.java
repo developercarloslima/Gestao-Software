@@ -63,6 +63,7 @@ public class InspectionResponsibilityTermService {
     private final InspectionAssetStorageService storageService;
     private final ResponsibilityTermAcceptanceAttemptService attemptService;
     private final ObjectMapper jsonMapper;
+    private final org.springframework.context.ApplicationEventPublisher acceptanceEvents;
     private final SecureRandom secureRandom = new SecureRandom();
     private final String publicWebUrl;
 
@@ -74,6 +75,7 @@ public class InspectionResponsibilityTermService {
             InspectionAssetStorageService storageService,
             ResponsibilityTermAcceptanceAttemptService attemptService,
             ObjectMapper jsonMapper,
+            org.springframework.context.ApplicationEventPublisher acceptanceEvents,
             @Value("${app.public-web-url:https://aforma-demo.vercel.app}") String publicWebUrl
     ) {
         this.jdbc = jdbc;
@@ -83,6 +85,7 @@ public class InspectionResponsibilityTermService {
         this.storageService = storageService;
         this.attemptService = attemptService;
         this.jsonMapper = jsonMapper;
+        this.acceptanceEvents = acceptanceEvents;
         this.publicWebUrl = trimSlash(publicWebUrl);
     }
 
@@ -330,6 +333,7 @@ public class InspectionResponsibilityTermService {
         );
         if (updated != 1) throw new IllegalStateException("Não foi possível registrar o aceite digital deste termo.");
         TermRow accepted = findById(row.id(), false);
+        acceptanceEvents.publishEvent(new AssociatePortalAccessActivationListener.AcceptanceRecorded(accepted.inspectionId()));
         refreshFinalDossierWithAcceptedTerm(accepted.inspectionId());
         return info(accepted);
     }

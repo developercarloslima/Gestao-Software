@@ -1,9 +1,11 @@
 package br.com.nh.cotacao.service;
 
 import br.com.nh.cotacao.entity.InspectionRequest;
-import br.com.nh.cotacao.entity.InspectionRequestStatus;
 import br.com.nh.cotacao.repository.CatalogChangeAuditRepository;
 import br.com.nh.cotacao.repository.InspectionRequestRepository;
+import br.com.nh.cotacao.repository.AssociateRepository;
+import br.com.nh.cotacao.entity.Associate;
+import br.com.nh.cotacao.entity.InspectionRequestStatus;
 import br.com.nh.cotacao.entity.CatalogChangeAudit;
 import br.com.nh.cotacao.security.PortalRole;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -27,13 +29,15 @@ public class InspectionAcceptanceWorkflowService {
     private final InspectionRequestRepository inspections;
     private final CatalogChangeAuditRepository audits;
     private final PortalUserService portalUsers;
+    private final AssociateRepository associates;
 
     public InspectionAcceptanceWorkflowService(JdbcTemplate jdbc, InspectionRequestRepository inspections,
-            CatalogChangeAuditRepository audits, PortalUserService portalUsers) {
+            CatalogChangeAuditRepository audits, PortalUserService portalUsers, AssociateRepository associates) {
         this.jdbc = jdbc;
         this.inspections = inspections;
         this.audits = audits;
         this.portalUsers = portalUsers;
+        this.associates = associates;
     }
 
     public record Progress(boolean dossier, boolean responsabilidade, boolean cienciaPecas,
@@ -65,6 +69,58 @@ public class InspectionAcceptanceWorkflowService {
                 || (pecas != null && !signedPecas
                              && !AcceptanceLinkPolicy.isValid(pecas.availableAt(), now));
         return new Progress(dossier, signedResponsabilidade, signedPecas, done == 3, expired, done, 3);
+    }
+
+    /**
+     * A senha é reservada na comunicação da aprovação; não libera login ainda.
+     * CPF/nome são conferidos na mesma ficha de associado usada pelos veículos.
+     */
+    @Transactional
+    public void prepareAssociatePortalAccess(InspectionRequest inspection) {
+        if (inspection.getStatus() != InspectionRequestStatus.APPROVED
+                || inspection.getRegistrationCompletedAt() == null
+                || inspection.hasPendingContractChange()) {
+            throw new IllegalArgumentException("Conclua o cadastro e a aprovação antes de enviar para aceite.");
+        }
+        Associate associate = resolveAssociate(inspection);
+        portalUsers.prepareAssociateAccountForAcceptance(associate.getId());
+    }
+
+    /** Somente assinaturas reais contam. Mover manualmente a fila não ativa login. */
+    @Transactional
+    public void activateAssociatePortalAccessIfComplete(UUID inspectionId) {
+        InspectionRequest inspection = inspections.findById(inspectionId)
+                .orElseThrow(() -> new IllegalArgumentException("Vistoria não encontrada."));
+        if (inspection.getStatus() != InspectionRequestStatus.APPROVED || !progress(inspection).allAccepted()) return;
+        Associate associate = resolveAssociate(inspection);
+        portalUsers.activateAssociateAccountAfterAcceptance(associate.getId());
+    }
+
+    private Associate resolveAssociate(InspectionRequest inspection) {
+        String cpf = AssociateIdentityPolicy.requireCpf(inspection.getCpf());
+        Associate associate = associates.findByDocument(cpf).orElse(null);
+        AssociateIdentityPolicy.assertCompatible(associate, inspection.getAssociateName());
+        if (associate == null) {
+            Associate linked = inspection.getAssociate();
+            if (linked != null) {
+                if (!cpf.equals(linked.getDocument())) {
+                    throw new IllegalArgumentException("A vistoria está vinculada a um CPF diferente. Revise o cadastro.");
+                }
+                AssociateIdentityPolicy.assertCompatible(linked, inspection.getAssociateName());
+                associate = linked;
+            } else {
+                associate = associates.save(Associate.create(inspection.getAssociateName(), cpf,
+                        inspection.getWhatsapp(), null));
+            }
+        }
+        if (!associate.isActive()) {
+            throw new IllegalArgumentException("O cadastro do associado está inativo.");
+        }
+        if (inspection.getAssociate() == null || !associate.getId().equals(inspection.getAssociate().getId())) {
+            inspection.linkAssociate(associate);
+            inspections.save(inspection);
+        }
+        return associate;
     }
 
     @Transactional
