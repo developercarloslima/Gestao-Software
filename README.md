@@ -55,7 +55,6 @@ flowchart TB
 | `nh-base-universal-v122/face-attendance-api/` | Serviço auxiliar de reconhecimento facial | Python, FastAPI |
 | `nh-base-universal-v122/hinova-api/` | Integração legada | Node.js |
 | `gestao-cloud-agente-v123/` | Agente de provisionamento e operação | Python, Docker Compose |
-| `docs/` | Documentação transversal | Markdown |
 | `.github/workflows/` | Integração e validação contínuas | GitHub Actions |
 
 **Persistência:** PostgreSQL nos serviços principais (Neon nos ambientes de demonstração) e armazenamento próprio para a API FIPE. Não se deve presumir compartilhamento de dados entre empresas ou entre bancos de sistemas distintos.
@@ -153,13 +152,13 @@ O projeto processa dados pessoais, registros de colaboradores e documentos empre
 - Validação de uploads e entradas, trilhas de auditoria e prevenção de vazamento em logs;
 - Revisões de dependências, testes de restauração, monitoramento e resposta a incidentes.
 
-As salvaguardas existentes **não equivalem a certificação de segurança ou conformidade legal**. Consulte [Segurança dos dados dos clientes](docs/SEGURANCA_DADOS_CLIENTES.md) para controles e pendências.
+As salvaguardas existentes **não equivalem a certificação de segurança ou conformidade legal**. Mantenha controles técnicos e operacionais atualizados em cada implantação.
 
 ## Integrações financeiras
 
 O ecossistema possui fluxos financeiros e interface de segunda via de boleto. As configurações `GESTAO_FINANCIAL_PROVIDER` (Control Plane) e `FINANCIAL_PROVIDER` (Base Universal) definem os adaptadores por ambiente. O modo `NONE` **não processa transações reais**.
 
-O fornecedor financeiro definitivo ainda requer definição, credenciais, homologação de webhooks, testes de conciliação e validação de acesso. Segunda via deve ser consultada apenas após autenticação e autorização do associado; não reative rotas legadas de boleto sem autenticação. Consulte [Integração financeira](docs/INTEGRACAO_FINANCEIRA_PROVEDORES.md).
+O fornecedor financeiro definitivo ainda requer definição, credenciais, homologação de webhooks, testes de conciliação e validação de acesso. Segunda via deve ser consultada apenas após autenticação e autorização do associado; não reative rotas legadas de boleto sem autenticação. A contratação do provedor e os testes de integração devem ser homologados antes de operar com cobranças reais.
 
 ## Entrega e operação
 
