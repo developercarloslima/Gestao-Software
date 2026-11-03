@@ -379,6 +379,33 @@
         <small>Se o iPhone pedir para escolher onde gerenciar chaves-senha, habilite um provedor de Senhas/Chaves-senha nos Ajustes. Essa conta serve apenas para guardar a chave-senha; o sistema da NH não recebe o e-mail nem a senha dessa conta.</small>
       </div>
       <div id="digital-acceptance-details" class="digital-acceptance-details" hidden></div>
+      <section id="post-acceptance-access" class="message success" hidden style="margin-top:18px;padding:18px">
+        <strong>Seu acesso à Área do Associado</strong>
+        <p>Login: <strong id="accepted-portal-username">—</strong></p>
+        <p>Senha temporária: <strong id="accepted-portal-password">—</strong></p>
+        <p class="muted">Troque a senha no primeiro acesso. Sua conta é liberada após a conclusão de todos os aceites digitais obrigatórios.</p>
+        <a id="accepted-portal-link" class="button primary" href="/associado/" rel="noopener noreferrer">Abrir Área do Associado</a>
+        <p id="accepted-future-invoices" class="muted">As próximas cobranças estarão disponíveis na Área do Associado.</p>
+      </section>
+      <section id="post-acceptance-payment" class="message" hidden style="margin-top:18px;padding:18px">
+        <strong>Pagamento da adesão</strong>
+        <p id="accepted-payment-status" aria-live="polite">Consultando sua cobrança...</p>
+        <p id="accepted-payment-amount" hidden></p>
+        <div id="accepted-payment-methods" hidden>
+          <div id="accepted-payment-pix-box" hidden>
+            <strong>Pix copia e cola</strong>
+            <img id="accepted-payment-pix-qr" alt="QR Code Pix da adesão" width="180" height="180" style="display:block;max-width:100%;object-fit:contain" hidden>
+            <textarea id="accepted-payment-pix" readonly rows="3" style="width:100%"></textarea>
+            <button id="accepted-copy-pix" class="outline" type="button">Copiar Pix</button>
+          </div>
+          <div id="accepted-payment-boleto-box" hidden style="margin-top:16px">
+            <strong>Boleto · linha digitável / código de barras</strong>
+            <textarea id="accepted-payment-barcode" readonly rows="2" style="width:100%"></textarea>
+            <button id="accepted-copy-barcode" class="outline" type="button">Copiar código de barras</button>
+          </div>
+          <a id="accepted-payment-bank-link" class="button outline" rel="noopener noreferrer" target="_blank" hidden style="margin-top:12px">Abrir boleto</a>
+        </div>
+      </section>
       <div class="actions">
         <button id="confirm-digital-acceptance" class="primary" type="button">Confirmar com Face ID/biometria/PIN do aparelho</button>
       </div>
@@ -461,7 +488,7 @@
 
 <script src="/shared/config.js?v=20260923-v77"></script>
 <script src="/shared/retrato-address.js?v=20261015-v83-128"></script>
-<script src="/retrato/retrato.js?v=20261015-v83-128"></script>
+<script src="/retrato/retrato.js?v=20261103-adhesion-payment-v1"></script>
 <script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
 
   <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">

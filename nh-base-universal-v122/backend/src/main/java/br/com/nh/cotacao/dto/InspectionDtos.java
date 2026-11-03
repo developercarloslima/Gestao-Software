@@ -54,8 +54,17 @@ public final class InspectionDtos {
             String proofHash,
             String dossierSha256,
             String selfieSha256,
-            boolean userVerified
-    ) {}
+            boolean userVerified,
+            String associateUsername,
+            String temporaryPassword
+    ) {
+        public DigitalAcceptanceStatusResponse(boolean required, boolean eligible, boolean accepted,
+                OffsetDateTime acceptedAt, String evidenceHash, String proofHash,
+                String dossierSha256, String selfieSha256, boolean userVerified) {
+            this(required, eligible, accepted, acceptedAt, evidenceHash, proofHash,
+                    dossierSha256, selfieSha256, userVerified, null, null);
+        }
+    }
 
     public record DeviceMetadata(
             @Size(max = 96) String deviceId,

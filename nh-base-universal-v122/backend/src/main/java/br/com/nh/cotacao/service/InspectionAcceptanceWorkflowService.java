@@ -91,9 +91,16 @@ public class InspectionAcceptanceWorkflowService {
     public void activateAssociatePortalAccessIfComplete(UUID inspectionId) {
         InspectionRequest inspection = inspections.findById(inspectionId)
                 .orElseThrow(() -> new IllegalArgumentException("Vistoria não encontrada."));
-        if (inspection.getStatus() != InspectionRequestStatus.APPROVED || !progress(inspection).allAccepted()) return;
+        if (inspection.getStatus() != InspectionRequestStatus.APPROVED
+                || inspection.getRegistrationCompletedAt() == null
+                || inspection.hasPendingContractChange()) return;
+        // O link pode ter sido copiado/compartilhado sem registrar o envio no painel.
+        // O primeiro aceite válido já deve reservar o login, ainda inativo.
         Associate associate = resolveAssociate(inspection);
-        portalUsers.activateAssociateAccountAfterAcceptance(associate.getId());
+        portalUsers.prepareAssociateAccountForAcceptance(associate.getId());
+        if (progress(inspection).allAccepted()) {
+            portalUsers.activateAssociateAccountAfterAcceptance(associate.getId());
+        }
     }
 
     private Associate resolveAssociate(InspectionRequest inspection) {

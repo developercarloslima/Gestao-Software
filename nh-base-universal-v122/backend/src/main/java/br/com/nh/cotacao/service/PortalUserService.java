@@ -244,7 +244,6 @@ public class PortalUserService {
     public List<PortalUserResponse> list() {
         return repository.findAllByOrderByRoleAscUsernameAsc().stream()
                 .filter(user -> !isProtectedDeveloper(user))
-                .filter(user -> !"ASSOCIATE_AUTO_BOOTSTRAP".equalsIgnoreCase(user.getCreatedBy()))
                 .map(this::toResponse)
                 .toList();
     }
@@ -310,6 +309,9 @@ public class PortalUserService {
     public PortalUserResponse update(UUID id, UpdatePortalUserRequest request, String adminUsername) {
         PortalUser user = find(id);
         assertNotProtectedDeveloper(user);
+        if ("ASSOCIATE_AUTO_BOOTSTRAP".equalsIgnoreCase(user.getCreatedBy())) {
+            throw new IllegalArgumentException("A conta do associado é gerenciada pelo aceite digital; use a sincronização da vistoria para ativá-la.");
+        }
         String old = summary(user);
         String requestedUsername = request.username();
         if (requestedUsername != null && !requestedUsername.isBlank()) {
@@ -501,6 +503,22 @@ public class PortalUserService {
         pending.requirePasswordChange();
         pending.setActive(false);
         return repository.save(pending).getUsername();
+    }
+
+    /**
+     * Somente a própria operação WebAuthn concluída pode apresentar esta senha.
+     * Quem já trocou a senha conserva a credencial atual e não recebe a padrão.
+     */
+    @Transactional(readOnly = true)
+    public String initialAssociatePasswordIfStillDefault(String cpf) {
+        String normalized = PortalUser.normalizeUsername(AssociateIdentityPolicy.requireCpf(cpf));
+        PortalUser account = repository.findByNormalizedUsername(normalized).orElse(null);
+        if (account != null && (account.getRole() != PortalRole.ASSOCIATE
+                || !account.isMustChangePassword()
+                || !encoder.matches(defaultNewUserPassword, account.getPasswordHash()))) {
+            return null;
+        }
+        return defaultNewUserPassword;
     }
 
     /** A ativação exige a confirmação do fluxo de aceite na camada de vistoria. */

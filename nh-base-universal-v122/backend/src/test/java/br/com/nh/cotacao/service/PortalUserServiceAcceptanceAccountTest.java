@@ -11,6 +11,7 @@ import br.com.nh.cotacao.security.PortalRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -105,6 +106,36 @@ class PortalUserServiceAcceptanceAccountTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.authenticate(CPF, "gestao1234"));
+    }
+
+    @Test
+    void administratorCanSeeAutomaticallyCreatedAssociateAccount() {
+        PortalUser pending = PortalUser.create(CPF, "Maria Silva", "hashed",
+                PortalRole.ASSOCIATE, "ASSOCIATE_AUTO_BOOTSTRAP");
+        pending.setActive(false);
+        when(users.findAllByOrderByRoleAscUsernameAsc()).thenReturn(List.of(pending));
+
+        var visible = service.list();
+
+        assertEquals(1, visible.size());
+        assertEquals(CPF, visible.get(0).username());
+        assertFalse(visible.get(0).active());
+    }
+
+    @Test
+    void initialPasswordIsShownOnlyWhenItIsStillTheActualPassword() {
+        PortalUser firstAccess = PortalUser.create(CPF, "Maria Silva",
+                new BCryptPasswordEncoder().encode("gestao1234"),
+                PortalRole.ASSOCIATE, "ASSOCIATE_AUTO_BOOTSTRAP");
+        firstAccess.requirePasswordChange();
+        when(users.findByNormalizedUsername(CPF)).thenReturn(Optional.of(firstAccess));
+        assertEquals("gestao1234", service.initialAssociatePasswordIfStillDefault(CPF));
+
+        PortalUser changed = PortalUser.create(CPF, "Maria Silva",
+                new BCryptPasswordEncoder().encode("outra-senha-forte"),
+                PortalRole.ASSOCIATE, "ASSOCIATE_AUTO_BOOTSTRAP");
+        when(users.findByNormalizedUsername(CPF)).thenReturn(Optional.of(changed));
+        assertNull(service.initialAssociatePasswordIfStillDefault(CPF));
     }
 
     @Test

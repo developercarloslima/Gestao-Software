@@ -835,6 +835,8 @@ function showDigitalAcceptance(data) {
     : 'Aguardando confirmação do associado.';
   $('confirm-digital-acceptance').hidden = data.digitalAcceptance?.eligible === false;
   $('digital-acceptance-details').hidden = true;
+  if ($('post-acceptance-access')) $('post-acceptance-access').hidden = true;
+  if ($('post-acceptance-payment')) $('post-acceptance-payment').hidden = true;
 }
 
 function showDigitalAcceptanceComplete(data) {
@@ -855,6 +857,75 @@ function showDigitalAcceptanceComplete(data) {
     Verificação do usuário: ${status.userVerified ? 'confirmada pelo aparelho' : 'registrada'}<br>
     Prova: <code>${status.proofHash || 'registrada no dossiê'}</code>`;
   $('digital-acceptance-status').textContent = 'Aceite digital confirmado. O dossiê será atualizado com as evidências do WebAuthn.';
+  renderAcceptedPortalAccess(data);
+  void loadAcceptedAdhesionPayment();
+}
+
+function renderAcceptedPortalAccess(data) {
+  const box = $('post-acceptance-access');
+  if (!box) return;
+  box.hidden = false;
+  const acceptance = data.digitalAcceptance || {};
+  $('accepted-portal-username').textContent = acceptance.associateUsername || data.maskedCpf || 'CPF cadastrado';
+  $('accepted-portal-password').textContent = acceptance.temporaryPassword
+    ? acceptance.temporaryPassword
+    : 'Use sua senha atual ou solicite a redefinição ao ADM.';
+  $('accepted-portal-link').href = new URL('/associado/', window.location.origin).href;
+  $('accepted-future-invoices').textContent = 'As próximas cobranças estarão disponíveis na Área do Associado.';
+}
+
+function validHttpsUrl(url) {
+  try {
+    const value = new URL(url);
+    return value.protocol === 'https:' ? value.href : '';
+  } catch (_) { return ''; }
+}
+
+async function loadAcceptedAdhesionPayment() {
+  const card = $('post-acceptance-payment');
+  if (!card || !token) return;
+  card.hidden = false;
+  $('accepted-payment-status').textContent = 'Consultando sua cobrança de adesão...';
+  $('accepted-payment-methods').hidden = true;
+  $('accepted-payment-amount').hidden = true;
+  try {
+    const path = `/api/public/inspections/${encodeURIComponent(token)}/adhesion-payment`;
+    const response = await fetch(window.NH_API?.backend(path) || path, { cache: 'no-store' });
+    const payment = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(payment?.message || 'Não foi possível consultar a adesão.');
+    $('accepted-payment-status').textContent = payment.message || 'Cobrança consultada.';
+    $('accepted-future-invoices').textContent = payment.futureInvoicesAvailable
+      ? 'Boletos futuros já disponíveis na Área do Associado.'
+      : 'As próximas cobranças estarão disponíveis na Área do Associado.';
+    if (payment.amount != null) {
+      const formatted = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(payment.amount));
+      $('accepted-payment-amount').textContent = `Adesão: ${formatted}${payment.dueDate ? ' · Vencimento: ' + payment.dueDate.split('-').reverse().join('/') : ''}`;
+      $('accepted-payment-amount').hidden = false;
+    }
+    if (!payment.available) return;
+    const pix = typeof payment.pixPayload === 'string' ? payment.pixPayload : '';
+    const barcode = payment.identificationField || payment.barCode || '';
+    const invoice = validHttpsUrl(payment.bankSlipUrl || payment.invoiceUrl);
+    $('accepted-payment-methods').hidden = false;
+    $('accepted-payment-pix-box').hidden = !pix;
+    $('accepted-payment-boleto-box').hidden = !barcode;
+    $('accepted-payment-pix').value = pix;
+    $('accepted-payment-barcode').value = barcode;
+    const qr = $('accepted-payment-pix-qr');
+    const image = typeof payment.pixEncodedImage === 'string' ? payment.pixEncodedImage : '';
+    qr.hidden = !pix || !image || image.length > 250000 || !/^[A-Za-z0-9+/=]+$/.test(image);
+    if (!qr.hidden) qr.src = `data:image/png;base64,${image}`;
+    const link = $('accepted-payment-bank-link');
+    link.hidden = !invoice;
+    if (invoice) link.href = invoice;
+    else link.removeAttribute('href');
+    if (!pix && !barcode && !invoice) {
+      $('accepted-payment-methods').hidden = true;
+      $('accepted-payment-status').textContent = 'A cobrança existe, mas os códigos ainda não foram disponibilizados pela financeira.';
+    }
+  } catch (error) {
+    $('accepted-payment-status').textContent = error?.message || 'Não foi possível carregar o pagamento.';
+  }
 }
 
 async function completeWebAuthnAssertion(assertionOptions, status) {
@@ -4227,6 +4298,17 @@ $('preexisting-damage-details')?.addEventListener('input', () => {
   scheduleDraftSave(600, 'Descrição das avarias salva neste aparelho.');
 });
 $('retry-load').addEventListener('click', () => load());
+async function copyAcceptedPaymentCode(elementId) {
+  const code = $(elementId)?.value;
+  if (!code) return;
+  try {
+    await navigator.clipboard.writeText(code);
+    msg('Código copiado para pagamento.', 'success');
+  } catch (_) { window.prompt('Copie o código para pagar:', code); }
+}
+$('accepted-copy-pix')?.addEventListener('click', () => copyAcceptedPaymentCode('accepted-payment-pix'));
+$('accepted-copy-barcode')?.addEventListener('click', () => copyAcceptedPaymentCode('accepted-payment-barcode'));
+
 $('confirm-digital-acceptance').addEventListener('click', async () => {
   clearMessage();
   try {

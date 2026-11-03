@@ -62,6 +62,7 @@ public class InspectionDigitalAcceptanceService {
     private final AcceptedDossierRefreshService acceptedDossierRefreshService;
     private final InspectionReportDownloadService reportDownloadService;
     private final ObjectMapper jsonMapper;
+    private final PortalUserService portalUsers;
     private final org.springframework.context.ApplicationEventPublisher acceptanceEvents;
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -71,7 +72,8 @@ public class InspectionDigitalAcceptanceService {
             AcceptedDossierRefreshService acceptedDossierRefreshService,
             InspectionReportDownloadService reportDownloadService,
             ObjectMapper jsonMapper,
-            org.springframework.context.ApplicationEventPublisher acceptanceEvents
+            org.springframework.context.ApplicationEventPublisher acceptanceEvents,
+            PortalUserService portalUsers
     ) {
         this.repository = repository;
         this.storageService = storageService;
@@ -79,6 +81,7 @@ public class InspectionDigitalAcceptanceService {
         this.reportDownloadService = reportDownloadService;
         this.jsonMapper = jsonMapper;
         this.acceptanceEvents = acceptanceEvents;
+        this.portalUsers = portalUsers;
     }
 
     @Transactional(readOnly = true)
@@ -290,7 +293,12 @@ public class InspectionDigitalAcceptanceService {
                 }
             }
         });
-        return toStatus(request);
+        DigitalAcceptanceStatusResponse status = toStatus(request);
+        return new DigitalAcceptanceStatusResponse(status.required(), status.eligible(),
+                status.accepted(), status.acceptedAt(), status.evidenceHash(), status.proofHash(),
+                status.dossierSha256(), status.selfieSha256(), status.userVerified(),
+                AssociateIdentityPolicy.requireCpf(request.getCpf()),
+                portalUsers.initialAssociatePasswordIfStillDefault(request.getCpf()));
     }
 
     private WebAuthnAssertionOptionsResponse createAssertionOptions(InspectionRequest request) {
