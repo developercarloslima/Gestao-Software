@@ -11,8 +11,9 @@
     const parts = String(value).slice(0, 10).split('-');
     return parts.length === 3 ? parts[1] + '/' + parts[0] : safe(value);
   };
-  const statuses = { PAID: 'Paga', PENDING: 'Pendente', OVERDUE: 'Em atraso',
-    CANCELLED: 'Cancelada' };
+  const statuses = { PAID: 'Paga', PAID_IN_CASH: 'Recebida em dinheiro (manual)',
+    CONFIRMED: 'Pagamento confirmado (aguardando disponibilização)',
+    PENDING: 'Pendente', OVERDUE: 'Em atraso', REFUNDED: 'Estornada', CANCELLED: 'Cancelada' };
   const methods = { BOLETO: 'Boleto / Pix', PIX_AUTOMATICO: 'Pix automático',
     DEBITO_AUTOMATICO: 'Débito automático' };
   const url = value => {
@@ -33,12 +34,14 @@
     root.innerHTML =
       '<div class="cs-heading"><div><h2>Mensalidades da empresa</h2>' +
       '<p>Faturas do plano contratado com o Gestão Software. Não são boletos dos associados.</p></div>' +
-      '<button class="rc-button cs-refresh" type="button">Atualizar mensalidades</button></div>' +
+      '<div><button class="rc-button cs-refresh" type="button">Atualizar mensalidades</button> ' +
+      '<button class="rc-button cs-sync" type="button">Sincronizar com Asaas</button></div></div>' +
       '<p class="cs-message" role="status" aria-live="polite"></p>' +
       '<div class="cs-content"><div class="rc-empty">Abra esta aba para consultar suas mensalidades.</div></div>';
     const message = root.querySelector('.cs-message');
     const content = root.querySelector('.cs-content');
     const button = root.querySelector('.cs-refresh');
+    const syncButton = root.querySelector('.cs-sync');
 
     function render(data) {
       const invoices = Array.isArray(data.invoices) ? data.invoices : [];
@@ -50,7 +53,9 @@
         '<div><span>Em atraso</span><strong class="cs-overdue">' + money(data.overdueAmount) +
         ' (' + Number(data.overdueCount || 0) + ')</strong></div>' +
         '</div>';
-      const note = '<p class="cs-note">Forma cadastrada: ' +
+      const mismatch = Number(data.monthlyFee || 0) === 0 && invoices.some(invoice => Number(invoice.amount || 0) > 0)
+        ? '<p class="cs-note">Atenção: o valor mensal cadastrado no plano está em R$ 0,00, mas existem cobranças emitidas. Confirme o valor contratado no Gestão Software antes da próxima competência.</p>' : '';
+      const note = mismatch + '<p class="cs-note">Forma cadastrada: ' +
         safe(methods[data.paymentMethod] || data.paymentMethod || 'Não informada') +
         '. A segunda via utiliza a cobrança já emitida pela Gestão/Asaas; não é gerado um novo boleto.</p>';
       if (!invoices.length) {
@@ -60,13 +65,13 @@
       }
       const rows = invoices.map(invoice => {
         const state = String(invoice.status || 'PENDING').toUpperCase();
-        const paid = state === 'PAID';
-        const cancelled = state === 'CANCELLED';
+        const paid = ['PAID', 'PAID_IN_CASH', 'CONFIRMED'].includes(state);
+        const cancelled = ['CANCELLED', 'REFUNDED'].includes(state);
         const link = !paid && !cancelled ? url(invoice.invoiceUrl) : null;
         const action = link
           ? '<a class="rc-button" target="_blank" rel="noopener noreferrer" href="' + safe(link) +
             '">Abrir cobrança / 2ª via</a>'
-          : paid ? '<span class="cs-muted">Pagamento confirmado</span>'
+          : paid ? '<span class="cs-muted">' + safe(statuses[state]) + '</span>'
           : cancelled ? '<span class="cs-muted">Cobrança cancelada</span>'
           : '<span class="cs-muted">Cobrança ainda não emitida no Asaas. Solicite ao Gestão Software.</span>';
         return '<tr><td>' + safe(month(invoice.referenceMonth)) + '</td><td>' +
@@ -82,14 +87,17 @@
         '</tr></thead><tbody>' + rows + '</tbody></table></div>';
     }
 
-    async function load() {
+    async function load(synchronize = false) {
       if (busy) return;
       busy = true;
       button.disabled = true;
+      syncButton.disabled = true;
       button.textContent = 'Consultando...';
-      message.textContent = 'Consultando as mensalidades no Gestão Software...';
+      syncButton.textContent = synchronize ? 'Sincronizando...' : 'Sincronizar com Asaas';
+      message.textContent = synchronize ? 'Consultando cada cobrança existente no Asaas...' : 'Consultando as mensalidades no Gestão Software...';
       try {
-        const response = await fetch(api(endpoint), {
+        const response = await fetch(api(endpoint + (synchronize ? '/sync' : '')), {
+          method: synchronize ? 'POST' : 'GET',
           headers: { Authorization: 'Bearer ' + (localStorage.getItem('nhPortalToken') || '') },
           cache: 'no-store'
         });
@@ -101,9 +109,13 @@
               ? 'Sua sessão expirou ou não permite consultar as mensalidades.'
               : 'Não foi possível consultar as mensalidades (HTTP ' + response.status + ').'));
         }
-        render(await response.json());
+        const data = await response.json();
+        render(data);
         loaded = true;
-        message.textContent = 'Consulta atualizada.';
+        message.textContent = synchronize
+          ? 'Sincronização concluída: ' + Number(data.checked || 0) + ' verificada(s), ' +
+            Number(data.changed || 0) + ' atualizada(s), ' + Number(data.failed || 0) + ' falha(s).'
+          : 'Consulta atualizada.';
       } catch (error) {
         message.textContent = error.message || 'Erro ao consultar as mensalidades.';
         if (!loaded) content.innerHTML =
@@ -111,11 +123,14 @@
       } finally {
         busy = false;
         button.disabled = false;
+        syncButton.disabled = false;
         button.textContent = 'Atualizar mensalidades';
+        syncButton.textContent = 'Sincronizar com Asaas';
       }
     }
 
-    button.addEventListener('click', load);
+    button.addEventListener('click', () => load(false));
+    syncButton.addEventListener('click', () => load(true));
     const tab = root.closest('[id^="tab-"]');
     const tabName = tab ? tab.id.replace(/^tab-/, '') : '';
     document.querySelectorAll('[data-tab="' + tabName + '"]').forEach(element =>

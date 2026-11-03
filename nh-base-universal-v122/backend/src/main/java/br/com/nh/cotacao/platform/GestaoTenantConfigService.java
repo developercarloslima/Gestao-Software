@@ -242,19 +242,29 @@ public class GestaoTenantConfigService {
      * Não replica cobranças nem armazena links de pagamento no banco da Base.
      */
     public Map<String, Object> companySubscription() {
+        return fetchCompanySubscription(false);
+    }
+
+    public Map<String, Object> synchronizeCompanySubscription() {
+        return fetchCompanySubscription(true);
+    }
+
+    private Map<String, Object> fetchCompanySubscription(boolean synchronize) {
         if (!brandingToken.matches("(?i)[0-9a-f]{64}")) {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
                     "Mensalidades indisponíveis: o token de integração da empresa não foi configurado.");
         }
         try {
-            HttpRequest request = HttpRequest.newBuilder(
-                            URI.create(baseUrl + "/api/public/platform/tenant-invoices"))
-                    .timeout(Duration.ofSeconds(18))
+            HttpRequest.Builder builder = HttpRequest.newBuilder(
+                            URI.create(baseUrl + "/api/public/platform/tenant-invoices" + (synchronize ? "/sync" : "")))
+                    .timeout(Duration.ofSeconds(synchronize ? 65 : 18))
                     .header("Accept", "application/json")
                     .header("X-Gestao-Tenant-Host", tenantHost.trim().toLowerCase(Locale.ROOT))
-                    .header("X-Gestao-Tenant-Token", brandingToken)
-                    .GET().build();
+                    .header("X-Gestao-Tenant-Token", brandingToken);
+            HttpRequest request = synchronize
+                    ? builder.POST(HttpRequest.BodyPublishers.noBody()).build()
+                    : builder.GET().build();
             HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
                 log.warn("Consulta de mensalidades da empresa retornou HTTP {}.", response.statusCode());

@@ -59,7 +59,15 @@ public class FinancialCharge {
         this.updatedAt=OffsetDateTime.now();
     }
     public void updateFromWebhook(FinancialChargeStatus status, BigDecimal providerGrossValue, LocalDate dueDate, OffsetDateTime paidAt, String invoiceUrl, String bankSlipUrl) {
-        if(status!=null)this.status=status; if(providerGrossValue!=null){this.grossValue=providerGrossValue;this.providerFee=providerGrossValue.subtract(this.value).max(BigDecimal.ZERO);} if(dueDate!=null)this.dueDate=dueDate; if(paidAt!=null)this.paidAt=paidAt;
+        if(status!=null){
+            // Eventos Asaas podem chegar fora de ordem ou ser reenviados.
+            boolean obsolete = (this.status==FinancialChargeStatus.REFUNDED && status!=FinancialChargeStatus.REFUNDED)
+                    || (this.status==FinancialChargeStatus.RECEIVED
+                        && status!=FinancialChargeStatus.RECEIVED && status!=FinancialChargeStatus.REFUNDED)
+                    || (this.status==FinancialChargeStatus.CONFIRMED
+                        && (status==FinancialChargeStatus.PENDING || status==FinancialChargeStatus.OVERDUE));
+            if(!obsolete)this.status=status;
+        } if(providerGrossValue!=null){this.grossValue=providerGrossValue;this.providerFee=providerGrossValue.subtract(this.value).max(BigDecimal.ZERO);} if(dueDate!=null)this.dueDate=dueDate; if(paidAt!=null)this.paidAt=paidAt;
         if(invoiceUrl!=null)this.invoiceUrl=invoiceUrl; if(bankSlipUrl!=null)this.bankSlipUrl=bankSlipUrl; this.updatedAt=OffsetDateTime.now();
     }
     public void applyProviderFee(BigDecimal fee){
