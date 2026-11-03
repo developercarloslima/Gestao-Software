@@ -165,7 +165,7 @@ public class AsaasSubaccountService {
         if (contactEmail == null || !email.equalsIgnoreCase(contactEmail))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "O e-mail da subconta deve ser igual ao e-mail do cadastro da empresa-cliente.");
-        if (!email.matches("^[^\\s@]+${^\\s@]+\\.[^\\s@]+$"))
+        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe um e-mail válido.");
         String mobile = digits(data.mobilePhone());
         if (!mobile.matches("[0-9]{10,11}"))
