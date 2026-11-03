@@ -32,3 +32,16 @@ test('ambos os formulários exibem o aviso de compatibilidade CPF e nome', () =>
   assert.match(read('cota/app.js'), /NAME_CONFLICT/);
   assert.match(read('colaborador/retrato-create.js'), /NAME_CONFLICT/);
 });
+
+
+test('migração de vínculo de associado existe no banco padrão e no banco tenant', () => {
+  const migration = fs.readFileSync(path.resolve(root,
+    '../backend/src/main/resources/db/tenant/V16__inspection_associate_cpf_link.sql'), 'utf8');
+  const legacy = fs.readFileSync(path.resolve(root,
+    '../backend/src/main/resources/db/migration/V94__inspection_associate_cpf_link.sql'), 'utf8');
+  for (const script of [migration, legacy]) {
+    assert.match(script, /ALTER TABLE inspection_requests/);
+    assert.match(script, /ADD COLUMN IF NOT EXISTS associate_id UUID/);
+    assert.match(script, /REFERENCES associates\(id\)/);
+  }
+});
