@@ -58,7 +58,7 @@ public class PlatformBillingScheduleService {
         if (plan==null || !plan.enabled()) return;
         LocalDate start = plan.start().isAfter(today()) ? plan.start() : today();
         generate(plan,start,true);
-        db.update("UPDATE platform_companies SET next_renewal_date=?,renewal_choice='AUTO_ACK',updated_at=NOW() WHERE id=?",
+        db.update("UPDATE platform_companies SET next_renewal_date=?,renewal_choice='AUTO',updated_at=NOW() WHERE id=?",
                 Date.valueOf(start.plusYears(1)),companyId);
     }
 
@@ -134,7 +134,7 @@ public class PlatformBillingScheduleService {
         if("NON_RENEW".equals(action)) {
             db.update("UPDATE platform_companies SET renewal_choice='NON_RENEW',updated_at=NOW() WHERE id=?",companyId);
         } else if("AUTOMATIC".equals(action)) {
-            db.update("UPDATE platform_companies SET renewal_choice='AUTO',updated_at=NOW() WHERE id=?",companyId);
+            db.update("UPDATE platform_companies SET renewal_choice='AUTO_ACK',updated_at=NOW() WHERE id=?",companyId);
         } else {
             generate(plan,plan.renewalDate(),false);
             db.update("UPDATE platform_companies SET renewal_choice='AUTO',next_renewal_date=?,updated_at=NOW() WHERE id=?",
@@ -182,29 +182,14 @@ public class PlatformBillingScheduleService {
             WHERE c.advance_billing_enabled=TRUE
               AND c.status IN ('ACTIVE','TRIAL')
               AND c.payment_method='BOLETO'
-              AND c.document ~ '^[0-9]{11}([0-9]{3})?='PENDING' AND chk.invoice_id IS NULL
-            ORDER BY i.due_date,i.id LIMIT 25
-            """,(rs,n)->rs.getObject(1,UUID.class));
-        for(UUID id:invoices) {
-            try { gateway.checkout(id); }
-            catch(RuntimeException ignored) {
-                // Falhas de validação permanecem locais para correção de dados.
-                // Em caso de resultado remoto incerto, a reserva CREATING
-                // impede duplicação até conciliação manual.
-            }
-        }
-    }
-}
-
+              AND c.document ~ '^[0-9]{11}([0-9]{3})?$'
               AND i.status='PENDING' AND chk.invoice_id IS NULL
             ORDER BY i.due_date,i.id LIMIT 25
             """,(rs,n)->rs.getObject(1,UUID.class));
         for(UUID id:invoices) {
             try { gateway.checkout(id); }
             catch(RuntimeException ignored) {
-                // Falhas de validação permanecem locais para correção de dados.
-                // Em caso de resultado remoto incerto, a reserva CREATING
-                // impede duplicação até conciliação manual.
+                // Estado remoto desconhecido não é reemitido sem conciliação.
             }
         }
     }

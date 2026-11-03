@@ -187,7 +187,8 @@
       element.addEventListener('click', () => { if (!loaded) load(true); }));
     // A notificação deve aparecer no login, mesmo sem abrir a aba Financeiro.
     // Espera uma autenticação recém-concluída na mesma aba.
-    if (localStorage.getItem('nhPortalToken')) load(false);
+    if (!tab || !tab.hidden) load(true);
+    if (tab && tab.hidden && localStorage.getItem('nhPortalToken')) load(false);
     const authWatch = setInterval(() => {
       if (loaded) { clearInterval(authWatch); return; }
       if (localStorage.getItem('nhPortalToken') && !busy) load(false);
