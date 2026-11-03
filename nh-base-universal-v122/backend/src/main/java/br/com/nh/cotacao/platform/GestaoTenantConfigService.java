@@ -237,6 +237,56 @@ public class GestaoTenantConfigService {
         }
     }
 
+    /**
+     * Lê somente as faturas SaaS desta empresa, autenticada por host + HMAC no Control Plane.
+     * Não replica cobranças nem armazena links de pagamento no banco da Base.
+     */
+    public Map<String, Object> companySubscription() {
+        if (!brandingToken.matches("(?i)[0-9a-f]{64}")) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+                    "Mensalidades indisponíveis: o token de integração da empresa não foi configurado.");
+        }
+        try {
+            HttpRequest request = HttpRequest.newBuilder(
+                            URI.create(baseUrl + "/api/public/platform/tenant-invoices"))
+                    .timeout(Duration.ofSeconds(18))
+                    .header("Accept", "application/json")
+                    .header("X-Gestao-Tenant-Host", tenantHost.trim().toLowerCase(Locale.ROOT))
+                    .header("X-Gestao-Tenant-Token", brandingToken)
+                    .GET().build();
+            HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                log.warn("Consulta de mensalidades da empresa retornou HTTP {}.", response.statusCode());
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.BAD_GATEWAY,
+                        response.statusCode() == 404
+                                ? "A empresa ainda não está vinculada ao Gestão Software."
+                                : "A Gestão não conseguiu consultar as mensalidades da empresa.");
+            }
+            Map<String, Object> data = mapper.readValue(response.body(), new TypeReference<>() {});
+            String confirmedId = String.valueOf(data.getOrDefault("companyId", ""));
+            if (confirmedId.isBlank() || "null".equals(confirmedId)) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.BAD_GATEWAY,
+                        "Não foi possível confirmar a empresa responsável pelas mensalidades.");
+            }
+            Object locallyConfirmed = config().get("companyId");
+            if (locallyConfirmed != null && !confirmedId.equals(String.valueOf(locallyConfirmed))) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.BAD_GATEWAY,
+                        "A identidade da empresa não corresponde ao vínculo confirmado.");
+            }
+            return data;
+        } catch (org.springframework.web.server.ResponseStatusException e) { throw e; }
+        catch (Exception e) {
+            log.warn("Falha na consulta das mensalidades da empresa: {}.", e.getClass().getSimpleName());
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_GATEWAY,
+                    "Não foi possível consultar as mensalidades. Tente atualizar em instantes.");
+        }
+    }
+
     public boolean enabled(String module) {
         Map<String,Object> cfg = config();
         if (Boolean.FALSE.equals(cfg.get("active"))) return false;

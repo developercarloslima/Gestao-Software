@@ -30,6 +30,7 @@
     />
   
   <link rel="stylesheet" href="/shared/receivables.css?v=20261103-v1" />
+  <link rel="stylesheet" href="/shared/company-subscription.css?v=20261103-v1" />
   <style id="nh-dev-credit-style">
     .nh-dev-credit {
       width: 100%;
@@ -223,6 +224,7 @@
         <button type="button" data-tab="nh-ponto">Apontamento Digital</button>
         <button type="button" data-tab="consultants">Colaboradores</button>
         <button type="button" data-tab="receivables">Cobranças dos associados</button>
+        <button type="button" data-tab="company-subscription">Mensalidades da empresa</button>
         <button type="button" data-tab="users">Usuários</button>
         <button type="button" data-tab="quotes">Cotações</button>
         <button type="button" data-tab="inspections">Retrato NH</button>
@@ -457,6 +459,10 @@
         <div class="card">
           <div data-receivables-root data-receivables-base="/api/admin/commercial/receivables"></div>
         </div>
+      </section>
+
+      <section id="tab-company-subscription" hidden>
+        <div class="card"><div data-company-subscription-root data-endpoint="/api/admin/company-subscription"></div></div>
       </section>
 
       <section id="tab-users" hidden>
@@ -2074,6 +2080,7 @@
 <script src="/shared/fipe-picker.js?v=20261016-v83-137"></script>
 <script src="/admin/admin.js?v=20261030-forgot-mail-v5"></script>
     <script src="/shared/receivables.js?v=20261103-v1"></script>
+    <script src="/shared/company-subscription.js?v=20261103-v1"></script>
     <script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
   
   <div class="nh-dev-credit" aria-label="Crédito de desenvolvimento">
