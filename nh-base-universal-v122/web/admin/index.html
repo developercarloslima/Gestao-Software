@@ -806,7 +806,7 @@
               <tr>
                 <th>Plano</th>
                 <th>Categoria</th>
-                <th>Abrangência / origem</th>
+                <th>Região da tabela / abrangência</th>
                 <th>Faixa FIPE</th>
                 <th>Mensalidade</th>
                 <th>Ações</th>
@@ -1621,6 +1621,13 @@
           <label class="span-2"
             >Plano<select id="price-plan" required></select
           ></label>
+          <label class="span-2"
+            >Região da tabela FIPE
+            <select id="price-region" required>
+              <option value="NORTHEAST">Nordeste</option>
+              <option value="OUTSIDE_NORTHEAST">Fora do Nordeste</option>
+            </select>
+          </label>
           <label
             >Valor FIPE mínimo<input
               id="price-min"
