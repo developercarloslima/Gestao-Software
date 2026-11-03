@@ -1307,10 +1307,10 @@ function renderUsers() {
     <td>${date(item.lastLoginAt)}</td>
     <td>${date(item.passwordChangedAt)}</td>
     <td><div class="row-actions">
-      <button class="secondary small-button" data-user-edit="${item.id}" type="button">Editar</button>
+      ${item.createdBy === 'ASSOCIATE_AUTO_BOOTSTRAP' ? '' : `<button class="secondary small-button" data-user-edit="${item.id}" type="button">Editar</button>`}
       <button class="outline small-button" data-user-password="${item.id}" type="button">Alterar senha</button>
       ${item.role === 'ADMIN' && String(item.username || '').toLowerCase() === currentAdminUsername.toLowerCase() ? `<button class="outline small-button" data-admin-passkey-add-row type="button">+ Passkey</button>` : ''}
-      <button class="${item.active ? 'danger' : 'outline'} small-button" data-user-toggle="${item.id}" type="button">${item.active ? 'Desativar' : 'Ativar'}</button>
+      ${item.createdBy === 'ASSOCIATE_AUTO_BOOTSTRAP' ? '' : `<button class="${item.active ? 'danger' : 'outline'} small-button" data-user-toggle="${item.id}" type="button">${item.active ? 'Desativar' : 'Ativar'}</button>`}
       ${canDeleteUser(item) ? `<button class="danger small-button" data-user-delete="${item.id}" type="button">Excluir</button>` : ''}
     </div></td>
   </tr>`).join('') || emptyRow(9, 'Nenhum usuário cadastrado.');
@@ -1838,6 +1838,14 @@ function syncAdminWebauthnBox(item) {
   const copy = $('admin-copy-webauthn-link');
   const pending = item?.status === 'APPROVED' && Boolean(item?.registrationCompletedAt) && !item?.contractChangePending && !item?.digitalAcceptedAt && Boolean(item?.publicUrl);
   box.hidden = !pending;
+  const accessBox = $('admin-associate-access-box');
+  const accessButton = $('admin-reconcile-associate-access');
+  const accessEligible = item?.status === 'APPROVED' && Boolean(item?.registrationCompletedAt) && !item?.contractChangePending;
+  if (accessBox) accessBox.hidden = !accessEligible;
+  if (accessButton) {
+    if (accessEligible) accessButton.dataset.inspectionId = item.id;
+    else accessButton.removeAttribute('data-inspection-id');
+  }
   if (pending) {
     send.dataset.inspectionId = item.id;
     copy.dataset.inspectionId = item.id;
@@ -2351,7 +2359,7 @@ function openInspectionAnalysis(id) {
     [currentPublicUrl, needsFiles && filesAvailable ? 'Abrir link das pendências' : 'Abrir link da vistoria'],
     [filesAvailable && !needsFiles ? (window.NH_URLS?.replaceLinkInCommunicationUrl(item.teamWhatsappUrl, item.publicUrl, currentPublicUrl) || item.teamWhatsappUrl) : null, 'Enviar por WhatsApp'],
     [filesAvailable && !needsFiles ? (window.NH_URLS?.replaceLinkInCommunicationUrl(item.teamEmailUrl, item.publicUrl, currentPublicUrl) || item.teamEmailUrl) : null, 'Enviar por e-mail'],
-    [filesAvailable && !needsFiles ? item.associateDecisionWhatsappUrl : null, item.status === 'APPROVED' ? 'Informar aprovação ao associado' : 'Informar recusa ao associado'],
+    [filesAvailable && !needsFiles && item.status !== 'APPROVED' ? item.associateDecisionWhatsappUrl : null, 'Informar recusa ao associado'],
     [!filesAvailable ? (window.NH_URLS?.replaceLinkInCommunicationUrl(item.teamWhatsappUrl, item.publicUrl, currentPublicUrl) || item.teamWhatsappUrl) : null, 'Enviar para a equipe']
   ]);
   renderAdminInspectionFiles(item);
@@ -4365,10 +4373,24 @@ $('admin-send-webauthn-token')?.addEventListener('click', async () => {
   }
   const link = adminWebauthnAcceptanceUrl(item);
   if (!link) return message('Não foi possível montar o link do aceite digital.');
-  navigator.clipboard?.writeText(link).then(
-    () => message('Link do aceite digital copiado para envio manual. O sistema só registra o número quando o envio é aberto pelo botão de WhatsApp.', 'success'),
-    () => window.prompt('Copie o link do aceite digital:', link)
-  );
+  try {
+    await api(`/api/admin/inspections/${encodeURIComponent(item.id)}/associate-access/reconcile`, { method: 'POST' });
+  } catch (error) { return message(error.message); }
+  try {
+    await navigator.clipboard.writeText(link);
+    message('Login CPF preparado e link copiado para envio manual.', 'success');
+  } catch (_) { window.prompt('Copie o link do aceite digital:', link); }
+});
+
+$('admin-reconcile-associate-access')?.addEventListener('click', async () => {
+  const id = $('admin-reconcile-associate-access').dataset.inspectionId;
+  if (!id) return message('Abra uma vistoria aprovada para recuperar o acesso.');
+  try {
+    const updated = await api(`/api/admin/inspections/${encodeURIComponent(id)}/associate-access/reconcile`, { method: 'POST' });
+    const index = inspections.findIndex(item => item.id === updated.id);
+    if (index >= 0) inspections[index] = updated;
+    message('Login CPF sincronizado. O acesso só fica ativo depois dos três aceites digitais confirmados.', 'success');
+  } catch (error) { message(error.message); }
 });
 
 $('admin-copy-webauthn-link')?.addEventListener('click', async () => {
@@ -4377,11 +4399,12 @@ $('admin-copy-webauthn-link')?.addEventListener('click', async () => {
   const link = adminWebauthnAcceptanceUrl(item);
   if (!link) return message('Não foi possível montar o link do aceite digital.');
   try {
+    await api(`/api/admin/inspections/${encodeURIComponent(item.id)}/associate-access/reconcile`, { method: 'POST' });
+  } catch (error) { return message(error.message); }
+  try {
     await navigator.clipboard.writeText(link);
-    message('Link do aceite WebAuthn copiado.', 'success');
-  } catch (_) {
-    window.prompt('Copie o link do aceite WebAuthn:', link);
-  }
+    message('Login CPF preparado e link WebAuthn copiado.', 'success');
+  } catch (_) { window.prompt('Copie o link do aceite WebAuthn:', link); }
 });
 
 $('admin-send-responsibility-term')?.addEventListener('click', async () => {

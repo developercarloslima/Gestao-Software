@@ -67,6 +67,7 @@ class InspectionAcceptanceAccountWorkflowTest {
         InspectionRequest inspection = mock(InspectionRequest.class);
         when(inspection.getId()).thenReturn(id);
         when(inspection.getStatus()).thenReturn(InspectionRequestStatus.APPROVED);
+        when(inspection.getRegistrationCompletedAt()).thenReturn(OffsetDateTime.now());
         when(inspection.getCpf()).thenReturn(CPF);
         when(inspection.getAssociateName()).thenReturn("Maria Silva");
         when(inspection.getAssociate()).thenReturn(associate);
@@ -78,7 +79,31 @@ class InspectionAcceptanceAccountWorkflowTest {
 
         checked.activateAssociatePortalAccessIfComplete(id);
 
+        verify(users).prepareAssociateAccountForAcceptance(associate.getId());
         verify(users).activateAssociateAccountAfterAcceptance(associate.getId());
+    }
+
+    @Test
+    void partialAcceptancePreparesLoginButKeepsItInactive() {
+        UUID id = UUID.randomUUID();
+        Associate associate = Associate.create("Maria Silva", CPF, null, null);
+        InspectionRequest inspection = mock(InspectionRequest.class);
+        when(inspection.getId()).thenReturn(id);
+        when(inspection.getStatus()).thenReturn(InspectionRequestStatus.APPROVED);
+        when(inspection.getRegistrationCompletedAt()).thenReturn(OffsetDateTime.now());
+        when(inspection.getCpf()).thenReturn(CPF);
+        when(inspection.getAssociateName()).thenReturn("Maria Silva");
+        when(inspection.getAssociate()).thenReturn(associate);
+        when(associates.findByDocument(CPF)).thenReturn(Optional.of(associate));
+        when(inspections.findById(id)).thenReturn(Optional.of(inspection));
+        InspectionAcceptanceWorkflowService checked = spy(workflow);
+        doReturn(new InspectionAcceptanceWorkflowService.Progress(
+                true, false, false, false, false, 1, 3)).when(checked).progress(inspection);
+
+        checked.activateAssociatePortalAccessIfComplete(id);
+
+        verify(users).prepareAssociateAccountForAcceptance(associate.getId());
+        verify(users, never()).activateAssociateAccountAfterAcceptance(any());
     }
 
     @Test

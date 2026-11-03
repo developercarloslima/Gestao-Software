@@ -734,6 +734,17 @@ public class AdminActivityService {
         return toInspection(inspection, true);
     }
 
+    /** Reprocessamento idempotente para aceite que foi compartilhado fora do botão WhatsApp. */
+    @Transactional
+    public AdminInspectionResponse reconcileAssociatePortalAccess(UUID id) {
+        InspectionRequest inspection = inspectionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Vistoria não encontrada."));
+        acceptanceWorkflow.prepareAssociatePortalAccess(inspection);
+        acceptanceWorkflow.activateAssociatePortalAccessIfComplete(id);
+        inspectionRepository.flush();
+        return toInspection(inspection, true);
+    }
+
     @Transactional
     public AdminInspectionResponse markDecisionMessageSent(UUID id) {
         return markDecisionMessageSent(id, false);

@@ -204,11 +204,15 @@ public class RetratoController {
     }
 
     @PostMapping("/api/public/inspections/{token}/digital-acceptance/assertion-finish")
-    public DigitalAcceptanceStatusResponse webAuthnAssertionFinish(
+    public org.springframework.http.ResponseEntity<DigitalAcceptanceStatusResponse> webAuthnAssertionFinish(
             @PathVariable String token,
             @Valid @RequestBody WebAuthnAssertionFinishRequest request
     ) {
-        return digitalAcceptanceService.finishAssertion(token, request);
+        DigitalAcceptanceStatusResponse confirmed = digitalAcceptanceService.finishAssertion(token, request);
+        // A senha inicial só existe nesta resposta WebAuthn; não armazená-la em cache.
+        return org.springframework.http.ResponseEntity.ok()
+                .cacheControl(org.springframework.http.CacheControl.noStore())
+                .body(confirmed);
     }
 
 }

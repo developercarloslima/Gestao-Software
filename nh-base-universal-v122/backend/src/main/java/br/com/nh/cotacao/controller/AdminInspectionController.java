@@ -151,6 +151,11 @@ public class AdminInspectionController {
         return service.updateInspectionStatusForSupervision(id, request, principal.username(), principal.role());
     }
 
+    @PostMapping("/{id}/associate-access/reconcile")
+    public AdminInspectionResponse reconcileAssociateAccess(@PathVariable UUID id) {
+        return service.reconcileAssociatePortalAccess(id);
+    }
+
     @PostMapping("/{id}/decision-message-sent")
     public AdminInspectionResponse markDecisionMessageSent(@PathVariable UUID id, Authentication auth) {
         PortalPrincipal principal = (PortalPrincipal) auth.getPrincipal();
