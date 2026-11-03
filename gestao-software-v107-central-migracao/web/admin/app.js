@@ -67,7 +67,11 @@ async function api(path,options={}){
       throw new Error(response.status===403?'Acesso não autorizado.':'Sessão expirada.');
     }
     if(response.status===413)throw new Error('Arquivo muito grande para o servidor (HTTP 413). O PDF deve ter até 20 MB e a logo até 5 MB. Confira também client_max_body_size do Nginx.');
-    if(response.status===502||response.status===503||response.status===504)throw new Error(`API da Gestão Software indisponível (HTTP ${response.status}). Verifique docker compose ps e logs do backend.`);
+    if(response.status===502||response.status===503||response.status===504){
+      const detail=body?.detail||body?.message;
+      throw new Error(detail ? `${detail} (HTTP ${response.status})` :
+        `Falha na integração ou no servidor (HTTP ${response.status}). Consulte o status da operação no Gestão.`);
+    }
     throw new Error(body?.message||body?.detail||body?.error||`Não foi possível concluir (HTTP ${response.status}).`);
   }
   if(response.status===204)return null;
@@ -362,7 +366,7 @@ async function loadAsaasSubaccountStatus(companyId){
       return;
     }
     const labels={CREATING:'Criação em andamento',REJECTED:'Dados rejeitados pelo Asaas; corrija e tente novamente',REVIEW_REQUIRED:'Resultado incerto; conferir no Asaas',PENDING_ACTIVATION:'Criada; aguardando ativação e implantação no tenant',ACTIVE:'Subconta aprovada no Asaas'};
-    box.innerHTML=`<p><strong>Situação:</strong> ${esc(labels[s.state]||s.state)}.</p><p><strong>Titular:</strong> ${esc(s.ownerEmail||'—')}<br><strong>Conta:</strong> ${esc(s.accountId||'—')}<br><strong>Carteira exclusiva:</strong> ${esc(s.walletId||'—')}</p><p class="form-help">A empresa recebe e mantém o saldo em sua própria subconta. Para emitir cobranças no sistema da empresa, é preciso configurar com segurança a API key específica dela no backend do tenant. O cadastro no Control Plane, sozinho, não habilita cobranças.</p>${s.state==='REJECTED'?`<div class="form-actions"><p class="form-help">${s.lastHttpStatus===401||s.lastHttpStatus===403?'Falha de autorização do Asaas: confira a credencial da conta principal antes de reenviar.':'Confira CNPJ, e-mail, faturamento, celular e endereço antes de reenviar.'} Tentativa nº ${esc(s.attemptCount||1)}.</p><button class="button primary small" type="button" data-create-asaas-subaccount="${companyId}" data-asaas-retry="true" ${!s.parentConfigured?'disabled':''}>Tentar novamente</button></div>`:''}`;
+    box.innerHTML=`<p><strong>Situação:</strong> ${esc(labels[s.state]||s.state)}.</p><p><strong>Titular:</strong> ${esc(s.ownerEmail||'—')}<br><strong>Conta:</strong> ${esc(s.accountId||'—')}<br><strong>Carteira exclusiva:</strong> ${esc(s.walletId||'—')}</p><p class="form-help">A empresa recebe e mantém o saldo em sua própria subconta. Para emitir cobranças no sistema da empresa, é preciso configurar com segurança a API key específica dela no backend do tenant. O cadastro no Control Plane, sozinho, não habilita cobranças.</p>${s.state==='REJECTED'?`<div class="form-actions"><p class="form-help">${s.lastHttpStatus===401||s.lastHttpStatus===403?'Falha de autorização do Asaas: confira a credencial da conta principal antes de reenviar.':'Confira CNPJ, e-mail, faturamento, celular e endereço antes de reenviar.'} Última resposta Asaas: HTTP ${esc(s.lastHttpStatus||'não registrada')}. Tentativa nº ${esc(s.attemptCount||1)}.</p><button class="button primary small" type="button" data-create-asaas-subaccount="${companyId}" data-asaas-retry="true" ${!s.parentConfigured?'disabled':''}>Tentar novamente</button></div>`:''}`;
   }catch(e){box.textContent='Não foi possível consultar o vínculo Asaas: '+e.message;}
 }
 function openAsaasSubaccountDialog(companyId, retry=false){
@@ -442,7 +446,24 @@ $('asaas-subaccount-form').addEventListener('submit',async e=>{
     $('asaas-subaccount-dialog').close();
     if(currentCompany?.id===id)await loadAsaasSubaccountStatus(id);
     formMessage('company-detail-message','Subconta criada. O titular deverá ativá-la no Asaas; depois será necessário vincular a credencial ao tenant.','success');
-  }catch(error){formMessage('asaas-subaccount-message',error.message)}
+  }catch(error){
+    let explanation=error.message;
+    try{
+      const status=await api(`/api/platform/companies/${id}/asaas-subaccount`);
+      const code=Number(status.lastHttpStatus||0);
+      if(status.state==='REJECTED'&&code){
+        explanation=code===400
+          ? 'Asaas rejeitou os dados (HTTP 400). Confira CEP válido, endereço completo, CNPJ, tipo de empresa e celular.'
+          : code===401||code===403
+            ? `Asaas recusou a credencial ou autorização da conta principal (HTTP ${code}).`
+            : `Asaas recusou a solicitação (HTTP ${code}). Revise o cadastro antes de reenviar.`;
+      }else if(status.state==='REVIEW_REQUIRED'){
+        explanation='O resultado no Asaas é incerto. Confira a conta principal antes de reenviar para evitar duplicidade.';
+      }
+    }catch(_){/* Mantém a mensagem original se o status não puder ser consultado. */}
+    formMessage('asaas-subaccount-message',explanation);
+    if(currentCompany?.id===id)void loadAsaasSubaccountStatus(id);
+  }
   finally{button.disabled=false}
 });
 $('company-form').addEventListener('submit',async e=>{e.preventDefault();const id=$('company-id').value;try{

@@ -11,7 +11,7 @@
     const parts = String(value).slice(0, 10).split('-');
     return parts.length === 3 ? parts[1] + '/' + parts[0] : safe(value);
   };
-  const statuses = { PAID: 'Paga', PAID_IN_CASH: 'Recebida em dinheiro (manual)',
+  const statuses = { SCHEDULED: 'Prevista (não emitida)', PAID: 'Paga', PAID_IN_CASH: 'Recebida em dinheiro (manual)',
     CONFIRMED: 'Pagamento confirmado (aguardando disponibilização)',
     PENDING: 'Pendente', OVERDUE: 'Em atraso', REFUNDED: 'Estornada', CANCELLED: 'Cancelada' };
   const methods = { BOLETO: 'Boleto / Pix', PIX_AUTOMATICO: 'Pix automático',
@@ -100,7 +100,12 @@
         '</div>';
       const mismatch = Number(data.monthlyFee || 0) === 0 && invoices.some(invoice => Number(invoice.amount || 0) > 0)
         ? '<p class="cs-note">Atenção: o valor mensal cadastrado no plano está em R$ 0,00, mas existem cobranças emitidas. Confirme o valor contratado no Gestão Software antes da próxima competência.</p>' : '';
-      const note = mismatch + '<p class="cs-note">Forma cadastrada: ' +
+      const scheduledCount = invoices.filter(invoice => invoice.status === 'SCHEDULED').length;
+      const forecastNote = scheduledCount
+        ? '<p class="cs-note">As ' + scheduledCount + ' competência(s) marcadas como previstas ainda não são faturas emitidas no Asaas. ' +
+          (Number(data.monthlyFee || 0) > 0 ? 'Aguarde a emissão/atualização das cobranças.' : 'Informe uma mensalidade contratada maior que R$ 0,00 no Gestão para gerar boletos.') + '</p>'
+        : '';
+      const note = mismatch + forecastNote + '<p class="cs-note">Forma cadastrada: ' +
         safe(methods[data.paymentMethod] || data.paymentMethod || 'Não informada') +
         '. A segunda via utiliza a cobrança já emitida pela Gestão/Asaas; não é gerado um novo boleto.</p>';
       if (!invoices.length) {
@@ -112,15 +117,18 @@
         const state = String(invoice.status || 'PENDING').toUpperCase();
         const paid = ['PAID', 'PAID_IN_CASH', 'CONFIRMED'].includes(state);
         const cancelled = ['CANCELLED', 'REFUNDED'].includes(state);
-        const link = !paid && !cancelled ? url(invoice.invoiceUrl) : null;
-        const action = link
+        const scheduled = state === 'SCHEDULED';
+        const link = !paid && !cancelled && !scheduled ? url(invoice.invoiceUrl) : null;
+        const action = scheduled
+          ? '<span class="cs-muted">Competência prevista; boleto ainda não emitido.</span>'
+          : link
           ? '<a class="rc-button" target="_blank" rel="noopener noreferrer" href="' + safe(link) +
             '">Abrir cobrança / 2ª via</a>'
           : paid ? '<span class="cs-muted">' + safe(statuses[state]) + '</span>'
           : cancelled ? '<span class="cs-muted">Cobrança cancelada</span>'
           : '<span class="cs-muted">Cobrança ainda não emitida no Asaas. Solicite ao Gestão Software.</span>';
         return '<tr><td>' + safe(month(invoice.referenceMonth)) + '</td><td>' +
-          money(invoice.amount) + '</td><td>' + safe(date(invoice.dueDate)) +
+          (scheduled && Number(data.monthlyFee || 0) <= 0 ? 'A definir' : money(invoice.amount)) + '</td><td>' + safe(date(invoice.dueDate)) +
           '</td><td><span class="cs-status cs-' + safe(state) + '">' +
           safe(statuses[state] || state) + '</span></td><td>' +
           safe(invoice.paidAt ? date(invoice.paidAt) : '—') + '</td><td>' + action +

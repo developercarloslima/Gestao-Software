@@ -291,6 +291,9 @@ public class PlatformManagementService {
         if (changed == 0) throw new IllegalArgumentException("Empresa-cliente não encontrada.");
         replaceModules(id, input.modules());
         createOrRefreshPendingContract(id, false);
+        if ("ACTIVE".equals(requestedStatus) || "TRIAL".equals(requestedStatus)) {
+            billingSchedule.completeExistingFirstCycle(id);
+        }
         jdbc.update("""
                 UPDATE platform_company_invoices
                    SET amount=?, updated_at=NOW()

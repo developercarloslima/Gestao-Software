@@ -19,6 +19,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
@@ -66,7 +71,8 @@ public class TenantCompanyInvoicesController {
         // para negociar a reativação. A identidade continua garantida pelo HMAC do host.
         List<Map<String, Object>> companies = db.query("""
                 SELECT c.id, c.trade_name, c.status, c.plan_name, c.monthly_fee,
-                       c.billing_due_day, c.payment_method, c.next_renewal_date, c.renewal_choice
+                       c.billing_due_day, c.payment_method, c.next_renewal_date, c.renewal_choice,
+                       c.contract_term, c.contract_start_date
                   FROM platform_companies c
                   JOIN platform_company_hosting h ON h.company_id = c.id
                  WHERE LOWER(COALESCE(h.domain, '')) = ?
@@ -82,6 +88,11 @@ public class TenantCompanyInvoicesController {
             company.put("billingDueDay", rs.getInt("billing_due_day"));
             company.put("paymentMethod", rs.getString("payment_method"));
             company.put("renewalChoice", rs.getString("renewal_choice"));
+            company.put("contractTerm", rs.getString("contract_term"));
+            Date contractStart = rs.getDate("contract_start_date");
+            Date renewalDate = rs.getDate("next_renewal_date");
+            company.put("contractStartDate", contractStart == null ? null : contractStart.toLocalDate().toString());
+            company.put("nextRenewalDate", renewalDate == null ? null : renewalDate.toLocalDate().toString());
             return company;
         }, host, host);
         if (companies.isEmpty()) {
@@ -118,8 +129,10 @@ public class TenantCompanyInvoicesController {
                     && verifiedInvoiceUrl(link) ? link : null);
             return invoice;
         }, companyId);
-        result.put("invoices", invoices);
-        result.put("invoiceCount", invoices.size());
+        List<Map<String, Object>> visibleInvoices = withExpectedMonthlyInstallments(result, invoices);
+        result.put("invoices", visibleInvoices);
+        result.put("invoiceCount", invoices.size()); // Somente faturas efetivamente registradas.
+        result.put("displayedInstallmentCount", visibleInvoices.size());
         result.put("renewal", billingSchedule.status(companyId));
         BigDecimal overdue = BigDecimal.ZERO;
         int overdueCount = 0;
@@ -180,6 +193,53 @@ public class TenantCompanyInvoicesController {
         UUID companyId=UUID.fromString((String)company.get("companyId"));
         billingSchedule.decide(companyId,choice==null?null:choice.get("action"));
         return list(host,token);
+    }
+
+
+    /**
+     * Expõe as 12 competências do ciclo mensal sem inventar títulos financeiros.
+     * Entradas SCHEDULED são apenas previsões de leitura: não têm id nem boleto.
+     * Uma cobrança real sempre prevalece, inclusive quando já está paga.
+     */
+    static List<Map<String, Object>> withExpectedMonthlyInstallments(
+            Map<String, Object> company, List<Map<String, Object>> actualInvoices) {
+        if (!"MONTHLY".equals(company.get("contractTerm")) || company.get("contractStartDate") == null) {
+            return actualInvoices;
+        }
+        LocalDate contractStart = LocalDate.parse((String) company.get("contractStartDate"));
+        LocalDate cycleStart = contractStart;
+        String renewalText = (String) company.get("nextRenewalDate");
+        if (renewalText != null && !renewalText.isBlank()) {
+            LocalDate renewal = LocalDate.parse(renewalText);
+            if (renewal.isAfter(contractStart)) cycleStart = renewal.minusYears(1);
+        }
+
+        List<Map<String, Object>> rows = new ArrayList<>(actualInvoices);
+        Set<YearMonth> recordedMonths = new HashSet<>();
+        for (Map<String, Object> invoice : actualInvoices) {
+            Object reference = invoice.get("referenceMonth");
+            if (reference != null) recordedMonths.add(YearMonth.parse(reference.toString().substring(0, 7)));
+        }
+        int dueDay = Math.max(1, Math.min(31, ((Number) company.get("billingDueDay")).intValue()));
+        for (int offset = 0; offset < 12; offset++) {
+            YearMonth month = YearMonth.from(cycleStart.plusMonths(offset));
+            if (recordedMonths.contains(month)) continue;
+            LocalDate dueDate = month.atDay(Math.min(dueDay, month.lengthOfMonth()));
+            if (offset == 0 && dueDate.isBefore(cycleStart)) dueDate = cycleStart;
+
+            Map<String, Object> forecast = new LinkedHashMap<>();
+            forecast.put("id", null);
+            forecast.put("referenceMonth", month.atDay(1).toString());
+            forecast.put("amount", company.get("monthlyFee"));
+            forecast.put("dueDate", dueDate.toString());
+            forecast.put("status", "SCHEDULED");
+            forecast.put("paidAt", null);
+            forecast.put("invoiceUrl", null);
+            rows.add(forecast);
+        }
+        rows.sort(Comparator.comparing(
+                (Map<String, Object> item) -> String.valueOf(item.get("referenceMonth"))).reversed());
+        return rows;
     }
 
     static boolean authorized(String secret, String host, String token) {
