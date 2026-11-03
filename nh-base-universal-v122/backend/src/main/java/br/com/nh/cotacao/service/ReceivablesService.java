@@ -1,6 +1,7 @@
 package br.com.nh.cotacao.service;
 
 import br.com.nh.cotacao.entity.*;
+import br.com.nh.cotacao.security.PortalRole;
 import br.com.nh.cotacao.repository.CommercialVehicleRepository;
 import br.com.nh.cotacao.repository.FinancialChargeRepository;
 import org.springframework.data.domain.Page;
