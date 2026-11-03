@@ -2,6 +2,7 @@ package br.com.gestaosoftware.control.controller;
 
 import org.springframework.beans.factory.annotation.Value;
 import br.com.gestaosoftware.control.service.ProvisioningService;
+import br.com.gestaosoftware.control.service.PlatformBillingScheduleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,12 +37,14 @@ import java.util.UUID;
 public class TenantCompanyInvoicesController {
     private final JdbcTemplate db;
     private final ProvisioningService provisioning;
+    private final PlatformBillingScheduleService billingSchedule;
     private final String master;
 
-    public TenantCompanyInvoicesController(JdbcTemplate db, ProvisioningService provisioning,
+    public TenantCompanyInvoicesController(JdbcTemplate db, ProvisioningService provisioning, PlatformBillingScheduleService billingSchedule,
             @Value("${GESTAO_TENANT_BRANDING_MASTER:}") String master) {
         this.db = db;
         this.provisioning = provisioning;
+        this.billingSchedule = billingSchedule;
         this.master = master;
     }
 
@@ -63,7 +66,7 @@ public class TenantCompanyInvoicesController {
         // para negociar a reativação. A identidade continua garantida pelo HMAC do host.
         List<Map<String, Object>> companies = db.query("""
                 SELECT c.id, c.trade_name, c.status, c.plan_name, c.monthly_fee,
-                       c.billing_due_day, c.payment_method
+                       c.billing_due_day, c.payment_method, c.next_renewal_date, c.renewal_choice
                   FROM platform_companies c
                   JOIN platform_company_hosting h ON h.company_id = c.id
                  WHERE LOWER(COALESCE(h.domain, '')) = ?
@@ -78,6 +81,7 @@ public class TenantCompanyInvoicesController {
             company.put("monthlyFee", rs.getBigDecimal("monthly_fee"));
             company.put("billingDueDay", rs.getInt("billing_due_day"));
             company.put("paymentMethod", rs.getString("payment_method"));
+            company.put("renewalChoice", rs.getString("renewal_choice"));
             return company;
         }, host, host);
         if (companies.isEmpty()) {
@@ -116,6 +120,7 @@ public class TenantCompanyInvoicesController {
         }, companyId);
         result.put("invoices", invoices);
         result.put("invoiceCount", invoices.size());
+        result.put("renewal", billingSchedule.status(companyId));
         BigDecimal overdue = BigDecimal.ZERO;
         int overdueCount = 0;
         for (Map<String, Object> invoice : invoices) {
@@ -159,6 +164,22 @@ public class TenantCompanyInvoicesController {
         updated.put("changed", changed);
         updated.put("failed", failed);
         return updated;
+    }
+
+    /**
+     * O tenant já verificou o papel ADMIN/BUYER antes de encaminhar o pedido.
+     * Este endpoint exige novamente o HMAC de host e usa o companyId resolvido
+     * no banco, jamais um identificador enviado pelo navegador.
+     */
+    @org.springframework.web.bind.annotation.PostMapping("/renewal")
+    public Map<String,Object> renewal(
+            @RequestHeader("X-Gestao-Tenant-Host") String host,
+            @RequestHeader("X-Gestao-Tenant-Token") String token,
+            @org.springframework.web.bind.annotation.RequestBody Map<String,String> choice) {
+        Map<String,Object> company = list(host,token);
+        UUID companyId=UUID.fromString((String)company.get("companyId"));
+        billingSchedule.decide(companyId,choice==null?null:choice.get("action"));
+        return list(host,token);
     }
 
     static boolean authorized(String secret, String host, String token) {

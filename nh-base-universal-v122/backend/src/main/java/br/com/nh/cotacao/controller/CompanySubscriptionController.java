@@ -16,6 +16,11 @@ public class CompanySubscriptionController {
         this.gestao = gestao;
     }
 
+    @org.springframework.web.bind.annotation.PostMapping("/renewal")
+    public Map<String,Object> renewal(@org.springframework.web.bind.annotation.RequestBody Map<String,String> body) {
+        return gestao.chooseCompanyRenewal(body==null?null:body.get("action"));
+    }
+
     @GetMapping
     public Map<String, Object> list() {
         return gestao.companySubscription();

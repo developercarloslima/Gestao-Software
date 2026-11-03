@@ -32,7 +32,7 @@ class TenantCompanyInvoicesControllerTest {
 
     @Test void invalidTokenMustNeverReachDatabase() {
         JdbcTemplate db = mock(JdbcTemplate.class);
-        var controller = new TenantCompanyInvoicesController(db, mock(br.com.gestaosoftware.control.service.ProvisioningService.class), SECRET);
+        var controller = new TenantCompanyInvoicesController(db, mock(br.com.gestaosoftware.control.service.ProvisioningService.class), mock(br.com.gestaosoftware.control.service.PlatformBillingScheduleService.class), SECRET);
         var ex = assertThrows(ResponseStatusException.class,
                 () -> controller.list("empresa.exemplo.com.br", "outro-token"));
         assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
@@ -41,7 +41,7 @@ class TenantCompanyInvoicesControllerTest {
 
     @Test void missingMasterFailsClosed() {
         JdbcTemplate db = mock(JdbcTemplate.class);
-        var controller = new TenantCompanyInvoicesController(db, mock(br.com.gestaosoftware.control.service.ProvisioningService.class), "");
+        var controller = new TenantCompanyInvoicesController(db, mock(br.com.gestaosoftware.control.service.ProvisioningService.class), mock(br.com.gestaosoftware.control.service.PlatformBillingScheduleService.class), "");
         var ex = assertThrows(ResponseStatusException.class,
                 () -> controller.list("empresa.exemplo.com.br", "token"));
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, ex.getStatusCode());

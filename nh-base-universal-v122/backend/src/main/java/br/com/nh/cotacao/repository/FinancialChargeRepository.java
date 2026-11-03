@@ -13,5 +13,15 @@ public interface FinancialChargeRepository extends JpaRepository<FinancialCharge
     long countByVehicle_IdAndChargeTypeAndStatus(UUID vehicleId, FinancialChargeType type, FinancialChargeStatus status);
     long countByConsultant_IdAndChargeTypeAndStatus(UUID consultantId, FinancialChargeType type, FinancialChargeStatus status);
     boolean existsByVehicle_IdAndChargeType(UUID vehicleId, FinancialChargeType type);
+    boolean existsByVehicle_IdAndDueDateAndChargeTypeIn(UUID vehicleId, java.time.LocalDate dueDate,
+                                                         java.util.Collection<FinancialChargeType> types);
+    @org.springframework.data.jpa.repository.Query(value="""
+        SELECT c.* FROM financial_charges c
+        JOIN commercial_vehicles v ON v.id=c.vehicle_id
+        WHERE v.advance_billing_enabled=TRUE AND v.asaas_subscription_id IS NULL
+          AND c.charge_type='MONTHLY' AND c.status='PENDING' AND c.provider_payment_id IS NULL
+        ORDER BY c.due_date, c.id LIMIT 15 FOR UPDATE OF c SKIP LOCKED
+        """,nativeQuery=true)
+    List<FinancialCharge> lockPendingAdvanceCharges();
     Optional<FinancialCharge> findFirstByVehicle_IdAndChargeTypeOrderByCreatedAtAsc(UUID vehicleId, FinancialChargeType type);
 }

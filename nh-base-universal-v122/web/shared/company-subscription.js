@@ -43,6 +43,51 @@
     const button = root.querySelector('.cs-refresh');
     const syncButton = root.querySelector('.cs-sync');
 
+    function promptRenewal(data) {
+      const renewal = data && data.renewal;
+      if (!renewal || !renewal.showModal || document.querySelector('.cs-renewal-overlay')) return;
+      const days = Math.max(0, Number(renewal.remainingDays || 0));
+      const overlay = document.createElement('div');
+      overlay.className = 'cs-renewal-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-label', 'Renovação do plano');
+      overlay.innerHTML = '<div class="cs-renewal-dialog">' +
+        '<h2>Renovação do plano</h2>' +
+        '<p>Faltam <strong>' + days + ' dia(s)</strong> para renovar o plano automaticamente.</p>' +
+        '<p>Escolha como deseja continuar. Se renovar agora, todas as próximas cobranças serão emitidas com vencimentos futuros.</p>' +
+        '<div class="cs-renewal-actions">' +
+        '<button type="button" data-renewal-choice="RENEW_NOW">Renovar agora</button>' +
+        '<button type="button" data-renewal-choice="AUTOMATIC">Deixar renovar automaticamente</button>' +
+        '<button type="button" data-renewal-choice="NON_RENEW">Não renovar</button>' +
+        '</div><p class="cs-renewal-feedback" role="status" aria-live="polite"></p></div>';
+      document.body.appendChild(overlay);
+      const feedback = overlay.querySelector('.cs-renewal-feedback');
+      overlay.querySelectorAll('[data-renewal-choice]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          overlay.querySelectorAll('button').forEach(button => button.disabled = true);
+          feedback.textContent = 'Salvando sua escolha...';
+          try {
+            const response = await fetch(api(endpoint + '/renewal'), {
+              method: 'POST',
+              headers: {
+                Authorization: 'Bearer ' + (localStorage.getItem('nhPortalToken') || ''),
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ action: btn.getAttribute('data-renewal-choice') })
+            });
+            if (!response.ok) throw new Error('Não foi possível registrar a escolha. Tente novamente.');
+            overlay.remove();
+            loaded = false;
+            await load(false);
+          } catch (error) {
+            feedback.textContent = error.message || 'Falha ao registrar renovação.';
+            overlay.querySelectorAll('button').forEach(button => button.disabled = false);
+          }
+        });
+      });
+    }
+
     function render(data) {
       const invoices = Array.isArray(data.invoices) ? data.invoices : [];
       const summary = '<div class="cs-summary">' +
@@ -112,6 +157,7 @@
         const data = await response.json();
         render(data);
         loaded = true;
+        promptRenewal(data);
         const failures = Number(data.failed || 0);
         message.textContent = synchronize
           ? failures > 0
@@ -139,6 +185,13 @@
     const tabName = tab ? tab.id.replace(/^tab-/, '') : '';
     document.querySelectorAll('[data-tab="' + tabName + '"]').forEach(element =>
       element.addEventListener('click', () => { if (!loaded) load(true); }));
+    // A notificação deve aparecer no login, mesmo sem abrir a aba Financeiro.
+    // Espera uma autenticação recém-concluída na mesma aba.
     if (!tab || !tab.hidden) load(true);
+    if (tab && tab.hidden && localStorage.getItem('nhPortalToken')) load(false);
+    const authWatch = setInterval(() => {
+      if (loaded) { clearInterval(authWatch); return; }
+      if (localStorage.getItem('nhPortalToken') && !busy) load(false);
+    }, 2500);
   });
 })();
