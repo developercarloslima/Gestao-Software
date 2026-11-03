@@ -28,9 +28,11 @@ public class PlatformManagementService {
     private static final BigDecimal VPS_CRITICAL_PERCENT = new BigDecimal("90.00");
 
     private final JdbcTemplate jdbc;
+    private final PlatformBillingScheduleService billingSchedule;
 
-    public PlatformManagementService(JdbcTemplate jdbc) {
+    public PlatformManagementService(JdbcTemplate jdbc, PlatformBillingScheduleService billingSchedule) {
         this.jdbc = jdbc;
+        this.billingSchedule = billingSchedule;
     }
 
     @Scheduled(cron = "0 10 * * * *")
@@ -120,7 +122,7 @@ public class PlatformManagementService {
         refreshOverdue();
         return jdbc.query("""
                 SELECT c.id, c.group_name, c.legal_name, c.trade_name, c.document, c.contact_name,
-                       c.contact_email, c.contact_phone, c.tenant_admin_username, c.status, c.plan_code, c.plan_name, c.contract_term, c.monthly_fee,
+                       c.contact_email, c.contact_phone, c.tenant_admin_username, c.status, c.plan_code, c.plan_name, c.contract_term, c.monthly_fee, c.renewal_choice, c.next_renewal_date,
                        c.billing_due_day, c.contract_start_date, c.contract_end_date, c.payment_method, c.created_at, c.updated_at,
                        c.platform_display_name, c.platform_legal_name, c.logo_url, c.favicon_url,
                        c.primary_color, c.secondary_color, c.accent_color, c.site_title, c.company_tagline,
@@ -225,8 +227,8 @@ public class PlatformManagementService {
                     status, plan_code, plan_name, contract_term, monthly_fee, billing_due_day, contract_start_date, contract_end_date, payment_method,
                     platform_display_name, platform_legal_name, logo_url, favicon_url, primary_color, secondary_color, accent_color,
                     site_title, company_tagline, login_subtitle, default_module_landing,
-                    notes, created_at, updated_at
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())
+                    notes, advance_billing_enabled, created_at, updated_at
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,TRUE,NOW(),NOW())
                 """,
                 id, clean(input.groupName(), 160), required(input.legalName(), "Informe a razão social."),
                 required(input.tradeName(), "Informe o nome da empresa."), cleanDocument(input.document()),
@@ -244,6 +246,7 @@ public class PlatformManagementService {
         );
         replaceModules(id, input.modules());
         createOrRefreshPendingContract(id, true);
+        billingSchedule.start(id);
         ensureInvoices(YearMonth.now());
         return getCompany(id);
     }
@@ -292,9 +295,10 @@ public class PlatformManagementService {
                 UPDATE platform_company_invoices
                    SET amount=?, updated_at=NOW()
                  WHERE company_id=? AND status='PENDING' AND reference_month>=?
+                   AND (SELECT advance_billing_enabled FROM platform_companies WHERE id=?) = FALSE
                    AND NOT EXISTS (SELECT 1 FROM gs_invoice_checkout co WHERE co.invoice_id=platform_company_invoices.id)
                    AND NOT EXISTS (SELECT 1 FROM gs_verified_payment vp WHERE vp.invoice_id=platform_company_invoices.id)
-                """, money(input.monthlyFee()), id, YearMonth.now().atDay(1));
+                """, money(input.monthlyFee()), id, YearMonth.now().atDay(1), id);
         return getCompany(id);
     }
 
@@ -938,6 +942,7 @@ public class PlatformManagementService {
                   FROM platform_companies
                  WHERE status IN ('ACTIVE','TRIAL')
                    AND monthly_fee > 0
+                   AND advance_billing_enabled=FALSE
                    AND contract_start_date <= ?
                    AND (contract_end_date IS NULL OR contract_end_date >= ?)
                 """, (rs, row) -> mapOf(
@@ -1047,6 +1052,10 @@ public class PlatformManagementService {
                 "monthlyFee", money(rs.getBigDecimal("monthly_fee")), "billingDueDay", rs.getInt("billing_due_day"),
                 "contractStartDate", localDate(rs,"contract_start_date"), "contractEndDate", localDate(rs,"contract_end_date"),
                 "paymentMethod", rs.getString("payment_method"),
+                "renewalChoice", rs.getString("renewal_choice"), "nextRenewalDate", localDate(rs,"next_renewal_date"),
+                "billingStatus", "NON_RENEW".equals(rs.getString("renewal_choice")) ? "Cancelado (plano não renovado)" : null,
+                "renewalChoice", rs.getString("renewal_choice"), "nextRenewalDate", localDate(rs,"next_renewal_date"),
+                "billingStatus", "NON_RENEW".equals(rs.getString("renewal_choice")) ? "Cancelado (plano não renovado)" : null,
                 "moduleCount", rs.getInt("module_count"), "overdueCount", rs.getInt("overdue_count"),
                 "delinquent", rs.getInt("overdue_count") > 0, "vpsId", rs.getObject("vps_id", UUID.class),
                 "vpsName", rs.getString("vps_name"), "vpsProvider", rs.getString("vps_provider"), "vpsPlan", rs.getString("vps_plan"),
@@ -1178,7 +1187,7 @@ public class PlatformManagementService {
     private int dueDay(Integer value) { int day=value==null?10:value; if(day<1||day>28) throw new IllegalArgumentException("O vencimento mensal deve ficar entre os dias 1 e 28."); return day; }
     private String companyStatus(String value) { String s=value==null||value.isBlank()?"ACTIVE":value.trim().toUpperCase(Locale.ROOT); if(!COMPANY_STATUSES.contains(s)) throw new IllegalArgumentException("Status da empresa inválido."); return s; }
     private String planCode(String value) { String s=value==null||value.isBlank()?"CUSTOM":value.trim().toUpperCase(Locale.ROOT); if(!Set.of("START","BUSINESS","PRO","SCALE","ENTERPRISE","DEDICATED","HYBRID","CUSTOM").contains(s)) throw new IllegalArgumentException("Plano inválido."); return s; }
-    private String contractTerm(String value) { String s=value==null||value.isBlank()?"MONTHLY":value.trim().toUpperCase(Locale.ROOT); if(!Set.of("MONTHLY","SEMIANNUAL","ANNUAL").contains(s)) throw new IllegalArgumentException("Prazo contratual inválido."); return s; }
+    private String contractTerm(String value) { String s=value==null||value.isBlank()?"MONTHLY":value.trim().toUpperCase(Locale.ROOT); if(!Set.of("MONTHLY","QUARTERLY","SEMIANNUAL","ANNUAL").contains(s)) throw new IllegalArgumentException("Prazo contratual inválido."); return s; }
     private String paymentMethod(String value) { String s=value==null||value.isBlank()?"BOLETO":value.trim().toUpperCase(Locale.ROOT); if(!PAYMENT_METHODS.contains(s)) throw new IllegalArgumentException("Forma de pagamento inválida."); return s; }
     private String cleanDocument(String value) { if(value==null||value.isBlank()) return null; String digits=value.replaceAll("\\D",""); if(digits.isBlank()) return null; if(digits.length()!=11 && digits.length()!=14) throw new IllegalArgumentException("CPF/CNPJ deve ter 11 ou 14 dígitos."); return digits; }
     private String required(String value, String message) { if(value==null||value.isBlank()) throw new IllegalArgumentException(message); return value.trim().replaceAll("\\s+"," "); }

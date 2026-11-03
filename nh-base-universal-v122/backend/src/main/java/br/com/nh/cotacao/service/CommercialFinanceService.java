@@ -202,7 +202,17 @@ public class CommercialFinanceService {
             }
         }
 
-        if (asaas.enabled() && v.getMonthlyValue().signum() > 0 && v.getAsaasSubscriptionId() == null) {
+        // Veículos anteriores mantêm a assinatura que já está no Asaas.
+        // Veículos novos recebem um lote de 12 cobranças futuras individuais,
+        // evitando que uma nova assinatura emita parcelas duplicadas.
+        if (v.isAdvanceBillingEnabled() && v.getMonthlyValue().signum() > 0
+                && v.getAsaasSubscriptionId() == null && v.getNextAdvanceBillingAt() == null) {
+            LocalDate firstDue = v.getFirstBillingDueDate() == null
+                    ? LocalDate.now().plusMonths(1) : v.getFirstBillingDueDate();
+            if (firstDue.isBefore(LocalDate.now())) firstDue=LocalDate.now().plusMonths(1);
+            scheduleAdvanceBatch(v, firstDue);
+        } else if (asaas.enabled() && !v.isAdvanceBillingEnabled() && v.getMonthlyValue().signum() > 0 && v.getAsaasSubscriptionId() == null) {
+            // Legado sem lote antecipado: mantém o comportamento anterior.
             try {
                 String customerId = ensureAsaasCustomer(v.getAssociate());
                 LocalDate firstDue = v.getFirstBillingDueDate() == null ? LocalDate.now().plusMonths(1) : v.getFirstBillingDueDate();
@@ -214,8 +224,7 @@ public class CommercialFinanceService {
                 v.setAsaasSubscriptionId(subscriptionId);
                 vehicles.save(v);
             } catch (RuntimeException ignored) {
-                // A aceitação da cotação não é desfeita por indisponibilidade externa.
-                // O painel do veículo permite tentar a ativação financeira novamente.
+                // Não desfaz a aceitação por indisponibilidade da financeira.
             }
         }
     }
@@ -431,6 +440,45 @@ public class CommercialFinanceService {
             if (!wallet.existsByWithdrawal_IdAndMovementType(w.getId(), WalletMovementType.REVERSAL)) wallet.save(ConsultantWalletMovement.withdrawalReversal(w.getConsultant(), w));
         }
         withdrawals.save(w);
+    }
+
+    /**
+     * Agenda um ano inteiro em lançamentos independentes. Sem POST ao Asaas
+     * dentro da transação de aceite: o emissor processa após o commit.
+     */
+    private void scheduleAdvanceBatch(CommercialVehicle v, LocalDate firstDue) {
+        for (int i=0; i<12; i++) {
+            LocalDate due=firstDue.plusMonths(i);
+            if (charges.existsByVehicle_IdAndDueDateAndChargeTypeIn(v.getId(),due,
+                    List.of(FinancialChargeType.MONTHLY,FinancialChargeType.CLOSING))) continue;
+            FinancialCharge charge=FinancialCharge.create(v, FinancialChargeType.MONTHLY,
+                    v.getRecurringBillingType(), v.getMonthlyValue(), due);
+            charge.selectProvider(asaas.code());
+            charge.applyProviderFee(paymentFeeFor(v.getRecurringBillingType()));
+            charges.save(charge);
+        }
+        v.setNextAdvanceBillingAt(firstDue.plusMonths(12));
+        vehicles.save(v);
+    }
+
+    @org.springframework.scheduling.annotation.Scheduled(
+            cron="0 30 2 * * *", zone="America/Sao_Paulo")
+    @Transactional
+    public void renewAdvanceAssociateBatches() {
+        LocalDate threshold=LocalDate.now(ZoneId.of("America/Sao_Paulo")).plusDays(15);
+        for (CommercialVehicle v:vehicles.lockRenewableAdvanceBilling(threshold)) {
+            if(v.getMonthlyValue().signum()>0 && v.getNextAdvanceBillingAt()!=null)
+                scheduleAdvanceBatch(v,v.getNextAdvanceBillingAt());
+        }
+    }
+
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelay=15000, initialDelay=12000)
+    @Transactional
+    public void issueAdvanceAssociatePayments() {
+        if (!asaas.enabled()) return;
+        for (FinancialCharge c : charges.lockPendingAdvanceCharges()) {
+            sendExistingAsaasCharge(c);
+        }
     }
 
     private FinancialCharge sendExistingAsaasCharge(FinancialCharge c) {

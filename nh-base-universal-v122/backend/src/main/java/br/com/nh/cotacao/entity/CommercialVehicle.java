@@ -26,6 +26,8 @@ public class CommercialVehicle {
     @Enumerated(EnumType.STRING) @Column(name="recurring_billing_type", nullable=false, length=20) private FinancialBillingType recurringBillingType;
     @Enumerated(EnumType.STRING) @Column(nullable=false, length=20) private CommercialVehicleStatus status;
     @Column(name="asaas_subscription_id", length=80) private String asaasSubscriptionId;
+    @Column(name="advance_billing_enabled", nullable=false) private boolean advanceBillingEnabled;
+    @Column(name="next_advance_billing_at") private LocalDate nextAdvanceBillingAt;
     @Column(name="created_at", nullable=false) private OffsetDateTime createdAt;
     @Column(name="updated_at", nullable=false) private OffsetDateTime updatedAt;
 
@@ -39,6 +41,7 @@ public class CommercialVehicle {
         v.adhesionPaymentMethod = adhesionMethod == null ? AdhesionPaymentMethod.BOLETO : adhesionMethod;
         v.recurringBillingType = FinancialBillingType.BOLETO;
         v.status = q.getStatus() == QuoteStatus.ACCEPTED ? CommercialVehicleStatus.ACTIVE : CommercialVehicleStatus.DRAFT;
+        v.advanceBillingEnabled = true; // Apenas cadastros feitos após esta versão.
         v.createdAt = OffsetDateTime.now();
         v.syncFromQuotation(q);
         return v;
@@ -63,6 +66,9 @@ public class CommercialVehicle {
     public void setAssociate(Associate associate) { this.associate = associate; this.updatedAt = OffsetDateTime.now(); }
     public void setAdhesionPaymentMethod(AdhesionPaymentMethod method) { if (method != null) this.adhesionPaymentMethod = method; this.updatedAt = OffsetDateTime.now(); }
     public void setRecurringBillingType(FinancialBillingType type) { if (type == FinancialBillingType.BOLETO || type == FinancialBillingType.PIX || type == FinancialBillingType.CREDIT_CARD) this.recurringBillingType = type; this.updatedAt = OffsetDateTime.now(); }
+    public boolean isAdvanceBillingEnabled() { return advanceBillingEnabled; }
+    public LocalDate getNextAdvanceBillingAt() { return nextAdvanceBillingAt; }
+    public void setNextAdvanceBillingAt(LocalDate next) { this.nextAdvanceBillingAt=next;this.updatedAt=OffsetDateTime.now(); }
     public void setAsaasSubscriptionId(String id) { this.asaasSubscriptionId = blankToNull(id); this.updatedAt = OffsetDateTime.now(); }
     private static BigDecimal zero(BigDecimal v) { return v == null ? BigDecimal.ZERO : v; }
     private static String blankToNull(String value) { return value == null || value.isBlank() ? null : value.trim(); }

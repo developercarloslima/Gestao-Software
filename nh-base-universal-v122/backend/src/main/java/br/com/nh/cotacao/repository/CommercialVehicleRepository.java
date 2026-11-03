@@ -44,4 +44,13 @@ public interface CommercialVehicleRepository extends JpaRepository<CommercialVeh
     List<CommercialVehicle> findAllByAssociate_IdOrderByCreatedAtDesc(UUID associateId);
     List<CommercialVehicle> findAllByConsultant_IdOrderByCreatedAtDesc(UUID consultantId);
     List<CommercialVehicle> findAllByOrderByCreatedAtDesc();
+    @Query(value="""
+        SELECT * FROM commercial_vehicles
+        WHERE advance_billing_enabled=TRUE AND status='ACTIVE'
+          AND asaas_subscription_id IS NULL
+          AND next_advance_billing_at <= :cutoff
+        ORDER BY next_advance_billing_at
+        LIMIT 40 FOR UPDATE SKIP LOCKED
+        """,nativeQuery=true)
+    List<CommercialVehicle> lockRenewableAdvanceBilling(@Param("cutoff") java.time.LocalDate cutoff);
 }

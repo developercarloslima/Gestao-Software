@@ -249,6 +249,40 @@ public class GestaoTenantConfigService {
         return fetchCompanySubscription(true);
     }
 
+    /**
+     * O papel ADMIN/BUYER é validado no controller local. A Gestão valida
+     * novamente o HMAC do host e resolve o identificador no banco central.
+     */
+    public Map<String,Object> chooseCompanyRenewal(String action) {
+        if (!brandingToken.matches("(?i)[0-9a-f]{64}")) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+                    "Integração com a Gestão não configurada.");
+        }
+        try {
+            String payload=mapper.writeValueAsString(Map.of("action",action==null?"":action));
+            HttpRequest req=HttpRequest.newBuilder(
+                    URI.create(baseUrl+"/api/public/platform/tenant-invoices/renewal"))
+                    .timeout(Duration.ofSeconds(30))
+                    .header("Accept","application/json")
+                    .header("Content-Type","application/json")
+                    .header("X-Gestao-Tenant-Host",tenantHost.trim().toLowerCase(Locale.ROOT))
+                    .header("X-Gestao-Tenant-Token",brandingToken)
+                    .POST(HttpRequest.BodyPublishers.ofString(payload)).build();
+            HttpResponse<String> response=http.send(req,HttpResponse.BodyHandlers.ofString());
+            if(response.statusCode()<200 || response.statusCode()>=300)
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_GATEWAY,
+                    "Não foi possível salvar a escolha de renovação na Gestão.");
+            // Apenas este host pode operar este contrato; não há companyId vindo do browser.
+            return fetchCompanySubscription(false);
+        } catch (org.springframework.web.server.ResponseStatusException ex) {throw ex;}
+          catch(Exception ex) {
+              throw new org.springframework.web.server.ResponseStatusException(
+                  org.springframework.http.HttpStatus.BAD_GATEWAY,"Falha ao comunicar a renovação à Gestão.");
+          }
+    }
+
     private Map<String, Object> fetchCompanySubscription(boolean synchronize) {
         if (!brandingToken.matches("(?i)[0-9a-f]{64}")) {
             throw new org.springframework.web.server.ResponseStatusException(
