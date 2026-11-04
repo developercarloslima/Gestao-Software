@@ -366,7 +366,11 @@ async function loadAsaasSubaccountStatus(companyId){
       return;
     }
     const labels={CREATING:'Criação em andamento',REJECTED:'Dados rejeitados pelo Asaas; corrija e tente novamente',REVIEW_REQUIRED:'Resultado incerto; conferir no Asaas',PENDING_ACTIVATION:'Criada; aguardando ativação e implantação no tenant',ACTIVE:'Subconta aprovada no Asaas'};
-    box.innerHTML=`<p><strong>Situação:</strong> ${esc(labels[s.state]||s.state)}.</p><p><strong>Titular:</strong> ${esc(s.ownerEmail||'—')}<br><strong>Conta:</strong> ${esc(s.accountId||'—')}<br><strong>Carteira exclusiva:</strong> ${esc(s.walletId||'—')}</p><p class="form-help">A empresa recebe e mantém o saldo em sua própria subconta. Para emitir cobranças no sistema da empresa, é preciso configurar com segurança a API key específica dela no backend do tenant. O cadastro no Control Plane, sozinho, não habilita cobranças.</p>${s.state==='REJECTED'?`<div class="form-actions"><p class="form-help">${s.lastHttpStatus===401||s.lastHttpStatus===403?'Falha de autorização do Asaas: confira a credencial da conta principal antes de reenviar.':'Confira CNPJ, e-mail, faturamento, celular e endereço antes de reenviar.'} Última resposta Asaas: HTTP ${esc(s.lastHttpStatus||'não registrada')}. Tentativa nº ${esc(s.attemptCount||1)}.</p><button class="button primary small" type="button" data-create-asaas-subaccount="${companyId}" data-asaas-retry="true" ${!s.parentConfigured?'disabled':''}>Tentar novamente</button></div>`:''}`;
+    const hasError=['REJECTED','REVIEW_REQUIRED'].includes(s.state);
+    const errorDetail=hasError?`<p class="form-help"><strong>Última resposta Asaas:</strong> HTTP ${esc(s.lastHttpStatus||'não registrada')}${s.lastErrorCode?` · Código: ${esc(s.lastErrorCode)}`:''}. Tentativa nº ${esc(s.attemptCount||1)}.</p>${s.lastErrorMessage?`<p class="form-help"><strong>Motivo informado:</strong> ${esc(s.lastErrorMessage)}</p>`:''}`:'';
+    const retryAction=s.state==='REJECTED'?`<div class="form-actions"><p class="form-help">Revise os dados e tente novamente somente após a correção.</p><button class="button primary small" type="button" data-create-asaas-subaccount="${companyId}" data-asaas-retry="true" ${!s.parentConfigured?'disabled':''}>Corrigir dados e tentar novamente</button></div>`:'';
+    const reviewWarning=s.state==='REVIEW_REQUIRED'?'<p class="form-help"><strong>Atenção:</strong> não reenvie o cadastro antes de confirmar no Asaas se a subconta já existe. A repetição está bloqueada para evitar duplicidade.</p>':'';
+    box.innerHTML=`<p><strong>Situação:</strong> ${esc(labels[s.state]||s.state)}.</p><p><strong>Titular:</strong> ${esc(s.ownerEmail||'—')}<br><strong>Conta:</strong> ${esc(s.accountId||'—')}<br><strong>Carteira exclusiva:</strong> ${esc(s.walletId||'—')}</p><p class="form-help">A empresa recebe e mantém o saldo em sua própria subconta. Para emitir cobranças no sistema da empresa, é preciso configurar com segurança a API key específica dela no backend do tenant. O cadastro no Control Plane, sozinho, não habilita cobranças.</p>${errorDetail}${retryAction}${reviewWarning}`;
   }catch(e){box.textContent='Não foi possível consultar o vínculo Asaas: '+e.message;}
 }
 function openAsaasSubaccountDialog(companyId, retry=false){
@@ -452,13 +456,15 @@ $('asaas-subaccount-form').addEventListener('submit',async e=>{
       const status=await api(`/api/platform/companies/${id}/asaas-subaccount`);
       const code=Number(status.lastHttpStatus||0);
       if(status.state==='REJECTED'&&code){
-        explanation=code===400
-          ? 'Asaas rejeitou os dados (HTTP 400). Confira CEP válido, endereço completo, CNPJ, tipo de empresa e celular.'
+         explanation=status.lastErrorMessage
+           ? `Asaas rejeitou o cadastro (HTTP ${code}${status.lastErrorCode?`, ${status.lastErrorCode}`:''}): ${status.lastErrorMessage}`
+           : code===400
+             ? 'Asaas rejeitou os dados (HTTP 400). Confira CEP válido, endereço completo, CNPJ, tipo de empresa e celular.'
           : code===401||code===403
             ? `Asaas recusou a credencial ou autorização da conta principal (HTTP ${code}).`
             : `Asaas recusou a solicitação (HTTP ${code}). Revise o cadastro antes de reenviar.`;
       }else if(status.state==='REVIEW_REQUIRED'){
-        explanation='O resultado no Asaas é incerto. Confira a conta principal antes de reenviar para evitar duplicidade.';
+         explanation=`O resultado no Asaas é incerto${code?` (HTTP ${code})`:''}. Confira a conta principal antes de reenviar para evitar duplicidade.`;
       }
     }catch(_){/* Mantém a mensagem original se o status não puder ser consultado. */}
     formMessage('asaas-subaccount-message',explanation);
