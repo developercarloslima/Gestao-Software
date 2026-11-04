@@ -1,5 +1,6 @@
 package br.com.nh.cotacao.service;
 
+import br.com.nh.cotacao.dto.AdminUserDtos.CreatePortalUserRequest;
 import br.com.nh.cotacao.entity.Associate;
 import br.com.nh.cotacao.entity.PortalUser;
 import br.com.nh.cotacao.repository.AssociateRepository;
@@ -138,6 +139,28 @@ class PortalUserServiceAcceptanceAccountTest {
                 PortalRole.ASSOCIATE, "ASSOCIATE_AUTO_BOOTSTRAP");
         when(users.findByNormalizedUsername(CPF)).thenReturn(Optional.of(changed));
         assertNull(service.initialAssociatePasswordIfStillDefault(CPF));
+    }
+
+    @Test
+    void initialPasswordIsNotRevealedForAccountThatDoesNotExist() {
+        when(users.findByNormalizedUsername(CPF)).thenReturn(Optional.empty());
+        assertNull(service.initialAssociatePasswordIfStillDefault(CPF));
+    }
+
+    @Test
+    void manuallyCreatedPersonalUserAlwaysStartsWithStandardPasswordAndMustChangeIt() {
+        when(users.findByNormalizedUsername("funcionario.teste")).thenReturn(Optional.empty());
+        when(users.save(any(PortalUser.class))).thenAnswer(call -> call.getArgument(0));
+
+        service.create(new CreatePortalUserRequest(
+                "funcionario.teste", "Funcionário Teste", null, PortalRole.BUYER, null, null), "admin");
+
+        var saved = org.mockito.ArgumentCaptor.forClass(PortalUser.class);
+        verify(users).save(saved.capture());
+        PortalUser user = saved.getValue();
+        assertTrue(new BCryptPasswordEncoder().matches("gestao1234", user.getPasswordHash()));
+        assertTrue(user.isMustChangePassword(), "A troca deve ser exigida no primeiro login");
+        assertTrue(user.isActive());
     }
 
     @Test
