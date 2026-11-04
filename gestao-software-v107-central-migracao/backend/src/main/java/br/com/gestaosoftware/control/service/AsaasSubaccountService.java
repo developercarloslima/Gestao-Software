@@ -61,7 +61,7 @@ public class AsaasSubaccountService {
             String address, String addressNumber, String province, String postalCode,
             String complement, String companyType, String taxRegime) {}
 
-    private record Company(String name, String document, String email, String state) {}
+    private record Company(String name, String document, String financialEmail, String state) {}
     static record ExistingAccount(boolean found, String accountId, String walletId, boolean emailMatches) {}
 
     // Os detalhes exibidos são saneados: nunca persistir a resposta bruta, chaves ou dados pessoais.
@@ -137,7 +137,7 @@ public class AsaasSubaccountService {
 
     private Company company(UUID id) {
         List<Company> rows = jdbc.query(
-                "SELECT trade_name, document, contact_email, status FROM platform_companies WHERE id=?",
+                "SELECT trade_name, document, financial_email, status FROM platform_companies WHERE id=?",
                 (rs, n) -> new Company(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)), id);
         if (rows.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa-cliente não encontrada.");
@@ -226,6 +226,20 @@ public class AsaasSubaccountService {
         return value == null || value.isBlank() ? null : value.trim();
     }
 
+    static String validatedSubaccountEmail(String configuredFinancialEmail, String requestedEmail) {
+        String saved = optional(configuredFinancialEmail);
+        if (saved == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Cadastre o e-mail financeiro da empresa-cliente no Gestão antes de criar a subconta.");
+        String requested = required(requestedEmail, "o e-mail financeiro do titular");
+        if (!requested.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe um e-mail financeiro válido.");
+        if (!requested.equalsIgnoreCase(saved))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "O e-mail da subconta deve ser igual ao e-mail financeiro cadastrado para a empresa-cliente.");
+        return requested;
+    }
+
     private ExistingAccount findInParentAccount(String document, String email) {
         if (!parentConfigured())
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
@@ -271,7 +285,7 @@ public class AsaasSubaccountService {
         String document = digits(company.document());
         if (!document.matches("[0-9]{14}"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A empresa precisa de CNPJ válido.");
-        ExistingAccount found = findInParentAccount(document, company.email());
+        ExistingAccount found = findInParentAccount(document, company.financialEmail());
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("foundInParent", found.found());
         result.put("accountId", found.accountId());
@@ -297,13 +311,7 @@ public class AsaasSubaccountService {
         if (!document.matches("[0-9]{14}"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Cadastre o CNPJ da empresa-cliente no Gestão antes de criar sua subconta.");
-        String email = required(data.email(), "o e-mail da empresa");
-        String contactEmail = optional(c.email());
-        if (contactEmail == null || !email.equalsIgnoreCase(contactEmail))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "O e-mail da subconta deve ser igual ao e-mail do cadastro da empresa-cliente.");
-        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe um e-mail válido.");
+        String email = validatedSubaccountEmail(c.financialEmail(), data.email());
         String mobile = digits(data.mobilePhone());
         if (!mobile.matches("[0-9]{10,11}"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe um celular com DDD.");
@@ -322,6 +330,7 @@ public class AsaasSubaccountService {
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("name", c.name());
         request.put("email", email);
+        request.put("loginEmail", email);
         request.put("cpfCnpj", document);
         request.put("mobilePhone", mobile);
         request.put("incomeValue", data.incomeValue());

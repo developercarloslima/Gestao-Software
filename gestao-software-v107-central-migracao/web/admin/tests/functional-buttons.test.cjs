@@ -92,3 +92,18 @@ test('verificação de CNPJ é somente leitura e não usa o endpoint de criaçã
   assert.match(app, /const checkAsaas=e\.target\.closest\('\[data-check-asaas-subaccount\]'\)/);
   assert.match(app, /Nenhuma conta foi criada/);
 });
+
+test('email financeiro da empresa é separado do contato e do administrador', () => {
+  assert.match(markup, /id="company-email"/);
+  assert.match(markup, /id="company-financial-email"/);
+  assert.match(markup, /id="company-tenant-admin"/);
+  assert.match(app, /financialEmail:\$\('company-financial-email'\)\.value\.trim\(\)\|\|null/);
+  assert.match(app, /\$\('company-financial-email'\)\.value=data\.financialEmail\|\|''/);
+  const start = app.indexOf('function openAsaasSubaccountDialog(');
+  const end = app.indexOf('function openHosting(', start);
+  assert.ok(start >= 0 && end > start);
+  const handler = app.slice(start, end);
+  assert.match(handler, /asaas-subaccount-email'\)\.value=c\.financialEmail\|\|''/);
+  assert.doesNotMatch(handler, /asaas-subaccount-email'\)\.value=c\.contactEmail/);
+  assert.match(handler, /asaas-subaccount-submit'\)\.disabled=!c\.financialEmail/);
+});
