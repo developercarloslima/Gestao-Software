@@ -30,8 +30,8 @@ async function openVehicle(id){
 function renderCharges(){
   const list=[...(current?.charges||[])].sort((a,b)=>(a.dueDate||'9999-12-31').localeCompare(b.dueDate||'9999-12-31'));
   const adhesion=list.filter(c=>c.type==='ADHESION');
-  const monthly=list.filter(c=>c.type==='MONTHLY');
-  const titles=list.filter(c=>c.type==='ADHESION'||c.type==='MONTHLY');
+  const monthly=list.filter(c=>c.type==='MONTHLY'||c.type==='CLOSING');
+  const titles=list.filter(c=>c.type==='ADHESION'||c.type==='MONTHLY'||c.type==='CLOSING');
   const printable=titles.filter(c=>Boolean(c.bankSlipUrl||c.invoiceUrl)).length;
   $('billing-summary').textContent=`Adesão: ${adhesion.length?1:0}/1 · Mensalidades: ${Math.min(monthly.length,12)}/12 · Links de pagamento disponíveis: ${printable}/${titles.length}`;
   const missing=adhesion.length===0||monthly.length<12;
@@ -39,11 +39,12 @@ function renderCharges(){
   $('billing-note').textContent=missing
     ? 'O lote de adesão e 12 mensalidades ainda não está completo. Procure o Financeiro para regularizar os títulos.'
     : pending
-      ? 'Os lançamentos estão cadastrados, mas alguns boletos ainda aguardam emissão pelo Asaas. Não é possível imprimi-los até que o link seja disponibilizado.'
+      ? 'Para emitir um boleto, clique em Gerar boleto na parcela desejada. O documento abrirá em uma nova aba.'
       : 'Os títulos estão disponíveis por vencimento. Você pode abrir e imprimir qualquer boleto futuro para antecipar seu pagamento.';
   $('charges').innerHTML=list.map(c=>`<tr><td>${labelType(c.type)}</td><td>${date(c.dueDate)}</td><td>${money(c.value)}</td><td>${money(c.providerFee)}</td><td>${money(c.totalCharged)}</td><td><span class="status">${labelStatus(c.status)}</span></td><td>${paymentAction(c)}</td></tr>`).join('')||'<tr><td colspan="7">Nenhuma cobrança cadastrada.</td></tr>';
   document.querySelectorAll('[data-paycharge]').forEach(b=>b.onclick=()=>showPayment(list.find(c=>c.id===b.dataset.paycharge)));
   document.querySelectorAll('[data-refresh]').forEach(b=>b.onclick=()=>refreshCharge(b.dataset.refresh));
+  document.querySelectorAll('[data-issue-boleto]').forEach(b=>b.onclick=()=>issueBoleto(b.dataset.issueBoleto));
 }
 function paymentAction(c){
   if(c.status==='RECEIVED')return 'Pago';
@@ -53,11 +54,33 @@ function paymentAction(c){
     const url=c.bankSlipUrl||c.invoiceUrl;
     return `<a class="outline" href="${url}" target="_blank" rel="noopener noreferrer">Abrir / imprimir boleto</a>`;
   }
+  if(c.billingType==='BOLETO'&&c.status==='PENDING')return `<button class="outline" data-issue-boleto="${c.id}">Gerar boleto</button>`;
   if(c.invoiceUrl)return `<a class="outline" href="${c.invoiceUrl}" target="_blank" rel="noopener noreferrer">Pagar</a>`;
   if(c.pixPayload)return `<button class="outline" data-paycharge="${c.id}">Ver Pix</button>`;
   return `<button class="outline" data-refresh="${c.id}">Atualizar</button>`;
 }
 function showPayment(c){const box=$('payment-box');box.hidden=false;let html=`<h2>Pagamento</h2><p>Valor total: ${money(c.totalCharged)}</p>`;if(!c.invoiceUrl&&!c.bankSlipUrl&&!c.pixPayload)html+='<p>A emissão ainda está pendente. Atualize em instantes ou procure o Financeiro.</p>';if(c.pixEncodedImage)html+=`<img alt="QR Code Pix" src="data:image/png;base64,${c.pixEncodedImage}">`;if(c.pixPayload)html+=`<p>Pix copia e cola</p><div class="pix-code">${c.pixPayload}</div><button id="copy-pix" class="secondary" style="margin-top:10px">Copiar Pix</button>`;if(c.identificationField)html+=`<p>Linha digitável</p><div class="pix-code">${c.identificationField}</div>`;if(c.invoiceUrl)html+=`<p><a class="primary" href="${c.invoiceUrl}" target="_blank" rel="noopener">Abrir pagamento seguro</a></p>`;if(c.bankSlipUrl)html+=`<p><a href="${c.bankSlipUrl}" target="_blank" rel="noopener">Abrir boleto</a></p>`;box.innerHTML=html;if($('copy-pix'))$('copy-pix').onclick=()=>navigator.clipboard.writeText(c.pixPayload)}
+function validBoletoUrl(value){try{const url=new URL(value);return url.protocol==='https:'?url.href:null}catch{return null}}
+async function issueBoleto(id){
+  // Abrir a aba durante o clique evita o bloqueador de pop-ups após a chamada assíncrona.
+  const tab=window.open('about:blank','_blank');
+  if(tab){tab.opener=null;tab.document.title='Emitindo boleto';tab.document.body.textContent='Aguarde, seu boleto está sendo gerado...';}
+  const button=document.querySelector('[data-issue-boleto="'+id+'"]');
+  if(button){button.disabled=true;button.textContent='Gerando...';}
+  msg('charge-msg','Solicitando emissão do boleto...',false);
+  try{
+    const charge=await req('/api/associate-portal/charges/'+encodeURIComponent(id)+'/issue-boleto',{method:'POST'});
+    current.charges=current.charges.map(c=>c.id===id?charge:c);
+    renderCharges();
+    const url=validBoletoUrl(charge.bankSlipUrl||charge.invoiceUrl);
+    if(charge.status==='ERROR'||!url)throw new Error('A emissão não foi concluída. Procure o Financeiro para conferir o título.');
+    if(tab){tab.location.replace(url);}else{showPayment(charge);msg('charge-msg','Permita pop-ups para abrir o boleto em uma nova aba. O link de pagamento está abaixo.',false);}
+  }catch(error){
+    if(tab&&!tab.closed)tab.close();
+    if(button){button.disabled=false;button.textContent='Gerar boleto';}
+    msg('charge-msg',error.message);
+  }
+}
 async function refreshCharge(id){try{const c=await req(`/api/associate-portal/charges/${id}/refresh`,{method:'POST'});current.charges=current.charges.map(x=>x.id===id?c:x);renderCharges();showPayment(c)}catch(e){msg('charge-msg',e.message)}}
 function labelStatus(s){return ({PENDING:'Pendente',CONFIRMED:'Confirmado',RECEIVED:'Pago',OVERDUE:'Atrasado',REFUNDED:'Estornado',CANCELLED:'Cancelado',ERROR:'Erro'})[s]||s}function labelType(t){return ({ADHESION:'Adesão',CLOSING:'Fechamento',MONTHLY:'Mensalidade'})[t]||t}function maskDoc(v){const d=String(v||'');return d.length===11?d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4'):d}
 $('login-form').addEventListener('submit',async e=>{e.preventDefault();try{const username=$('document').value.replace(/\D/g,'');const d=await req('/api/auth/login',{method:'POST',body:JSON.stringify({username,password:$('password').value})});if(!d.token)throw new Error('Não foi possível concluir este acesso.');if(d.role!=='ASSOCIATE')throw new Error('CPF/CNPJ não pertence a um acesso de associado.');localStorage.setItem(T,d.token);localStorage.setItem(R,d.role);await boot()}catch(x){msg('login-msg',x.message)}});
