@@ -102,12 +102,12 @@
         ? '<p class="cs-note">Atenção: o valor mensal cadastrado no plano está em R$ 0,00, mas existem cobranças emitidas. Confirme o valor contratado no Gestão Software antes da próxima competência.</p>' : '';
       const scheduledCount = invoices.filter(invoice => invoice.status === 'SCHEDULED').length;
       const forecastNote = scheduledCount
-        ? '<p class="cs-note">As ' + scheduledCount + ' competência(s) marcadas como previstas ainda não são faturas emitidas no Asaas. ' +
-          (Number(data.monthlyFee || 0) > 0 ? 'Aguarde a emissão/atualização das cobranças.' : 'Informe uma mensalidade contratada maior que R$ 0,00 no Gestão para gerar boletos.') + '</p>'
+        ? '<p class="cs-note">As ' + scheduledCount + ' competência(s) previstas ainda não possuem fatura registrada. ' +
+          (Number(data.monthlyFee || 0) > 0 ? 'Solicite a regularização do ciclo financeiro antes da emissão.' : 'Informe uma mensalidade contratada maior que R$ 0,00 no Gestão para gerar boletos.') + '</p>'
         : '';
       const note = mismatch + forecastNote + '<p class="cs-note">Forma cadastrada: ' +
         safe(methods[data.paymentMethod] || data.paymentMethod || 'Não informada') +
-        '. A segunda via utiliza a cobrança já emitida pela Gestão/Asaas; não é gerado um novo boleto.</p>';
+        '. Clique em Gerar boleto para emitir uma fatura cadastrada ainda sem link. Segunda via reutiliza a cobrança já emitida.</p>';
       if (!invoices.length) {
         content.innerHTML = summary + note +
           '<div class="rc-empty">Nenhuma mensalidade emitida para esta empresa. Consulte o Gestão Software se esperava uma cobrança.</div>';
@@ -126,7 +126,9 @@
             '">Abrir cobrança / 2ª via</a>'
           : paid ? '<span class="cs-muted">' + safe(statuses[state]) + '</span>'
           : cancelled ? '<span class="cs-muted">Cobrança cancelada</span>'
-          : '<span class="cs-muted">Cobrança ainda não emitida no Asaas. Solicite ao Gestão Software.</span>';
+          : invoice.id && ['PENDING','OVERDUE'].includes(state)
+          ? '<button type="button" class="rc-button cs-issue-invoice" data-issue-invoice="' + safe(invoice.id) + '">Gerar boleto</button>'
+          : '<span class="cs-muted">Cobrança indisponível para emissão. Consulte o Gestão Software.</span>';
         return '<tr><td>' + safe(month(invoice.referenceMonth)) + '</td><td>' +
           (scheduled && Number(data.monthlyFee || 0) <= 0 ? 'A definir' : money(invoice.amount)) + '</td><td>' + safe(date(invoice.dueDate)) +
           '</td><td><span class="cs-status cs-' + safe(state) + '">' +
@@ -139,6 +141,37 @@
         '<th>Valor</th><th>Vencimento</th><th>Situação</th><th>Pago em</th><th>Segunda via / cobrança</th>' +
         '</tr></thead><tbody>' + rows + '</tbody></table></div>';
     }
+
+    async function issueInvoice(id, element) {
+      // A aba deve abrir em resposta direta ao clique, antes da chamada assíncrona.
+      const tab=window.open('about:blank','_blank');
+      if(tab){tab.opener=null;tab.document.title='Emitindo boleto';tab.document.body.textContent='Aguarde, seu boleto está sendo gerado...';}
+      element.disabled=true;
+      message.textContent='Solicitando emissão desta mensalidade à Gestão...';
+      try {
+        const response=await fetch(api(endpoint+'/invoices/'+encodeURIComponent(id)+'/issue-boleto'),{
+          method:'POST',headers:{Authorization:'Bearer '+(localStorage.getItem('nhPortalToken')||'')}
+        });
+        if(!response.ok){
+          let detail={};try{detail=await response.json();}catch{}
+          throw new Error(detail.message||detail.detail||'Não foi possível emitir o boleto (HTTP '+response.status+').');
+        }
+        const result=await response.json();
+        const link=url(result.bankSlipUrl||result.invoiceUrl);
+        if(!link)throw new Error('O Asaas não devolveu um link de pagamento. Procure o Financeiro para conciliar a cobrança.');
+        if(tab)tab.location.replace(link);
+        else message.textContent='Permita pop-ups para abrir em nova aba. Use o link Abrir cobrança disponível na tabela.';
+        await load(false);
+      } catch(error) {
+        if(tab&&!tab.closed)tab.close();
+        message.textContent=error.message||'Falha ao emitir mensalidade.';
+      } finally {element.disabled=false;}
+    }
+
+    content.addEventListener('click',event=>{
+      const button=event.target.closest('[data-issue-invoice]');
+      if(button)issueInvoice(button.dataset.issueInvoice,button);
+    });
 
     async function load(synchronize = false) {
       if (busy) return;
