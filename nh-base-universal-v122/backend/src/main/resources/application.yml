@@ -48,6 +48,8 @@ app:
     # NONE desativa operações externas; ASAAS reutiliza a integração existente.
     # Outros provedores devem implementar FinancialProvider antes da ativação.
     provider: ${FINANCIAL_PROVIDER:ASAAS}
+    # Por padrão, os 13 títulos só são emitidos quando o associado clica em Gerar boleto.
+    auto-issue-batches: ${FINANCIAL_AUTO_ISSUE_BATCHES:false}
     # Aliases antigos permanecem válidos para não alterar a tarifa já contratada.
     payment-fee: ${FINANCIAL_PAYMENT_FEE:${ASAAS_PAYMENT_FEE:2.00}}
     withdrawal-fee: ${FINANCIAL_WITHDRAWAL_FEE:${ASAAS_WITHDRAWAL_FEE:2.00}}
