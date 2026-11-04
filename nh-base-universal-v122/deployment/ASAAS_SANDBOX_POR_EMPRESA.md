@@ -37,6 +37,7 @@ A chave de criptografia deve ser exclusiva deste ambiente (Sandbox vs Produção
 | `FINANCIAL_PROVIDER` | `ASAAS` | Provedor financeiro do tenant. |
 | `ASAAS_ENABLED` | `false` | Habilitar somente após configurar chave, webhook e homologar. |
 | `ASAAS_BASE_URL` | `https://api-sandbox.asaas.com/v3` | Nunca misturar ambientes. |
+| `ASAAS_EXPECTED_WALLET_ID` | carteira do tenant | Obrigatoria em Sandbox: a API compara via `GET /v3/wallets` e bloqueia a emissao se a chave for de outra conta. |
 | `ASAAS_API_KEY` | vazio | **Chave da subconta da empresa**, nunca da conta principal. |
 | `ASAAS_WEBHOOK_TOKEN` | token aleatório exclusivo | Igual ao token configurado no webhook desta subconta. |
 | `FINANCIAL_PAYMENT_FEE` | `2.00` | Conferir a tarifa contratual e política de cobrança. |
