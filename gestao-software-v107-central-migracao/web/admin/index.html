@@ -403,7 +403,9 @@
     <input id="company-id" type="hidden">
     <div class="form-grid two"><label>Grupo empresarial<input id="company-group" maxlength="160" placeholder="Ex.: Grupo Sampaio"></label><label>Nome da empresa / fantasia<input id="company-trade" maxlength="180" required></label></div>
     <div class="form-grid two"><label>Razão social<input id="company-legal" maxlength="200" required></label><label>CPF/CNPJ<input id="company-document" maxlength="20"></label></div>
-    <div class="form-grid three"><label>Responsável<input id="company-contact" maxlength="160"></label><label>E-mail<input id="company-email" type="email" maxlength="180"></label><label>Telefone<input id="company-phone" maxlength="40"></label></div>
+    <div class="form-grid three"><label>Responsável<input id="company-contact" maxlength="160"></label><label>E-mail de contato<input id="company-email" type="email" maxlength="180"></label><label>Telefone<input id="company-phone" maxlength="40"></label></div>
+    <label>E-mail financeiro da empresa (titular e login da subconta Asaas)<input id="company-financial-email" type="email" maxlength="180" autocomplete="off" placeholder="financeiro@empresa.com.br"></label>
+    <p class="form-help">Informe um endereço controlado pela empresa-cliente antes de criar a subconta Asaas. O login do administrador do Gestão é independente. Alterar este campo depois não muda o e-mail de uma subconta já criada no Asaas.</p>
     <fieldset class="module-fieldset"><legend>Administrador da empresa</legend>
       <label>Usuário do administrador (login da empresa)
         <input id="company-tenant-admin" type="text" minlength="3" maxlength="120" pattern="[A-Za-z0-9][A-Za-z0-9._@-]{2,119}" required autocomplete="off" spellcheck="false" placeholder="Ex.: admin@empresa.com.br">
@@ -557,7 +559,7 @@
     <input id="asaas-subaccount-company-id" type="hidden">
     <p class="form-help">A conta principal Gestão cria a subconta. O saldo, os pagamentos dos associados e os saques de consultores pertencem à empresa-cliente. A empresa terá acesso próprio ao Asaas pelo e-mail cadastrado. O Gestão cobra sua assinatura separadamente.</p>
     <div class="form-grid two">
-      <label>E-mail do titular (igual ao cadastro da empresa)<input id="asaas-subaccount-email" type="email" required maxlength="180"></label>
+      <label>E-mail financeiro do titular (igual ao campo financeiro da empresa)<input id="asaas-subaccount-email" type="email" required maxlength="180"></label>
       <label>Celular com DDD<input id="asaas-subaccount-mobile" type="tel" placeholder="(82) 99999-9999" required maxlength="30"></label>
     </div>
     <div class="form-grid three">
