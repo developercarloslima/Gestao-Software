@@ -5,6 +5,13 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PlatformBillingScheduleServiceTest {
+    @Test void noAutomaticSandboxIssuanceWithoutExplicitFeatureFlag() {
+        var db=org.mockito.Mockito.mock(org.springframework.jdbc.core.JdbcTemplate.class);
+        var gateway=org.mockito.Mockito.mock(PlatformPaymentGateway.class);
+        var service=new PlatformBillingScheduleService(db,gateway);
+        service.issuePending();
+        org.mockito.Mockito.verifyNoInteractions(db,gateway);
+    }
     @Test void firstCycleAlwaysHasTwelveMonthsAndAdhesionCountsAsFirst() {
         assertCycle("MONTHLY", true,12);
         assertCycle("QUARTERLY",true,5);
