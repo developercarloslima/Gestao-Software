@@ -22,6 +22,7 @@ app:
   financial:
     # NONE = nenhuma operação externa. Integração atual: ASAAS.
     provider: ${GESTAO_FINANCIAL_PROVIDER:ASAAS}
+    auto-issue-batches: ${GESTAO_FINANCIAL_AUTO_ISSUE_BATCHES:false}
   auth:
     # Nunca use uma chave pública e previsível para assinar tokens de administradores.
     # Sem AUTH_TOKEN_SECRET exclusivo, a aplicação falha ao iniciar.
