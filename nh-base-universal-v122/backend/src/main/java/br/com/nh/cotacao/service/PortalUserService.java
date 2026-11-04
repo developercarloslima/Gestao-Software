@@ -244,6 +244,8 @@ public class PortalUserService {
     public List<PortalUserResponse> list() {
         return repository.findAllByOrderByRoleAscUsernameAsc().stream()
                 .filter(user -> !isProtectedDeveloper(user))
+                // Associados têm acesso ao portal por CPF, mas não integram a lista de funcionários do ADM.
+                .filter(user -> user.getRole() != PortalRole.ASSOCIATE)
                 .map(this::toResponse)
                 .toList();
     }

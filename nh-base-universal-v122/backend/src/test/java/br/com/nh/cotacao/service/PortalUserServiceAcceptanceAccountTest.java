@@ -109,17 +109,19 @@ class PortalUserServiceAcceptanceAccountTest {
     }
 
     @Test
-    void administratorCanSeeAutomaticallyCreatedAssociateAccount() {
-        PortalUser pending = PortalUser.create(CPF, "Maria Silva", "hashed",
+    void administratorListsEmployeesButNotAutomaticallyCreatedAssociateAccounts() {
+        PortalUser associate = PortalUser.create(CPF, "Maria Silva", "hashed",
                 PortalRole.ASSOCIATE, "ASSOCIATE_AUTO_BOOTSTRAP");
-        pending.setActive(false);
-        when(users.findAllByOrderByRoleAscUsernameAsc()).thenReturn(List.of(pending));
+        associate.setActive(true); // Aceite já concluído: acesso continua ativo.
+        PortalUser admin = PortalUser.create("funcionario.financeiro", "Financeiro", "hashed",
+                PortalRole.ADMIN, "admin");
+        when(users.findAllByOrderByRoleAscUsernameAsc()).thenReturn(List.of(associate, admin));
 
         var visible = service.list();
 
         assertEquals(1, visible.size());
-        assertEquals(CPF, visible.get(0).username());
-        assertFalse(visible.get(0).active());
+        assertEquals("funcionario.financeiro", visible.get(0).username());
+        assertTrue(associate.isActive(), "Ocultar da lista não pode desativar o login do associado");
     }
 
     @Test

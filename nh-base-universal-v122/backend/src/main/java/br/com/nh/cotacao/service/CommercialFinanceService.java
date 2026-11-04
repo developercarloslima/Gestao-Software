@@ -192,12 +192,26 @@ public class CommercialFinanceService {
                     FinancialCharge cash = FinancialCharge.create(v, FinancialChargeType.ADHESION, FinancialBillingType.CASH_HAND, v.getAdhesionValue(), LocalDate.now());
                     cash.markReceived(OffsetDateTime.now());
                     charges.save(cash);
-                } else if (asaas.enabled()) {
-                    createAsaasCharge(v, FinancialChargeType.ADHESION,
-                            v.getAdhesionPaymentMethod() == AdhesionPaymentMethod.PIX ? FinancialBillingType.PIX : FinancialBillingType.BOLETO,
-                            v.getAdhesionValue(), LocalDate.now());
+                } else {
+                    // Criar o título de adesão mesmo com Asaas desativado: sem transação externa.
+                    // O boleto só ficará imprimível após emissão no provedor.
+                    FinancialBillingType billing = v.getAdhesionPaymentMethod() == AdhesionPaymentMethod.PIX
+                            ? FinancialBillingType.PIX : FinancialBillingType.BOLETO;
+                    if (asaas.enabled()) {
+                        createAsaasCharge(v, FinancialChargeType.ADHESION, billing,
+                                v.getAdhesionValue(), LocalDate.now());
+                    } else {
+                        FinancialCharge adhesion = FinancialCharge.create(v, FinancialChargeType.ADHESION,
+                                billing, v.getAdhesionValue(), LocalDate.now());
+                        adhesion.selectProvider(asaas.code());
+                        adhesion.applyProviderFee(paymentFeeFor(billing));
+                        charges.save(adhesion);
+                    }
                 }
-            } else if (asaas.enabled() && existingAdhesion.getStatus() == FinancialChargeStatus.ERROR && existingAdhesion.getProviderPaymentId() == null) {
+            } else if (asaas.enabled() && existingAdhesion.getProviderPaymentId() == null
+                    && (existingAdhesion.getStatus() == FinancialChargeStatus.ERROR
+                        || existingAdhesion.getStatus() == FinancialChargeStatus.PENDING)) {
+                // Reemissão explícita pelo Financeiro: reutiliza o título, sem duplicar a adesão.
                 sendExistingAsaasCharge(existingAdhesion);
             }
         }

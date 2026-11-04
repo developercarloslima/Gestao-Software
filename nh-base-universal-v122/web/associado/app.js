@@ -16,9 +16,47 @@ async function boot(){if(!localStorage.getItem(T))return;try{me=await req('/api/
   return;
 }await loadProfile()}catch(e){logout(e.message)}}
 async function loadProfile(){profile=await req('/api/associate-portal/me');$('welcome').textContent=`Olá, ${profile.name}`;$('name').value=profile.name||'';$('cpf').value=maskDoc(profile.document);$('birth-date').value=profile.birthDate||'';$('whatsapp').value=profile.whatsapp||'';$('secondary-phone').value=profile.secondaryPhone||'';$('email').value=profile.email||'';$('postal-code').value=profile.postalCode||'';$('address-line').value=profile.addressLine||'';$('address-number').value=profile.addressNumber||'';$('address-complement').value=profile.addressComplement||'';$('neighborhood').value=profile.neighborhood||'';$('city').value=profile.city||'';$('state').value=profile.state||'';$('vehicles').innerHTML=(profile.vehicles||[]).map(v=>`<article class="vehicle-card" data-id="${v.id}"><div class="section-head"><div><h3>${v.plate||'Sem placa'} · ${v.model||'Veículo'}</h3><p>${v.planName||'Plano não informado'} · ${money(v.monthlyValue)}/mês</p></div><span class="status ${v.businessStatus.startsWith('DISABLED')?'disabled':v.businessStatus==='DELINQUENT'?'late':''}">${v.businessStatusLabel}</span></div><p class="muted">Próximo vencimento: ${date(v.nextDueDate)}</p><p>Pagos: ${v.paidCharges} · Pendentes: ${v.pendingCharges} · Atrasados: ${v.overdueCharges}</p></article>`).join('')||'<div class="panel">Nenhum veículo vinculado.</div>';document.querySelectorAll('.vehicle-card').forEach(x=>x.onclick=()=>openVehicle(x.dataset.id))}
-async function openVehicle(id){current=await req(`/api/associate-portal/vehicles/${id}`);$('profile-view').hidden=true;$('vehicle-view').hidden=false;const v=current.vehicle;$('vehicle-head').innerHTML=`<div class="section-head"><div><span class="eyebrow">VEÍCULO</span><h2>${v.plate||'Sem placa'} · ${v.model}</h2><p>${v.manufactureYear||''} · ${v.planName||'Plano não informado'} · ${money(v.monthlyValue)}/mês</p></div><span class="status">${v.businessStatusLabel}</span></div>`;renderCharges()}
-function renderCharges(){const list=[...(current?.charges||[])].sort((a,b)=>(a.dueDate||'9999-12-31').localeCompare(b.dueDate||'9999-12-31'));$('charges').innerHTML=list.map(c=>`<tr><td>${labelType(c.type)}</td><td>${date(c.dueDate)}</td><td>${money(c.value)}</td><td>${money(c.providerFee)}</td><td>${money(c.totalCharged)}</td><td><span class="status">${labelStatus(c.status)}</span></td><td>${paymentAction(c)}</td></tr>`).join('')||'<tr><td colspan="7">Nenhuma cobrança.</td></tr>';document.querySelectorAll('[data-paycharge]').forEach(b=>b.onclick=()=>showPayment(list.find(c=>c.id===b.dataset.paycharge)));document.querySelectorAll('[data-refresh]').forEach(b=>b.onclick=()=>refreshCharge(b.dataset.refresh))}
-function paymentAction(c){if(c.status==='RECEIVED')return 'Pago';if(c.status==='ERROR')return 'Emissão inconclusiva: contate o Financeiro';if(c.status==='CANCELLED'||c.status==='REFUNDED')return labelStatus(c.status);if(c.invoiceUrl)return `<button class="outline" data-paycharge="${c.id}">Pagar</button>`;if(c.pixPayload)return `<button class="outline" data-paycharge="${c.id}">Ver Pix</button>`;return `<button class="outline" data-refresh="${c.id}">Atualizar</button>`}
+async function openVehicle(id){
+  try {
+    msg('profile-msg','');
+    current=await req(`/api/associate-portal/vehicles/${id}`);
+    const v=current.vehicle;
+    $('vehicle-head').innerHTML=`<div class="section-head"><div><span class="eyebrow">VEÍCULO</span><h2>${v.plate||'Sem placa'} · ${v.model||'Veículo'}</h2><p>${v.manufactureYear||''} · ${v.planName||'Plano não informado'} · ${money(v.monthlyValue)}/mês</p></div><span class="status">${v.businessStatusLabel}</span></div>`;
+    $('payment-box').hidden=true;
+    renderCharges();
+    if(!$('vehicle-modal').open)$('vehicle-modal').showModal();
+  } catch(e) { msg('profile-msg',e.message); }
+}
+function renderCharges(){
+  const list=[...(current?.charges||[])].sort((a,b)=>(a.dueDate||'9999-12-31').localeCompare(b.dueDate||'9999-12-31'));
+  const adhesion=list.filter(c=>c.type==='ADHESION');
+  const monthly=list.filter(c=>c.type==='MONTHLY');
+  const titles=list.filter(c=>c.type==='ADHESION'||c.type==='MONTHLY');
+  const printable=titles.filter(c=>Boolean(c.bankSlipUrl||c.invoiceUrl)).length;
+  $('billing-summary').textContent=`Adesão: ${adhesion.length?1:0}/1 · Mensalidades: ${Math.min(monthly.length,12)}/12 · Links de pagamento disponíveis: ${printable}/${titles.length}`;
+  const missing=adhesion.length===0||monthly.length<12;
+  const pending=titles.some(c=>c.status!=='RECEIVED'&&!c.bankSlipUrl&&!c.invoiceUrl);
+  $('billing-note').textContent=missing
+    ? 'O lote de adesão e 12 mensalidades ainda não está completo. Procure o Financeiro para regularizar os títulos.'
+    : pending
+      ? 'Os lançamentos estão cadastrados, mas alguns boletos ainda aguardam emissão pelo Asaas. Não é possível imprimi-los até que o link seja disponibilizado.'
+      : 'Os títulos estão disponíveis por vencimento. Você pode abrir e imprimir qualquer boleto futuro para antecipar seu pagamento.';
+  $('charges').innerHTML=list.map(c=>`<tr><td>${labelType(c.type)}</td><td>${date(c.dueDate)}</td><td>${money(c.value)}</td><td>${money(c.providerFee)}</td><td>${money(c.totalCharged)}</td><td><span class="status">${labelStatus(c.status)}</span></td><td>${paymentAction(c)}</td></tr>`).join('')||'<tr><td colspan="7">Nenhuma cobrança cadastrada.</td></tr>';
+  document.querySelectorAll('[data-paycharge]').forEach(b=>b.onclick=()=>showPayment(list.find(c=>c.id===b.dataset.paycharge)));
+  document.querySelectorAll('[data-refresh]').forEach(b=>b.onclick=()=>refreshCharge(b.dataset.refresh));
+}
+function paymentAction(c){
+  if(c.status==='RECEIVED')return 'Pago';
+  if(c.status==='CANCELLED'||c.status==='REFUNDED')return labelStatus(c.status);
+  if(c.status==='ERROR')return 'Emissão inconclusiva: contate o Financeiro';
+  if(c.billingType==='BOLETO'&&(c.bankSlipUrl||c.invoiceUrl)){
+    const url=c.bankSlipUrl||c.invoiceUrl;
+    return `<a class="outline" href="${url}" target="_blank" rel="noopener noreferrer">Abrir / imprimir boleto</a>`;
+  }
+  if(c.invoiceUrl)return `<a class="outline" href="${c.invoiceUrl}" target="_blank" rel="noopener noreferrer">Pagar</a>`;
+  if(c.pixPayload)return `<button class="outline" data-paycharge="${c.id}">Ver Pix</button>`;
+  return `<button class="outline" data-refresh="${c.id}">Atualizar</button>`;
+}
 function showPayment(c){const box=$('payment-box');box.hidden=false;let html=`<h2>Pagamento</h2><p>Valor total: ${money(c.totalCharged)}</p>`;if(!c.invoiceUrl&&!c.bankSlipUrl&&!c.pixPayload)html+='<p>A emissão ainda está pendente. Atualize em instantes ou procure o Financeiro.</p>';if(c.pixEncodedImage)html+=`<img alt="QR Code Pix" src="data:image/png;base64,${c.pixEncodedImage}">`;if(c.pixPayload)html+=`<p>Pix copia e cola</p><div class="pix-code">${c.pixPayload}</div><button id="copy-pix" class="secondary" style="margin-top:10px">Copiar Pix</button>`;if(c.identificationField)html+=`<p>Linha digitável</p><div class="pix-code">${c.identificationField}</div>`;if(c.invoiceUrl)html+=`<p><a class="primary" href="${c.invoiceUrl}" target="_blank" rel="noopener">Abrir pagamento seguro</a></p>`;if(c.bankSlipUrl)html+=`<p><a href="${c.bankSlipUrl}" target="_blank" rel="noopener">Abrir boleto</a></p>`;box.innerHTML=html;if($('copy-pix'))$('copy-pix').onclick=()=>navigator.clipboard.writeText(c.pixPayload)}
 async function refreshCharge(id){try{const c=await req(`/api/associate-portal/charges/${id}/refresh`,{method:'POST'});current.charges=current.charges.map(x=>x.id===id?c:x);renderCharges();showPayment(c)}catch(e){msg('charge-msg',e.message)}}
 function labelStatus(s){return ({PENDING:'Pendente',CONFIRMED:'Confirmado',RECEIVED:'Pago',OVERDUE:'Atrasado',REFUNDED:'Estornado',CANCELLED:'Cancelado',ERROR:'Erro'})[s]||s}function labelType(t){return ({ADHESION:'Adesão',CLOSING:'Fechamento',MONTHLY:'Mensalidade'})[t]||t}function maskDoc(v){const d=String(v||'');return d.length===11?d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4'):d}
@@ -30,6 +68,6 @@ $('password-form').addEventListener('submit',async e=>{e.preventDefault();try{co
   $('password-form').reset();
   msg('password-msg','');
   await boot()}catch(x){msg('password-msg',x.message)}});
-document.querySelectorAll('[data-billing]').forEach(b=>b.onclick=async()=>{if(!current)return;try{msg('charge-msg','');const c=await req(`/api/associate-portal/vehicles/${current.vehicle.id}/charges`,{method:'POST',body:JSON.stringify({billingType:b.dataset.billing})});current=await req(`/api/associate-portal/vehicles/${current.vehicle.id}`);renderCharges();showPayment(c)}catch(x){msg('charge-msg',x.message)}});$('back').onclick=()=>{$('vehicle-view').hidden=true;$('profile-view').hidden=false;$('payment-box').hidden=true};$('change-pass-button').addEventListener('click',()=>{if(!$('password-dialog').open)$('password-dialog').showModal()});
+document.querySelectorAll('[data-billing]').forEach(b=>b.onclick=async()=>{if(!current)return;try{msg('charge-msg','');const c=await req(`/api/associate-portal/vehicles/${current.vehicle.id}/charges`,{method:'POST',body:JSON.stringify({billingType:b.dataset.billing})});current=await req(`/api/associate-portal/vehicles/${current.vehicle.id}`);renderCharges();showPayment(c)}catch(x){msg('charge-msg',x.message)}});$('back').onclick=()=>$('vehicle-modal').close();$('vehicle-modal').addEventListener('close',()=>{$('payment-box').hidden=true;msg('charge-msg','')});$('change-pass-button').addEventListener('click',()=>{if(!$('password-dialog').open)$('password-dialog').showModal()});
 $('password-dialog').addEventListener('cancel',e=>{if(me?.passwordChangeRequired)e.preventDefault()});
 $('logout').onclick=()=>logout();boot();
