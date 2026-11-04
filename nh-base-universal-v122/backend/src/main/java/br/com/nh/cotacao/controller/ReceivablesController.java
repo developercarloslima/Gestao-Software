@@ -34,6 +34,11 @@ public class ReceivablesController {
         return service.refreshAndList(chargeId);
     }
 
+    @PostMapping("/charges/{chargeId}/issue-boleto")
+    public SecondCopyResult issueBoleto(@PathVariable UUID chargeId) {
+        return service.issueBoleto(chargeId);
+    }
+
     @PostMapping("/charges/{chargeId}/second-copy")
     public SecondCopyResult secondCopy(@PathVariable UUID chargeId,
                                        @RequestBody(required = false) SecondCopyRequest request) {

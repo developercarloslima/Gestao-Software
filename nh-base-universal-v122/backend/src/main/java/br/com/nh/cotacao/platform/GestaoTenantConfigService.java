@@ -283,6 +283,33 @@ public class GestaoTenantConfigService {
           }
     }
 
+    /** O token HMAC nunca sai do backend tenant; emissão em conta-pai da Gestão. */
+    public Map<String,Object> issueCompanyInvoiceBoleto(java.util.UUID invoiceId) {
+        // Também valida o vínculo local com a empresa central antes de solicitar pagamento.
+        fetchCompanySubscription(false);
+        try {
+            HttpRequest req=HttpRequest.newBuilder(
+                    URI.create(baseUrl+"/api/public/platform/tenant-invoices/invoices/"+invoiceId+"/issue-boleto"))
+                    .timeout(Duration.ofSeconds(40))
+                    .header("Accept","application/json")
+                    .header("X-Gestao-Tenant-Host",tenantHost.trim().toLowerCase(Locale.ROOT))
+                    .header("X-Gestao-Tenant-Token",brandingToken)
+                    .POST(HttpRequest.BodyPublishers.noBody()).build();
+            HttpResponse<String> result=http.send(req,HttpResponse.BodyHandlers.ofString());
+            if(result.statusCode()<200 || result.statusCode()>=300) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.BAD_GATEWAY,
+                        "Não foi possível emitir esta mensalidade no Asaas da Gestão. Verifique a financeira.");
+            }
+            return mapper.readValue(result.body(),new TypeReference<>() {});
+        } catch (org.springframework.web.server.ResponseStatusException ex) {throw ex;}
+          catch(Exception ex) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_GATEWAY,
+                    "Falha na emissão da mensalidade pela Gestão. Consulte o financeiro.");
+        }
+    }
+
     private Map<String, Object> fetchCompanySubscription(boolean synchronize) {
         if (!brandingToken.matches("(?i)[0-9a-f]{64}")) {
             throw new org.springframework.web.server.ResponseStatusException(

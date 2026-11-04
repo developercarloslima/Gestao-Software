@@ -21,6 +21,11 @@ public class CompanySubscriptionController {
         return gestao.chooseCompanyRenewal(body==null?null:body.get("action"));
     }
 
+    @org.springframework.web.bind.annotation.PostMapping("/invoices/{invoiceId}/issue-boleto")
+    public Map<String,Object> issueBoleto(@org.springframework.web.bind.annotation.PathVariable java.util.UUID invoiceId) {
+        return gestao.issueCompanyInvoiceBoleto(invoiceId);
+    }
+
     @GetMapping
     public Map<String, Object> list() {
         return gestao.companySubscription();

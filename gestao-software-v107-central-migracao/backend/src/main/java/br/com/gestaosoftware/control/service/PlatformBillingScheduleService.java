@@ -27,6 +27,8 @@ public class PlatformBillingScheduleService {
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Sao_Paulo");
     private final JdbcTemplate db;
     private final PlatformPaymentGateway gateway;
+    @org.springframework.beans.factory.annotation.Value("${app.financial.auto-issue-batches:false}")
+    private boolean autoIssueBatches;
 
     public PlatformBillingScheduleService(JdbcTemplate db, PlatformPaymentGateway gateway) {
         this.db = db;
@@ -191,7 +193,8 @@ public class PlatformBillingScheduleService {
      */
     @Scheduled(fixedDelay=15000,initialDelay=12000)
     public void issuePending() {
-        if(!gateway.ready())return;
+        // Cada fatura é emitida pelo botão do ADM; a emissão em massa exige opt-in.
+        if(!autoIssueBatches || !gateway.ready())return;
         List<UUID> invoices=db.query("""
             SELECT i.id FROM platform_company_invoices i
             JOIN platform_companies c ON c.id=i.company_id
