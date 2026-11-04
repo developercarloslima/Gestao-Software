@@ -112,6 +112,20 @@ class AsaasAssociateConsultantSafetyTest {
         verify(charges, never()).countByVehicle_IdAndChargeTypeAndStatus(any(), any(), any());
     }
 
+    @Test void repeatedPaymentReceivedEventDoesNotTurnClosingBackIntoMonthly() throws Exception {
+        CommercialVehicle vehicle = mock(CommercialVehicle.class);
+        when(vehicle.getAssociate()).thenReturn(mock(Associate.class));
+        FinancialCharge firstClosing = charge(vehicle, FinancialChargeStatus.RECEIVED, LocalDate.of(2026, 11, 10));
+        firstClosing.setChargeType(FinancialChargeType.CLOSING);
+        firstClosing.applyProvider("pay_closing", null, null, null, null, null, null, null);
+        when(charges.findByProviderPaymentId("pay_closing")).thenReturn(Optional.of(firstClosing));
+        when(charges.save(firstClosing)).thenReturn(firstClosing);
+        service().handleAsaasWebhook(mapper.readTree(
+                "{\"id\":\"evt_duplicate_closing\",\"event\":\"PAYMENT_RECEIVED\",\"payment\":{\"id\":\"pay_closing\",\"status\":\"RECEIVED\"}}"));
+        assertEquals(FinancialChargeType.CLOSING, firstClosing.getChargeType());
+        verify(charges, never()).countByVehicle_IdAndChargeTypeAndStatus(any(), any(), any());
+    }
+
     @Test void delayedTransferFailureCannotReverseAlreadyPaidWithdrawal() throws Exception {
         Consultant c = mock(Consultant.class);
         ConsultantWithdrawal paid = ConsultantWithdrawal.createPix(c, new BigDecimal("100.00"),
