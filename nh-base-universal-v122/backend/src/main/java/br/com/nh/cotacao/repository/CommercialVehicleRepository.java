@@ -39,6 +39,24 @@ public interface CommercialVehicleRepository extends JpaRepository<CommercialVeh
         @Param("platePattern") String platePattern,
         Pageable pageable
     );
+    /** Confirma o contrato WebAuthn, sem depender dos termos adicionais. */
+    @Query("""
+        select case when count(i) > 0 then true else false end
+        from InspectionRequest i
+        where i.quotation.id = :quotationId
+          and i.cpf = :cpf
+          and i.status = :approved
+          and i.acceptedAt is not null
+          and i.registrationCompletedAt is not null
+          and (i.pendingContractFipeValue is null or i.pendingContractMonthlyValue is null)
+        """)
+    boolean hasAcceptedContract(@Param("quotationId") UUID quotationId,
+            @Param("cpf") String cpf, @Param("approved") InspectionRequestStatus approved);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select v from CommercialVehicle v where v.id = :vehicleId")
+    Optional<CommercialVehicle> findByIdForBillingUpdate(@Param("vehicleId") UUID vehicleId);
+
     Optional<CommercialVehicle> findByQuotation_Id(UUID quotationId);
     Optional<CommercialVehicle> findByAsaasSubscriptionId(String asaasSubscriptionId);
     List<CommercialVehicle> findAllByAssociate_IdOrderByCreatedAtDesc(UUID associateId);

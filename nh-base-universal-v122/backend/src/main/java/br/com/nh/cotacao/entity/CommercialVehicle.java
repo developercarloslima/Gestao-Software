@@ -66,6 +66,11 @@ public class CommercialVehicle {
     public void setAssociate(Associate associate) { this.associate = associate; this.updatedAt = OffsetDateTime.now(); }
     public void setAdhesionPaymentMethod(AdhesionPaymentMethod method) { if (method != null) this.adhesionPaymentMethod = method; this.updatedAt = OffsetDateTime.now(); }
     public void setRecurringBillingType(FinancialBillingType type) { if (type == FinancialBillingType.BOLETO || type == FinancialBillingType.PIX || type == FinancialBillingType.CREDIT_CARD) this.recurringBillingType = type; this.updatedAt = OffsetDateTime.now(); }
+    /** Ativa cobrança antecipada apenas após verificar contrato e ausência de histórico financeiro. */
+    public void enableAdvanceBillingAfterAcceptance() {
+        this.advanceBillingEnabled = true;
+        this.updatedAt = OffsetDateTime.now();
+    }
     public boolean isAdvanceBillingEnabled() { return advanceBillingEnabled; }
     public LocalDate getNextAdvanceBillingAt() { return nextAdvanceBillingAt; }
     public void setNextAdvanceBillingAt(LocalDate next) { this.nextAdvanceBillingAt=next;this.updatedAt=OffsetDateTime.now(); }

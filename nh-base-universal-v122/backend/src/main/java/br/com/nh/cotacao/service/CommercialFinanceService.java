@@ -634,10 +634,57 @@ public class CommercialFinanceService {
         return associatePortal(associateId);
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * Corrige veículos de vistoria já aceita que foram ativados antes da geração do
+     * lote financeiro. Cria SOMENTE títulos locais: nunca chama Asaas nesta consulta.
+     * Não altera veículos com cobrança/histórico ou assinatura já existente.
+     */
+    @Transactional
+    public void ensureAcceptedLocalBilling(UUID vehicleId) {
+        CommercialVehicle v = vehicles.findByIdForBillingUpdate(vehicleId)
+                .orElseThrow(() -> new IllegalArgumentException("Veículo não encontrado."));
+        if (v.getStatus() != CommercialVehicleStatus.ACTIVE
+                || v.getQuotation() == null || v.getAssociate() == null
+                || v.getAssociate().getDocument() == null
+                || v.getAsaasSubscriptionId() != null || v.getNextAdvanceBillingAt() != null) return;
+        if (!vehicles.hasAcceptedContract(v.getQuotation().getId(), v.getAssociate().getDocument(),
+                InspectionRequestStatus.APPROVED)) return;
+
+        // Não tocar em veículos antigos que já possuam cobranças, inclusive pagas.
+        if (!charges.findAllByVehicle_IdOrderByDueDateDescCreatedAtDesc(vehicleId).isEmpty()) return;
+
+        BigDecimal adhesionValue = v.getAdhesionValue();
+        if (adhesionValue != null && adhesionValue.signum() > 0
+                && v.getAdhesionPaymentMethod() != AdhesionPaymentMethod.CASH_HAND) {
+            FinancialBillingType billing = v.getAdhesionPaymentMethod() == AdhesionPaymentMethod.PIX
+                    ? FinancialBillingType.PIX : FinancialBillingType.BOLETO;
+            FinancialCharge adhesion = FinancialCharge.create(v, FinancialChargeType.ADHESION,
+                    billing, adhesionValue, LocalDate.now());
+            adhesion.selectProvider(asaas.code());
+            adhesion.applyProviderFee(paymentFeeFor(billing));
+            charges.save(adhesion);
+        } else {
+            // Adesão isenta ou recebida em mãos: registrar sem boleto de valor zero.
+            FinancialCharge adhesion = FinancialCharge.create(v, FinancialChargeType.ADHESION,
+                    FinancialBillingType.CASH_HAND, adhesionValue, LocalDate.now());
+            adhesion.markReceived(OffsetDateTime.now());
+            charges.save(adhesion);
+        }
+
+        if (v.getMonthlyValue() != null && v.getMonthlyValue().signum() > 0) {
+            v.enableAdvanceBillingAfterAcceptance();
+            LocalDate firstDue = v.getFirstBillingDueDate() == null
+                    ? LocalDate.now().plusMonths(1) : v.getFirstBillingDueDate();
+            if (firstDue.isBefore(LocalDate.now())) firstDue = LocalDate.now().plusMonths(1);
+            scheduleAdvanceBatch(v, firstDue);
+        }
+    }
+
+    @Transactional
     public AssociateVehicleDetail associateVehicle(UUID associateId, UUID vehicleId) {
         CommercialVehicle v = requireVehicle(vehicleId);
         if (!v.getAssociate().getId().equals(associateId)) throw new IllegalArgumentException("Este veículo não pertence ao associado autenticado.");
+        ensureAcceptedLocalBilling(vehicleId);
         return new AssociateVehicleDetail(toAssociateVehicleSummary(v), asaas.enabled(), charges.findAllByVehicle_IdOrderByDueDateDescCreatedAtDesc(vehicleId).stream().map(this::toChargeResponse).toList());
     }
 
