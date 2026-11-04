@@ -201,7 +201,7 @@ class PortalUserServiceTenantModuleBootstrapTest {
     }
 
     @Test
-    void importedUserKeepsBatchTemporaryPasswordAndMustChangeIt() {
+    void importedUserUsesStandardInitialPasswordAndMustChangeIt() {
         when(users.findByNormalizedUsername("importado")).thenReturn(Optional.empty());
         var stored = new java.util.concurrent.atomic.AtomicReference<PortalUser>();
         when(users.save(any(PortalUser.class))).thenAnswer(call -> {
@@ -215,7 +215,8 @@ class PortalUserServiceTenantModuleBootstrapTest {
                 "SenhaTemporariaImportacao2026", "adm.empresa");
 
         PortalUser account = stored.get();
-        assertTrue(encoder.matches("SenhaTemporariaImportacao2026", account.getPasswordHash()));
+        assertTrue(encoder.matches("gestao1234", account.getPasswordHash()));
+        assertFalse(encoder.matches("SenhaTemporariaImportacao2026", account.getPasswordHash()));
         assertTrue(result.mustChangePassword());
     }
 
