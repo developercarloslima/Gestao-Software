@@ -61,7 +61,7 @@ class InspectionAcceptanceAccountWorkflowTest {
 
 
     @Test
-    void activatesOnlyWhenAllThreeSignaturesAreConfirmed() {
+    void activatesWhenContractAcceptedEvenIfAdditionalTermsRemainPending() {
         UUID id = UUID.randomUUID();
         Associate associate = Associate.create("Maria Silva", CPF, null, null);
         InspectionRequest inspection = mock(InspectionRequest.class);
@@ -73,18 +73,16 @@ class InspectionAcceptanceAccountWorkflowTest {
         when(inspection.getAssociate()).thenReturn(associate);
         when(associates.findByDocument(CPF)).thenReturn(Optional.of(associate));
         when(inspections.findById(id)).thenReturn(Optional.of(inspection));
-        InspectionAcceptanceWorkflowService checked = spy(workflow);
-        doReturn(new InspectionAcceptanceWorkflowService.Progress(
-                true, true, true, true, false, 3, 3)).when(checked).progress(inspection);
+        when(inspection.getAcceptedAt()).thenReturn(OffsetDateTime.now());
 
-        checked.activateAssociatePortalAccessIfComplete(id);
+        workflow.activateAssociatePortalAccessIfComplete(id);
 
         verify(users).prepareAssociateAccountForAcceptance(associate.getId());
         verify(users).activateAssociateAccountAfterAcceptance(associate.getId());
     }
 
     @Test
-    void partialAcceptancePreparesLoginButKeepsItInactive() {
+    void additionalTermsWithoutContractAcceptanceKeepLoginInactive() {
         UUID id = UUID.randomUUID();
         Associate associate = Associate.create("Maria Silva", CPF, null, null);
         InspectionRequest inspection = mock(InspectionRequest.class);
@@ -96,11 +94,8 @@ class InspectionAcceptanceAccountWorkflowTest {
         when(inspection.getAssociate()).thenReturn(associate);
         when(associates.findByDocument(CPF)).thenReturn(Optional.of(associate));
         when(inspections.findById(id)).thenReturn(Optional.of(inspection));
-        InspectionAcceptanceWorkflowService checked = spy(workflow);
-        doReturn(new InspectionAcceptanceWorkflowService.Progress(
-                true, false, false, false, false, 1, 3)).when(checked).progress(inspection);
 
-        checked.activateAssociatePortalAccessIfComplete(id);
+        workflow.activateAssociatePortalAccessIfComplete(id);
 
         verify(users).prepareAssociateAccountForAcceptance(associate.getId());
         verify(users, never()).activateAssociateAccountAfterAcceptance(any());
