@@ -282,15 +282,15 @@ public class CommercialFinanceService {
         c.applyProvider(p.id(), p.subscriptionId(), p.invoiceUrl(), p.bankSlipUrl(), p.identificationField(), p.barCode(), p.pixPayload(), p.pixEncodedImage());
         if (status != null) {
             c.updateFromWebhook(status, null, null, null, p.invoiceUrl(), p.bankSlipUrl());
-            if (status == FinancialChargeStatus.RECEIVED && c.getChargeType() != FinancialChargeType.ADHESION) {
+            if (c.getStatus() == FinancialChargeStatus.RECEIVED && c.getChargeType() == FinancialChargeType.MONTHLY) {
                 long paidClosingForVehicle = charges.countByVehicle_IdAndChargeTypeAndStatus(c.getVehicle().getId(), FinancialChargeType.CLOSING, FinancialChargeStatus.RECEIVED);
                 boolean adhesionSettled = isAdhesionSettled(c.getVehicle());
                 c.setChargeType(adhesionSettled && paidClosingForVehicle == 0 ? FinancialChargeType.CLOSING : FinancialChargeType.MONTHLY);
             }
         }
         c = charges.save(c);
-        if (status == FinancialChargeStatus.RECEIVED && old != FinancialChargeStatus.RECEIVED) creditCommission(c);
-        if (status == FinancialChargeStatus.REFUNDED && old != FinancialChargeStatus.REFUNDED) reverseCommission(c);
+        if (c.getStatus() == FinancialChargeStatus.RECEIVED && old != FinancialChargeStatus.RECEIVED) creditCommission(c);
+        if (c.getStatus() == FinancialChargeStatus.REFUNDED && old != FinancialChargeStatus.REFUNDED) reverseCommission(c);
         return toChargeResponse(c);
     }
 
@@ -342,7 +342,9 @@ public class CommercialFinanceService {
 
     @Transactional
     public WithdrawalResponse requestWithdrawal(UUID consultantId, WithdrawalRequest request) {
-        Consultant c = requireConsultant(consultantId);
+        // Serializa saques do mesmo consultor antes de recalcular o saldo.
+        Consultant c = consultants.findByIdForUpdate(consultantId).filter(Consultant::isActive)
+                .orElseThrow(() -> new IllegalArgumentException("Consultor não encontrado."));
         BigDecimal amount = request == null ? null : request.amount();
         ConsultantPayoutMethod payoutMethod = request == null || request.payoutMethod() == null ? ConsultantPayoutMethod.PIX : request.payoutMethod();
         if (paidClosings(consultantId) < REQUIRED_CLOSINGS) throw new IllegalArgumentException("O saque é liberado após 10 boletos de fechamento quitados.");
@@ -399,7 +401,18 @@ public class CommercialFinanceService {
         String subscriptionId = text(payment,"subscription");
         String externalReference = text(payment,"externalReference");
         FinancialCharge c = charges.findByProviderPaymentId(paymentId).orElse(null);
+        // Webhook pode chegar antes de gravarmos o ID remoto da parcela existente.
+        if (c == null && externalReference != null && !externalReference.isBlank()) {
+            c = charges.findByExternalReference(externalReference).orElse(null);
+        }
+        if (c != null && c.getProviderPaymentId() != null
+                && !paymentId.equals(c.getProviderPaymentId())) {
+            throw new IllegalStateException("Referência externa Asaas vinculada a outra cobrança. Reconciliação necessária.");
+        }
         if (c == null) {
+            if (externalReference != null && externalReference.startsWith("monthly:")) {
+                throw new IllegalStateException("Parcela ainda não registrada. Aguardando reenvio do webhook Asaas.");
+            }
             CommercialVehicle v = locateVehicle(subscriptionId, externalReference);
             if (v == null) return;
             FinancialChargeType type;
@@ -412,21 +425,24 @@ public class CommercialFinanceService {
             c = FinancialCharge.create(v, type, billing, baseValue, dueDate);
             c.applyProviderFee(providerGross.subtract(baseValue).max(BigDecimal.ZERO));
             c.applyProvider(paymentId, subscriptionId, text(payment,"invoiceUrl"), text(payment,"bankSlipUrl"), null, null, null, null);
+        } else if (c.getProviderPaymentId() == null) {
+            c.applyProvider(paymentId, subscriptionId, text(payment,"invoiceUrl"),
+                    text(payment,"bankSlipUrl"), null, null, null, null);
         }
         FinancialChargeStatus old = c.getStatus();
         FinancialChargeStatus status = mapPaymentStatus(eventType, text(payment,"status"));
         OffsetDateTime paidAt = dateTime(text(payment,"paymentDate"));
         if (paidAt == null) paidAt = dateTime(text(payment,"clientPaymentDate"));
         c.updateFromWebhook(status, decimal(payment,"value",null), date(text(payment,"dueDate")), paidAt, text(payment,"invoiceUrl"), text(payment,"bankSlipUrl"));
-        if (status == FinancialChargeStatus.RECEIVED && c.getChargeType() != FinancialChargeType.ADHESION) {
+        if (c.getStatus() == FinancialChargeStatus.RECEIVED && c.getChargeType() == FinancialChargeType.MONTHLY) {
             long paidClosingForVehicle = charges.countByVehicle_IdAndChargeTypeAndStatus(c.getVehicle().getId(), FinancialChargeType.CLOSING, FinancialChargeStatus.RECEIVED);
             boolean adhesionSettled = isAdhesionSettled(c.getVehicle());
             c.setChargeType(adhesionSettled && paidClosingForVehicle == 0 ? FinancialChargeType.CLOSING : FinancialChargeType.MONTHLY);
         }
         c = charges.save(c);
 
-        if (status == FinancialChargeStatus.RECEIVED && old != FinancialChargeStatus.RECEIVED) creditCommission(c);
-        if (status == FinancialChargeStatus.REFUNDED && old != FinancialChargeStatus.REFUNDED) reverseCommission(c);
+        if (c.getStatus() == FinancialChargeStatus.RECEIVED && old != FinancialChargeStatus.RECEIVED) creditCommission(c);
+        if (c.getStatus() == FinancialChargeStatus.REFUNDED && old != FinancialChargeStatus.REFUNDED) reverseCommission(c);
     }
 
     private void processTransferEvent(String eventType, JsonNode transfer) {
@@ -434,6 +450,9 @@ public class CommercialFinanceService {
         if (transferId == null) return;
         ConsultantWithdrawal w = withdrawals.findByProviderTransferId(transferId).orElse(null);
         if (w == null) return;
+        // Eventos de transferência podem chegar fora de ordem: preservar estados terminais.
+        if (w.getStatus() == WithdrawalStatus.PAID || w.getStatus() == WithdrawalStatus.FAILED
+                || w.getStatus() == WithdrawalStatus.CANCELLED) return;
         if ("TRANSFER_DONE".equals(eventType)) w.paid();
         else if ("TRANSFER_FAILED".equals(eventType) || "TRANSFER_CANCELLED".equals(eventType)) {
             if ("TRANSFER_CANCELLED".equals(eventType)) w.cancelled(text(transfer,"failReason")); else w.failed(text(transfer,"failReason"));
@@ -617,18 +636,33 @@ public class CommercialFinanceService {
             throw new IllegalArgumentException("Escolha Boleto, Pix ou Cartão.");
         }
         List<FinancialCharge> existing = charges.findAllByVehicle_IdOrderByDueDateDescCreatedAtDesc(vehicleId);
-        for (FinancialCharge c : existing) {
-            if (c.getChargeType() == FinancialChargeType.MONTHLY
-                    && (c.getStatus() == FinancialChargeStatus.PENDING || c.getStatus() == FinancialChargeStatus.CONFIRMED || c.getStatus() == FinancialChargeStatus.OVERDUE)) {
-                // Nunca criamos uma segunda cobrança para a mesma obrigação em aberto: evita pagamento duplicado.
-                if (c.getProviderPaymentId() != null && asaas.enabled()) {
-                    try { return refreshCharge(c.getId(), null, PortalRole.ADMIN); } catch (RuntimeException ignored) { }
-                }
-                return toChargeResponse(c);
+        Optional<FinancialCharge> next = firstOutstandingMonthlyCharge(existing);
+        if (next.isPresent()) {
+            // Reutiliza a parcela mais antiga em aberto, nunca a última de um lote de 12.
+            FinancialCharge c = next.get();
+            if (c.getProviderPaymentId() != null && asaas.enabled()) {
+                try { return refreshCharge(c.getId(), null, PortalRole.ADMIN); } catch (RuntimeException ignored) { }
             }
+            return toChargeResponse(c);
+        }
+        if (existing.stream().anyMatch(c -> c.getChargeType() == FinancialChargeType.MONTHLY
+                && c.getStatus() == FinancialChargeStatus.ERROR && c.getProviderPaymentId() == null)) {
+            throw new IllegalStateException("Há uma emissão de mensalidade inconclusiva. Solicite reconciliação ao Financeiro para evitar cobrança duplicada.");
         }
         if (!asaas.enabled()) throw new IllegalStateException("Configure a financeira antes de gerar a cobrança.");
         return toChargeResponse(createAsaasCharge(v, FinancialChargeType.MONTHLY, billing, v.getMonthlyValue(), LocalDate.now()));
+    }
+
+    static Optional<FinancialCharge> firstOutstandingMonthlyCharge(List<FinancialCharge> existing) {
+        return existing.stream()
+                .filter(c -> c.getChargeType() == FinancialChargeType.MONTHLY
+                        && (c.getStatus() == FinancialChargeStatus.PENDING
+                        || c.getStatus() == FinancialChargeStatus.CONFIRMED
+                        || c.getStatus() == FinancialChargeStatus.OVERDUE))
+                .min(Comparator.comparing(FinancialCharge::getDueDate,
+                                Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(FinancialCharge::getCreatedAt,
+                                Comparator.nullsLast(Comparator.naturalOrder())));
     }
 
     private AssociateVehicleSummary toAssociateVehicleSummary(CommercialVehicle v) {

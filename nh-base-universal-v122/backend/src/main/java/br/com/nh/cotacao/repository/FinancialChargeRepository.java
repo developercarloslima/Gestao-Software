@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public interface FinancialChargeRepository extends JpaRepository<FinancialCharge, UUID> {
     Optional<FinancialCharge> findByProviderPaymentId(String providerPaymentId);
+    Optional<FinancialCharge> findByExternalReference(String externalReference);
     List<FinancialCharge> findAllByVehicle_IdOrderByDueDateDescCreatedAtDesc(UUID vehicleId);
     long countByVehicle_IdAndChargeType(UUID vehicleId, FinancialChargeType type);
     long countByVehicle_IdAndChargeTypeAndStatus(UUID vehicleId, FinancialChargeType type, FinancialChargeStatus status);
