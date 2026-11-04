@@ -92,6 +92,8 @@ app:
     base-url: ${ASAAS_BASE_URL:https://api-sandbox.asaas.com/v3}
     api-key: ${ASAAS_API_KEY:}
     webhook-token: ${ASAAS_WEBHOOK_TOKEN:}
+    # Bloqueia emissao quando a chave nao pertence a carteira do tenant.
+    expected-wallet-id: ${ASAAS_EXPECTED_WALLET_ID:}
     user-agent: ${ASAAS_USER_AGENT:NH-Gestao/1.0}
     payment-fee: ${ASAAS_PAYMENT_FEE:2.00}
     withdrawal-fee: ${ASAAS_WITHDRAWAL_FEE:2.00}
