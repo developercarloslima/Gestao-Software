@@ -119,6 +119,19 @@ public class ReceivablesService {
                 "Mensalidade atual e nove próximas competências. Previsões não possuem boleto até o Asaas emitir a cobrança.");
     }
 
+    /** Emite a cobrança local escolhida pelo ADM/Financeiro, usando a mesma trava do portal. */
+    public SecondCopyResult issueBoleto(UUID chargeId) {
+        FinancialCharge charge = requireBoleto(chargeId);
+        if (charge.getAssociate() == null) throw new IllegalArgumentException("Cobrança sem associado.");
+        var issued = finance.issueAssociateBoleto(charge.getAssociate().getId(), chargeId);
+        String printable = safeUrl(issued.bankSlipUrl());
+        if (printable == null) printable = safeUrl(issued.invoiceUrl());
+        return new SecondCopyResult(chargeId, issued.dueDate(), issued.status().name(), printable,
+                issued.identificationField(), printable == null
+                    ? "A emissão não foi concluída. Solicite conciliação ao Financeiro."
+                    : "Boleto emitido. Abrindo em nova aba.");
+    }
+
     @Transactional
     public SecondCopyResult secondCopy(UUID chargeId, SecondCopyRequest request) {
         FinancialCharge charge = requireBoleto(chargeId);
