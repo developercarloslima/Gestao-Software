@@ -7,6 +7,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface FinancialChargeRepository extends JpaRepository<FinancialCharge, UUID> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select c from FinancialCharge c where c.id = :chargeId")
+    Optional<FinancialCharge> findByIdForIssuance(@org.springframework.data.repository.query.Param("chargeId") UUID chargeId);
     Optional<FinancialCharge> findByProviderPaymentId(String providerPaymentId);
     Optional<FinancialCharge> findByExternalReference(String externalReference);
     List<FinancialCharge> findAllByVehicle_IdOrderByDueDateDescCreatedAtDesc(UUID vehicleId);
