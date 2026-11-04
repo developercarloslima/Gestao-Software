@@ -44,6 +44,9 @@ test('cada boleto emitido tem atalho individual de abertura para impressão', ()
   assert.match(boleto, /example\.org\/boleto\.pdf/);
   assert.match(boleto, /target="_blank"/);
   const aguardando = action({status:'PENDING',billingType:'BOLETO',id:'abc'});
-  assert.match(aguardando, /Atualizar/);
+  assert.match(aguardando, /Gerar boleto/);
+  assert.match(aguardando, /data-issue-boleto="abc"/);
   assert.doesNotMatch(aguardando, /href=/);
+  assert.match(js, /window\.open\('about:blank','_blank'\)/);
+  assert.match(js, /issue-boleto/);
 });
