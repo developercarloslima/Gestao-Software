@@ -362,15 +362,16 @@ async function loadAsaasSubaccountStatus(companyId){
     const s=await api(`/api/platform/companies/${companyId}/asaas-subaccount`);
     if(currentCompany?.id!==companyId||!box.isConnected)return;
     if(s.state==='NOT_CREATED'){
-      box.innerHTML=`<p>Sem subconta Asaas. As cobranças dos associados desta empresa ainda não devem usar a conta principal do Gestão.</p><p><strong>Conta principal:</strong> ${s.parentConfigured?'Configurada':'Credencial não configurada'} · ${s.sandbox?'Sandbox':'Produção'}</p><button class="button primary small" type="button" data-create-asaas-subaccount="${companyId}" ${!s.parentConfigured?'disabled':''}>Cadastrar subconta da empresa</button>`;
+      box.innerHTML=`<p>Sem subconta Asaas. As cobranças dos associados desta empresa ainda não devem usar a conta principal do Gestão.</p><p><strong>Conta principal:</strong> ${s.parentConfigured?'Configurada':'Credencial não configurada'} · ${s.sandbox?'Sandbox':'Produção'}</p><div class="form-actions"><button class="button outline small" type="button" data-check-asaas-subaccount="${companyId}" ${!s.parentConfigured?'disabled':''}>Verificar CNPJ no Asaas (sem criar)</button><button class="button primary small" type="button" data-create-asaas-subaccount="${companyId}" ${!s.parentConfigured?'disabled':''}>Cadastrar subconta da empresa</button></div><p class="form-help" data-asaas-lookup-result aria-live="polite"></p>`;
       return;
     }
-    const labels={CREATING:'Criação em andamento',REJECTED:'Dados rejeitados pelo Asaas; corrija e tente novamente',REVIEW_REQUIRED:'Resultado incerto; conferir no Asaas',PENDING_ACTIVATION:'Criada; aguardando ativação e implantação no tenant',ACTIVE:'Subconta aprovada no Asaas'};
+    const labels={CREATING:'Criação em andamento',REJECTED:'Dados rejeitados pelo Asaas; corrija e tente novamente',REVIEW_REQUIRED:'Revisão manual necessária antes de qualquer criação',PENDING_ACTIVATION:'Criada; aguardando ativação e implantação no tenant',ACTIVE:'Subconta aprovada no Asaas'};
     const hasError=['REJECTED','REVIEW_REQUIRED'].includes(s.state);
     const errorDetail=hasError?`<p class="form-help"><strong>Última resposta Asaas:</strong> HTTP ${esc(s.lastHttpStatus||'não registrada')}${s.lastErrorCode?` · Código: ${esc(s.lastErrorCode)}`:''}. Tentativa nº ${esc(s.attemptCount||1)}.</p>${s.lastErrorMessage?`<p class="form-help"><strong>Motivo informado:</strong> ${esc(s.lastErrorMessage)}</p>`:''}`:'';
-    const retryAction=s.state==='REJECTED'?`<div class="form-actions"><p class="form-help">Revise os dados e tente novamente somente após a correção.</p><button class="button primary small" type="button" data-create-asaas-subaccount="${companyId}" data-asaas-retry="true" ${!s.parentConfigured?'disabled':''}>Corrigir dados e tentar novamente</button></div>`:'';
-    const reviewWarning=s.state==='REVIEW_REQUIRED'?'<p class="form-help"><strong>Atenção:</strong> não reenvie o cadastro antes de confirmar no Asaas se a subconta já existe. A repetição está bloqueada para evitar duplicidade.</p>':'';
-    box.innerHTML=`<p><strong>Situação:</strong> ${esc(labels[s.state]||s.state)}.</p><p><strong>Titular:</strong> ${esc(s.ownerEmail||'—')}<br><strong>Conta:</strong> ${esc(s.accountId||'—')}<br><strong>Carteira exclusiva:</strong> ${esc(s.walletId||'—')}</p><p class="form-help">A empresa recebe e mantém o saldo em sua própria subconta. Para emitir cobranças no sistema da empresa, é preciso configurar com segurança a API key específica dela no backend do tenant. O cadastro no Control Plane, sozinho, não habilita cobranças.</p>${errorDetail}${retryAction}${reviewWarning}`;
+    const retryAction=s.state==='REJECTED'&&!s.knownDuplicate?`<div class="form-actions"><p class="form-help">Revise os dados e tente novamente somente após a correção.</p><button class="button primary small" type="button" data-create-asaas-subaccount="${companyId}" data-asaas-retry="true" ${!s.parentConfigured?'disabled':''}>Corrigir dados e tentar novamente</button></div>`:'';
+    const reviewWarning=s.state==='REVIEW_REQUIRED'||s.knownDuplicate?'<p class="form-help"><strong>Atenção:</strong> este CNPJ exige revisão no Asaas. Não reenvie enquanto houver risco de duplicidade. A criação está bloqueada até a regularização.</p>':'';
+    const inspectAction=['REJECTED','REVIEW_REQUIRED'].includes(s.state)?`<div class="form-actions"><button class="button outline small" type="button" data-check-asaas-subaccount="${companyId}" ${!s.parentConfigured?'disabled':''}>Verificar CNPJ no Asaas (sem criar)</button></div><p class="form-help" data-asaas-lookup-result aria-live="polite"></p>`:'';
+    box.innerHTML=`<p><strong>Situação:</strong> ${esc(labels[s.state]||s.state)}.</p><p><strong>Titular:</strong> ${esc(s.ownerEmail||'—')}<br><strong>Conta:</strong> ${esc(s.accountId||'—')}<br><strong>Carteira exclusiva:</strong> ${esc(s.walletId||'—')}</p><p class="form-help">A empresa recebe e mantém o saldo em sua própria subconta. Para emitir cobranças no sistema da empresa, é preciso configurar com segurança a API key específica dela no backend do tenant. O cadastro no Control Plane, sozinho, não habilita cobranças.</p>${errorDetail}${retryAction}${reviewWarning}${inspectAction}`;
   }catch(e){box.textContent='Não foi possível consultar o vínculo Asaas: '+e.message;}
 }
 function openAsaasSubaccountDialog(companyId, retry=false){
@@ -464,7 +465,11 @@ $('asaas-subaccount-form').addEventListener('submit',async e=>{
             ? `Asaas recusou a credencial ou autorização da conta principal (HTTP ${code}).`
             : `Asaas recusou a solicitação (HTTP ${code}). Revise o cadastro antes de reenviar.`;
       }else if(status.state==='REVIEW_REQUIRED'){
-         explanation=`O resultado no Asaas é incerto${code?` (HTTP ${code})`:''}. Confira a conta principal antes de reenviar para evitar duplicidade.`;
+         explanation=error.message.includes('Nenhuma criação foi enviada')
+           ? error.message
+           : status.knownDuplicate
+             ? 'O CNPJ já foi recusado por estar em uso. Verifique-o no Asaas antes de qualquer novo cadastro.'
+             : `A subconta exige revisão manual${code?` (última resposta HTTP ${code})`:''}. Não reenvie antes de conferir o Asaas.`;
       }
     }catch(_){/* Mantém a mensagem original se o status não puder ser consultado. */}
     formMessage('asaas-subaccount-message',explanation);
@@ -490,6 +495,24 @@ function resetExpense(){$('expense-form').reset();$('expense-id').value='';$('ex
 $('cancel-expense').addEventListener('click',resetExpense);
 
 document.addEventListener('click',async e=>{
+  const checkAsaas=e.target.closest('[data-check-asaas-subaccount]');
+  if(checkAsaas){
+    const id=checkAsaas.dataset.checkAsaasSubaccount;
+    const target=$('detail-asaas-status')?.querySelector('[data-asaas-lookup-result]');
+    if(!target)return;
+    checkAsaas.disabled=true;target.textContent='Consultando subcontas na conta principal Asaas...';
+    try{
+      const result=await api(`/api/platform/companies/${id}/asaas-subaccount/check-existing`);
+      if(currentCompany?.id!==id)return;
+      target.textContent=result.foundInParent
+        ? `Subconta encontrada na conta principal (ID: ${result.accountId||'não informado'}; carteira: ${result.walletId||'não informada'}). ${result.emailMatches?'E-mail compatível.':'E-mail não confirmado.'} O vínculo exige revisão e recuperação segura da credencial; nenhuma conta foi criada.`
+        : result.previousDuplicate
+          ? 'Nenhuma subconta com esse CNPJ foi encontrada nesta conta principal, mas o Asaas já informou que ele está em uso. Não repita a criação; utilize outro CNPJ de teste válido ou consulte o suporte. Nenhuma conta foi criada.'
+          : 'Não foi localizada subconta com esse CNPJ vinculada a esta conta principal. Isso não garante disponibilidade em outras contas do Asaas. Nenhuma conta foi criada.';
+    }catch(error){target.textContent=`A consulta não foi concluída: ${error.message}. Nenhuma conta foi criada.`;}
+    finally{checkAsaas.disabled=false;}
+    return;
+  }
   const asaasBtn=e.target.closest('[data-create-asaas-subaccount]');if(asaasBtn){openAsaasSubaccountDialog(asaasBtn.dataset.createAsaasSubaccount, asaasBtn.dataset.asaasRetry==='true');return}
   const open=e.target.closest('[data-open-company]');if(open){await openCompany(open.dataset.openCompany);return}
   const editRow=e.target.closest('[data-edit-company-row]');if(editRow){await editCompany(editRow.dataset.editCompanyRow);return}

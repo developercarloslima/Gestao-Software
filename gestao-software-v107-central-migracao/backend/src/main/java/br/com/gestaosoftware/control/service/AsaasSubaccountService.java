@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Conta-pai Asaas: apenas criação das subcontas.
+ * Conta-pai Asaas: consulta e criação das subcontas.
  * Cobranças de associados e saques de consultores são sempre feitos com a chave
  * da subconta da empresa no backend isolado do tenant. Não há split automático.
  */
@@ -62,6 +62,7 @@ public class AsaasSubaccountService {
             String complement, String companyType, String taxRegime) {}
 
     private record Company(String name, String document, String email, String state) {}
+    static record ExistingAccount(boolean found, String accountId, String walletId, boolean emailMatches) {}
 
     // Os detalhes exibidos são saneados: nunca persistir a resposta bruta, chaves ou dados pessoais.
     static record AsaasFailure(String code, String message, boolean possibleDuplicate) {}
@@ -82,8 +83,42 @@ public class AsaasSubaccountService {
         if (code == null || !code.matches("[a-zA-Z0-9_.-]{1,60}")) code = null;
         String comparison = ((code == null ? "" : code) + " " + (description == null ? "" : description))
                 .toLowerCase(Locale.ROOT);
-        boolean duplicate = comparison.matches("(?s).*(duplicad|already.exists|já existe|ja existe|conta existente|já cadastrad[oa]|ja cadastrad[oa]).*");
+        boolean duplicate = isDuplicateDescription(comparison);
         return new AsaasFailure(code, safeAsaasDescription(description), duplicate);
+    }
+
+    private static boolean isDuplicateDescription(String description) {
+        if (description == null) return false;
+        String value = description.toLowerCase(Locale.ROOT);
+        return value.matches("(?s).*(duplicad|already.exists|already.in.use|já existe|ja existe|"
+                + "conta existente|já cadastrad[oa]|ja cadastrad[oa]|já está em uso|ja esta em uso|"
+                + "cnpj.*em uso|cpf.*em uso).*");
+    }
+
+    static ExistingAccount parseExistingAccount(ObjectMapper mapper, String body,
+                                                String document, String registeredEmail) throws Exception {
+        JsonNode root = mapper.readTree(body);
+        JsonNode accounts = root == null ? null : root.path("data");
+        if (accounts == null || !accounts.isArray())
+            throw new IllegalArgumentException("Resposta de listagem Asaas inválida.");
+        if (accounts.isEmpty()) {
+            if (root.path("hasMore").asBoolean(false))
+                throw new IllegalArgumentException("Listagem incompleta.");
+            return new ExistingAccount(false, null, null, false);
+        }
+        // A consulta filtra por CNPJ; se houver resposta inconsistente, não criar nada.
+        for (JsonNode account : accounts) {
+            String returnedDocument = digits(account.path("cpfCnpj").asText(""));
+            if (!returnedDocument.isEmpty() && !document.equals(returnedDocument))
+                throw new IllegalArgumentException("Asaas retornou outro documento.");
+        }
+        JsonNode account = accounts.get(0);
+        String accountId = optional(account.path("id").asText(""));
+        String walletId = optional(account.path("walletId").asText(""));
+        String existingEmail = optional(account.path("email").asText(""));
+        return new ExistingAccount(true, accountId, walletId,
+                existingEmail != null && registeredEmail != null
+                        && existingEmail.equalsIgnoreCase(registeredEmail));
     }
 
     private static String safeAsaasDescription(String raw) {
@@ -110,10 +145,10 @@ public class AsaasSubaccountService {
     }
 
     public Map<String, Object> status(UUID companyId) {
-        company(companyId);
+        Company company = company(companyId);
         List<Map<String, Object>> rows = jdbc.query("""
                 SELECT state, asaas_account_id, wallet_id, owner_email, created_at, updated_at,
-                       attempt_count, last_http_status, last_error_code, last_error_message
+                       attempt_count, last_http_status, last_error_code, last_error_message, last_cnpj
                 FROM platform_asaas_subaccounts WHERE company_id=?
                 """, (rs, n) -> {
             Map<String, Object> data = new LinkedHashMap<>();
@@ -127,6 +162,8 @@ public class AsaasSubaccountService {
             data.put("lastHttpStatus", rs.getObject(8, Integer.class));
             data.put("lastErrorCode", rs.getString(9));
             data.put("lastErrorMessage", rs.getString(10));
+            data.put("knownDuplicate", digits(company.document()).equals(rs.getString(11))
+                    && isDuplicateDescription(rs.getString(9) + " " + rs.getString(10)));
             return data;
         }, companyId);
         if (rows.isEmpty()) return Map.of(
@@ -189,6 +226,63 @@ public class AsaasSubaccountService {
         return value == null || value.isBlank() ? null : value.trim();
     }
 
+    private ExistingAccount findInParentAccount(String document, String email) {
+        if (!parentConfigured())
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "A conta principal Asaas não está habilitada neste servidor.");
+        try {
+            HttpRequest request = HttpRequest.newBuilder(
+                            URI.create(baseUrl + "/accounts?cpfCnpj=" + document + "&limit=100"))
+                    .timeout(Duration.ofSeconds(15))
+                    .header("access_token", parentKey)
+                    .header("User-Agent", "GestaoSoftware/1.0")
+                    .header("Accept", "application/json")
+                    .GET().build();
+            HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200)
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                        "A consulta de subcontas ao Asaas falhou (HTTP " + response.statusCode()
+                                + "). Nenhuma criação foi enviada.");
+            return parseExistingAccount(json, response.body(), document, email);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "A consulta ao Asaas foi interrompida. Nenhuma criação foi enviada.");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "Não foi possível confirmar as subcontas no Asaas. Nenhuma criação foi enviada.");
+        }
+    }
+
+    private boolean previouslyRejectedAsDuplicate(UUID companyId, String document) {
+        return jdbc.query("""
+                SELECT last_error_code, last_error_message
+                  FROM platform_asaas_subaccounts
+                 WHERE company_id=? AND state='REJECTED' AND last_cnpj=?
+                """, (rs, n) -> isDuplicateDescription(rs.getString(1) + " " + rs.getString(2)),
+                companyId, document).stream().anyMatch(Boolean.TRUE::equals);
+    }
+
+    /** Consulta de leitura; não cria subcontas nem altera o número de tentativas. */
+    public Map<String, Object> checkExisting(UUID companyId) {
+        Company company = company(companyId);
+        String document = digits(company.document());
+        if (!document.matches("[0-9]{14}"))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A empresa precisa de CNPJ válido.");
+        ExistingAccount found = findInParentAccount(document, company.email());
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("foundInParent", found.found());
+        result.put("accountId", found.accountId());
+        result.put("walletId", found.walletId());
+        result.put("emailMatches", found.emailMatches());
+        result.put("previousDuplicate", previouslyRejectedAsDuplicate(companyId, document));
+        result.put("manualReviewRequired", found.found() || (boolean) result.get("previousDuplicate"));
+        result.put("noAccountCreated", true);
+        return result;
+    }
+
     public Map<String, Object> create(UUID companyId, Registration data, String operator) {
         if (!parentConfigured())
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
@@ -239,22 +333,45 @@ public class AsaasSubaccountService {
         if (taxRegime != null) request.put("taxRegime", taxRegime);
         if (optional(data.complement()) != null) request.put("complement", optional(data.complement()));
 
+        // Verificar com a chave da conta-pai ANTES de reservar ou enviar POST.
+        // Uma subconta existente não pode ser vinculada automaticamente: a API key
+        // original não é recuperada por uma listagem, e a titularidade exige revisão.
+        ExistingAccount existing = findInParentAccount(document, email);
+        if (existing.found()) {
+            jdbc.update("""
+                    UPDATE platform_asaas_subaccounts SET state='REVIEW_REQUIRED',updated_at=NOW()
+                     WHERE company_id=? AND state='REJECTED'
+                    """, companyId);
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Já existe subconta com este CNPJ na conta principal Asaas."
+                            + " Confira o vínculo e a credencial antes de prosseguir. Nenhuma criação foi enviada.");
+        }
+        if (previouslyRejectedAsDuplicate(companyId, document)) {
+            jdbc.update("""
+                    UPDATE platform_asaas_subaccounts SET state='REVIEW_REQUIRED',updated_at=NOW()
+                     WHERE company_id=? AND state='REJECTED' AND last_cnpj=?
+                    """, companyId, document);
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Este CNPJ já foi recusado pelo Asaas por estar em uso."
+                            + " Use outro CNPJ de teste ou esclareça o cadastro com o Asaas. Nenhuma criação foi enviada.");
+        }
+
         // Só é seguro repetir quando a resposta anterior foi rejeição HTTP 4xx:
         // a requisição não criou uma subconta. Um timeout/5xx permanece bloqueado
         // como REVIEW_REQUIRED até conciliação manual no Asaas.
         int reserved = jdbc.update("""
                 UPDATE platform_asaas_subaccounts
-                   SET state='CREATING',owner_email=?,requested_by=?,updated_at=NOW(),
+                   SET state='CREATING',owner_email=?,requested_by=?,last_cnpj=?,updated_at=NOW(),
                        attempt_count=attempt_count+1,last_http_status=NULL,
                        last_error_code=NULL,last_error_message=NULL,
                        asaas_account_id=NULL,wallet_id=NULL,encrypted_api_key=NULL
                  WHERE company_id=? AND state='REJECTED'
-                """, email, operator, companyId);
+                """, email, operator, document, companyId);
         if (reserved == 0) {
             reserved = jdbc.update("""
-                    INSERT INTO platform_asaas_subaccounts(company_id,owner_email,state,requested_by)
-                    VALUES (?,?, 'CREATING',?) ON CONFLICT (company_id) DO NOTHING
-                    """, companyId, email, operator);
+                    INSERT INTO platform_asaas_subaccounts(company_id,owner_email,state,requested_by,last_cnpj)
+                    VALUES (?,?, 'CREATING',?,?) ON CONFLICT (company_id) DO NOTHING
+                    """, companyId, email, operator, document);
         }
         if (reserved != 1)
             throw new ResponseStatusException(HttpStatus.CONFLICT,

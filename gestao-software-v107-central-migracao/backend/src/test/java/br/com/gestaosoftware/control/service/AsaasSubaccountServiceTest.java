@@ -71,6 +71,53 @@ class AsaasSubaccountServiceTest {
     }
 
     @Test
+    void recognizeActualAsaasAlreadyInUseResponse() {
+        var failure = AsaasSubaccountService.parseAsaasFailure(new ObjectMapper(),
+                """
+                {"errors":[{"code":"invalid_object","description":"O CNPJ 11222333000181 já está em uso."}]}
+                """);
+        assertTrue(failure.possibleDuplicate());
+        assertEquals("invalid_object", failure.code());
+        assertFalse(failure.message().contains("11222333000181"));
+    }
+
+    @Test
+    void inspectEmptyParentListWithoutClaimingGlobalAvailability() throws Exception {
+        var found = AsaasSubaccountService.parseExistingAccount(new ObjectMapper(),
+                """
+                {"object":"list","hasMore":false,"data":[]}
+                """, "11222333000181", "pessoa@example.com");
+        assertFalse(found.found());
+        assertNull(found.accountId());
+    }
+
+    @Test
+    void inspectExistingParentAccountWithoutRecoveringApiKey() throws Exception {
+        var found = AsaasSubaccountService.parseExistingAccount(new ObjectMapper(),
+                """
+                {"object":"list","hasMore":false,"data":[
+                  {"id":"acc_123","walletId":"wallet_456","cpfCnpj":"11222333000181","email":"PESSOA@example.com"}
+                ]}
+                """, "11222333000181", "pessoa@example.com");
+        assertTrue(found.found());
+        assertEquals("acc_123", found.accountId());
+        assertEquals("wallet_456", found.walletId());
+        assertTrue(found.emailMatches());
+    }
+
+    @Test
+    void rejectMalformedOrInconsistentAsaasLookup() {
+        assertThrows(IllegalArgumentException.class, () -> AsaasSubaccountService.parseExistingAccount(
+                new ObjectMapper(), "{\"error\":\"not a list\"}", "11222333000181", "x@example.com"));
+        assertThrows(IllegalArgumentException.class, () -> AsaasSubaccountService.parseExistingAccount(
+                new ObjectMapper(), "{\"data\":[{\"cpfCnpj\":\"00000000000191\"}]}",
+                "11222333000181", "x@example.com"));
+        assertThrows(IllegalArgumentException.class, () -> AsaasSubaccountService.parseExistingAccount(
+                new ObjectMapper(), "{\"data\":[],\"hasMore\":true}",
+                "11222333000181", "x@example.com"));
+    }
+
+    @Test
     void fallbackForHtmlAndRedactCredentialHints() {
         var html = AsaasSubaccountService.parseAsaasFailure(new ObjectMapper(), "<html>502</html>");
         assertNull(html.code());

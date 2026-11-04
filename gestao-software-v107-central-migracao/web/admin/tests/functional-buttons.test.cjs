@@ -76,8 +76,19 @@ test('subconta Asaas expõe o motivo sem permitir reenvio em resultado incerto',
   await render('company-1');
   assert.match(box.innerHTML,/Documento inválido &lt;script&gt;/);
   assert.match(box.innerHTML,/Corrigir dados e tentar novamente/);
+  assert.match(box.innerHTML,/data-check-asaas-subaccount="company-1"/);
+  response={...response,knownDuplicate:true};
+  await render('company-1');
+  assert.doesNotMatch(box.innerHTML,/data-asaas-retry="true"/);
+  assert.match(box.innerHTML,/Verificar CNPJ no Asaas/);
   response={...response,state:'REVIEW_REQUIRED'};
   await render('company-1');
   assert.doesNotMatch(box.innerHTML,/data-asaas-retry="true"/);
-  assert.match(box.innerHTML,/evitar duplicidade/);
+  assert.match(box.innerHTML,/risco de duplicidade/);
+});
+
+test('verificação de CNPJ é somente leitura e não usa o endpoint de criação', () => {
+  assert.match(app, /\/asaas-subaccount\/check-existing`\)/);
+  assert.match(app, /const checkAsaas=e\.target\.closest\('\[data-check-asaas-subaccount\]'\)/);
+  assert.match(app, /Nenhuma conta foi criada/);
 });
