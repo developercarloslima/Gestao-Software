@@ -128,4 +128,22 @@ class AsaasSubaccountServiceTest {
                 """);
         assertFalse(credential.message().contains("$aact_secretvalue"));
     }
+    @Test
+    void requireFinancialEmailOwnedByCompanyBeforeCreatingChildAccount() {
+        var missing = assertThrows(ResponseStatusException.class,
+                () -> AsaasSubaccountService.validatedSubaccountEmail(null, "contato@example.com"));
+        assertEquals(HttpStatus.BAD_REQUEST, missing.getStatusCode());
+
+        var different = assertThrows(ResponseStatusException.class,
+                () -> AsaasSubaccountService.validatedSubaccountEmail("financeiro@cliente.com.br", "geral@cliente.com.br"));
+        assertEquals(HttpStatus.BAD_REQUEST, different.getStatusCode());
+
+        var invalid = assertThrows(ResponseStatusException.class,
+                () -> AsaasSubaccountService.validatedSubaccountEmail("invalido", "invalido"));
+        assertEquals(HttpStatus.BAD_REQUEST, invalid.getStatusCode());
+
+        assertEquals("Financeiro@cliente.com.br",
+                AsaasSubaccountService.validatedSubaccountEmail("financeiro@cliente.com.br", "Financeiro@cliente.com.br"));
+    }
+
 }
