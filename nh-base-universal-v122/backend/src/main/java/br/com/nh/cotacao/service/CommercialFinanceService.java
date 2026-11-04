@@ -282,7 +282,7 @@ public class CommercialFinanceService {
         c.applyProvider(p.id(), p.subscriptionId(), p.invoiceUrl(), p.bankSlipUrl(), p.identificationField(), p.barCode(), p.pixPayload(), p.pixEncodedImage());
         if (status != null) {
             c.updateFromWebhook(status, null, null, null, p.invoiceUrl(), p.bankSlipUrl());
-            if (c.getStatus() == FinancialChargeStatus.RECEIVED && c.getChargeType() != FinancialChargeType.ADHESION) {
+            if (c.getStatus() == FinancialChargeStatus.RECEIVED && c.getChargeType() == FinancialChargeType.MONTHLY) {
                 long paidClosingForVehicle = charges.countByVehicle_IdAndChargeTypeAndStatus(c.getVehicle().getId(), FinancialChargeType.CLOSING, FinancialChargeStatus.RECEIVED);
                 boolean adhesionSettled = isAdhesionSettled(c.getVehicle());
                 c.setChargeType(adhesionSettled && paidClosingForVehicle == 0 ? FinancialChargeType.CLOSING : FinancialChargeType.MONTHLY);
@@ -434,7 +434,7 @@ public class CommercialFinanceService {
         OffsetDateTime paidAt = dateTime(text(payment,"paymentDate"));
         if (paidAt == null) paidAt = dateTime(text(payment,"clientPaymentDate"));
         c.updateFromWebhook(status, decimal(payment,"value",null), date(text(payment,"dueDate")), paidAt, text(payment,"invoiceUrl"), text(payment,"bankSlipUrl"));
-        if (c.getStatus() == FinancialChargeStatus.RECEIVED && c.getChargeType() != FinancialChargeType.ADHESION) {
+        if (c.getStatus() == FinancialChargeStatus.RECEIVED && c.getChargeType() == FinancialChargeType.MONTHLY) {
             long paidClosingForVehicle = charges.countByVehicle_IdAndChargeTypeAndStatus(c.getVehicle().getId(), FinancialChargeType.CLOSING, FinancialChargeStatus.RECEIVED);
             boolean adhesionSettled = isAdhesionSettled(c.getVehicle());
             c.setChargeType(adhesionSettled && paidClosingForVehicle == 0 ? FinancialChargeType.CLOSING : FinancialChargeType.MONTHLY);
