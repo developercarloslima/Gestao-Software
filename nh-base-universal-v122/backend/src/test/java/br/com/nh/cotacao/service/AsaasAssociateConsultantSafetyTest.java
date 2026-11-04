@@ -71,8 +71,9 @@ class AsaasAssociateConsultantSafetyTest {
         when(vehicle.getAssociate()).thenReturn(associate);
         when(associate.getId()).thenReturn(associateId);
         when(vehicles.findById(vehicleId)).thenReturn(Optional.of(vehicle));
+        FinancialCharge inconclusive = charge(vehicle, FinancialChargeStatus.ERROR, LocalDate.now());
         when(charges.findAllByVehicle_IdOrderByDueDateDescCreatedAtDesc(vehicleId))
-                .thenReturn(List.of(charge(vehicle, FinancialChargeStatus.ERROR, LocalDate.now())));
+                .thenReturn(List.of(inconclusive));
         assertThrows(IllegalStateException.class, () -> service().createAssociateSelfServiceCharge(
                 associateId, vehicleId, new SelfServiceChargeRequest(FinancialBillingType.PIX)));
         verify(charges, never()).save(any(FinancialCharge.class));
