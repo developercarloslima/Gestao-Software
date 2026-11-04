@@ -36,6 +36,12 @@ public class AsaasSubaccountController {
         return service.status(companyId);
     }
 
+    @GetMapping("/check-existing")
+    public Map<String, Object> checkExisting(@PathVariable UUID companyId, Authentication authentication) {
+        owner(authentication);
+        return service.checkExisting(companyId);
+    }
+
     @PostMapping
     public Map<String, Object> create(@PathVariable UUID companyId,
                                       @RequestBody AsaasSubaccountService.Registration input,
