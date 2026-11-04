@@ -19,8 +19,9 @@ class PublicAcceptancePaymentServiceTest {
     private final CommercialVehicleRepository vehicles = mock(CommercialVehicleRepository.class);
     private final FinancialChargeRepository charges = mock(FinancialChargeRepository.class);
     private final FinancialProviderGateway provider = mock(FinancialProviderGateway.class);
+    private final CommercialFinanceService commercialFinance = mock(CommercialFinanceService.class);
     private final PublicAcceptancePaymentService service =
-            new PublicAcceptancePaymentService(inspections, vehicles, charges, provider);
+            new PublicAcceptancePaymentService(inspections, vehicles, charges, provider, commercialFinance);
 
     @Test
     void refusesToShowFinancialDataBeforeWebauthnAcceptance() {
@@ -69,6 +70,7 @@ class PublicAcceptancePaymentServiceTest {
         assertEquals("codigo-boleto", response.identificationField());
         assertEquals(new BigDecimal("102.00"), response.amount());
         verify(charges, never()).save(any());
+        verify(commercialFinance).ensureAcceptedLocalBilling(vehicleId);
     }
 
     @Test
