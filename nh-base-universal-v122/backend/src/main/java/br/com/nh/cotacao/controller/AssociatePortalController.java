@@ -48,6 +48,11 @@ public class AssociatePortalController {
         return ResponseEntity.status(201).body(finance.createAssociateSelfServiceCharge(associateId(auth), vehicleId, request));
     }
 
+    @PostMapping("/charges/{chargeId}/issue-boleto")
+    public ChargeResponse issueBoleto(@PathVariable UUID chargeId, Authentication auth) {
+        return finance.issueAssociateBoleto(associateId(auth), chargeId);
+    }
+
     @PostMapping("/charges/{chargeId}/refresh")
     public ChargeResponse refresh(@PathVariable UUID chargeId, Authentication auth) {
         return finance.refreshAssociateCharge(associateId(auth), chargeId);

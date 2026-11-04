@@ -84,6 +84,16 @@ public class FinancialCharge {
         this.updatedAt = OffsetDateTime.now();
     }
 
+    /** Corrige vencimento de título ainda não emitido, sem modificar históricos no provedor. */
+    public void adjustDueDateBeforeIssuance(LocalDate newDueDate) {
+        if (providerPaymentId != null || status != FinancialChargeStatus.PENDING) {
+            throw new IllegalStateException("Apenas cobranças pendentes e não emitidas permitem ajuste do vencimento.");
+        }
+        if (newDueDate == null) throw new IllegalArgumentException("Vencimento obrigatório.");
+        this.dueDate = newDueDate;
+        this.updatedAt = OffsetDateTime.now();
+    }
+
     public void markReceived(OffsetDateTime paidAt){this.status=FinancialChargeStatus.RECEIVED;this.paidAt=paidAt==null?OffsetDateTime.now():paidAt;this.updatedAt=OffsetDateTime.now();}
     public void setChargeType(FinancialChargeType type){if(type!=null){this.chargeType=type;this.updatedAt=OffsetDateTime.now();}}
     public void markError(){this.status=FinancialChargeStatus.ERROR;this.updatedAt=OffsetDateTime.now();}

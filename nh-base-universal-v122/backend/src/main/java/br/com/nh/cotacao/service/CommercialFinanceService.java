@@ -34,6 +34,8 @@ public class CommercialFinanceService {
     private BigDecimal asaasPaymentFee;
     @Value("${app.financial.withdrawal-fee:2.00}")
     private BigDecimal asaasWithdrawalFee;
+    @Value("${app.financial.auto-issue-batches:false}")
+    private boolean autoIssueBatches;
 
     public CommercialFinanceService(
             AssociateRepository associates,
@@ -508,7 +510,8 @@ public class CommercialFinanceService {
     @org.springframework.scheduling.annotation.Scheduled(fixedDelay=15000, initialDelay=12000)
     @Transactional
     public void issueAdvanceAssociatePayments() {
-        if (!asaas.enabled()) return;
+        // Emissão em lote só pode ser habilitada explicitamente: o portal emite títulos sob demanda.
+        if (!autoIssueBatches || !asaas.enabled()) return;
         for (FinancialCharge c : charges.lockPendingAdvanceCharges()) {
             sendExistingAsaasCharge(c);
         }
@@ -600,6 +603,49 @@ public class CommercialFinanceService {
         requireConsultant(consultantId);
         return vehicles.findAllByConsultant_IdOrderByCreatedAtDesc(consultantId).stream()
                 .map(this::toAssociateVehicleSummary).toList();
+    }
+
+    /** Emite somente o boleto escolhido pelo associado, sem duplicar lançamentos no Asaas. */
+    @Transactional
+    public ChargeResponse issueAssociateBoleto(UUID associateId, UUID chargeId) {
+        FinancialCharge charge = charges.findByIdForIssuance(chargeId)
+                .orElseThrow(() -> new IllegalArgumentException("Cobrança não encontrada."));
+        CommercialVehicle vehicle = charge.getVehicle();
+        if (charge.getAssociate() == null || !associateId.equals(charge.getAssociate().getId())
+                || vehicle == null || vehicle.getAssociate() == null
+                || !associateId.equals(vehicle.getAssociate().getId())) {
+            throw new IllegalArgumentException("Esta cobrança não pertence ao associado autenticado.");
+        }
+        if (charge.getChargeType() != FinancialChargeType.ADHESION
+                && charge.getChargeType() != FinancialChargeType.MONTHLY
+                && charge.getChargeType() != FinancialChargeType.CLOSING) {
+            throw new IllegalArgumentException("Tipo de cobrança inválido para emissão de boleto.");
+        }
+        if (charge.getBillingType() != FinancialBillingType.BOLETO) {
+            throw new IllegalArgumentException("Esta cobrança não está configurada para boleto.");
+        }
+        // A mesma cobrança já foi emitida: nunca gerar uma segunda cobrança remota.
+        if (charge.getProviderPaymentId() != null) return toChargeResponse(charge);
+        if (charge.getStatus() != FinancialChargeStatus.PENDING) {
+            throw new IllegalStateException("Esta cobrança não pode ser emitida novamente. Procure o Financeiro.");
+        }
+        if (vehicle.getStatus() != CommercialVehicleStatus.ACTIVE
+                || vehicle.getQuotation() == null
+                || vehicle.getAssociate().getDocument() == null
+                || !vehicles.hasAcceptedContract(vehicle.getQuotation().getId(),
+                        vehicle.getAssociate().getDocument(), InspectionRequestStatus.APPROVED)) {
+            throw new IllegalStateException("O contrato precisa estar aceito antes da emissão do boleto.");
+        }
+        if (!asaas.enabled()) {
+            throw new IllegalStateException("A financeira Asaas ainda não está habilitada para emitir boletos.");
+        }
+        // Adesões emitidas depois do aceite podem ter vencimento local já passado.
+        // Atualiza somente o título não emitido; preserva as mensalidades futuras.
+        LocalDate today = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        if (charge.getDueDate() == null || charge.getDueDate().isBefore(today)) {
+            charge.adjustDueDateBeforeIssuance(today);
+        }
+        return toChargeResponse(sendExistingAsaasCharge(charge));
     }
 
     @Transactional
