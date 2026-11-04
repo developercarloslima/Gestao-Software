@@ -57,3 +57,27 @@ test('ações do modal possuem retorno de sucesso ou erro visível', () => {
   assert.match(app, /const copyContract=.*?company-detail-message/s);
   assert.match(app, /const gen=.*?openInvoiceDialog/s);
 });
+
+test('subconta Asaas expõe o motivo sem permitir reenvio em resultado incerto', async () => {
+  const start = app.indexOf('async function loadAsaasSubaccountStatus(');
+  const end = app.indexOf('function openAsaasSubaccountDialog(', start);
+  assert.ok(start >= 0 && end > start);
+  let response = {state:'REJECTED',lastHttpStatus:400,lastErrorCode:'invalid_cpfCnpj',
+    lastErrorMessage:'Documento inválido <script>alert(1)</script>',attemptCount:2,parentConfigured:true};
+  const box = {isConnected:true,innerHTML:'',textContent:''};
+  const context = {
+    $: () => box, api: async () => response,
+    currentCompany:{id:'company-1'},
+    canManageCompanyLifecycle:() => true,
+    esc:value => String(value??'').replace(/[&<>"']/g, char =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char])),
+  };
+  const render = vm.runInNewContext(app.slice(start,end)+'\nloadAsaasSubaccountStatus',context);
+  await render('company-1');
+  assert.match(box.innerHTML,/Documento inválido &lt;script&gt;/);
+  assert.match(box.innerHTML,/Corrigir dados e tentar novamente/);
+  response={...response,state:'REVIEW_REQUIRED'};
+  await render('company-1');
+  assert.doesNotMatch(box.innerHTML,/data-asaas-retry="true"/);
+  assert.match(box.innerHTML,/evitar duplicidade/);
+});
