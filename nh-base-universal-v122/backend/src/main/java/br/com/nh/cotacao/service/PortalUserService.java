@@ -12,7 +12,6 @@ import br.com.nh.cotacao.repository.ConsultantRepository;
 import br.com.nh.cotacao.repository.InspectionRequestRepository;
 import br.com.nh.cotacao.repository.PortalUserRepository;
 import br.com.nh.cotacao.security.PortalRole;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,10 +31,9 @@ public class PortalUserService {
 
     private static final String DEVELOPER_BOOTSTRAP = "DEVELOPER_BOOTSTRAP";
 
-    // Mesma senha inicial dos logins genéricos deste tenant.
-    // Contas pessoais sempre devem substituí-la no primeiro acesso.
-    @Value("${app.tenant.module-temporary-password:gestao1234}")
-    private String defaultNewUserPassword = "gestao1234";
+    // Regra comercial: toda conta pessoal nova usa esta senha uma única vez.
+    // Não alteramos contas existentes nem credenciais dos usuários técnicos/genéricos.
+    private static final String INITIAL_PERSONAL_PASSWORD = "gestao1234";
     private final PortalUserRepository repository;
     private final CatalogChangeAuditRepository auditRepository;
     private final ConsultantRepository consultantRepository;
@@ -253,7 +251,7 @@ public class PortalUserService {
     @Transactional
     public PortalUserResponse create(CreatePortalUserRequest request, String adminUsername) {
         // O ADM não escolhe a senha inicial; o tenant define o padrão.
-        return createWithPassword(request, adminUsername, defaultNewUserPassword);
+        return createWithPassword(request, adminUsername, INITIAL_PERSONAL_PASSWORD);
     }
 
     private PortalUserResponse createWithPassword(
@@ -298,9 +296,9 @@ public class PortalUserService {
                 collaboratorId=existing.get().getId();
             }else newCollaboratorName=name;
         }
-        // A importação preserva a senha temporária do lote e exige troca no primeiro login.
+        // Importações de contas pessoais usam a mesma senha inicial e exigem troca no primeiro login.
         PortalUserResponse created=createWithPassword(new CreatePortalUserRequest(login,name,null,
-                role,collaboratorId,newCollaboratorName),adminUsername,temporaryPassword);
+                role,collaboratorId,newCollaboratorName),adminUsername,INITIAL_PERSONAL_PASSWORD);
         PortalUser account=find(created.id());
         account.requirePasswordChange();
         repository.saveAndFlush(account);
@@ -500,7 +498,7 @@ public class PortalUserService {
         }
 
         PortalUser pending = PortalUser.create(cpf, associate.getName(),
-                encoder.encode(defaultNewUserPassword), PortalRole.ASSOCIATE, "ASSOCIATE_AUTO_BOOTSTRAP");
+                encoder.encode(INITIAL_PERSONAL_PASSWORD), PortalRole.ASSOCIATE, "ASSOCIATE_AUTO_BOOTSTRAP");
         pending.linkAssociate(associateId);
         pending.requirePasswordChange();
         pending.setActive(false);
@@ -515,12 +513,12 @@ public class PortalUserService {
     public String initialAssociatePasswordIfStillDefault(String cpf) {
         String normalized = PortalUser.normalizeUsername(AssociateIdentityPolicy.requireCpf(cpf));
         PortalUser account = repository.findByNormalizedUsername(normalized).orElse(null);
-        if (account != null && (account.getRole() != PortalRole.ASSOCIATE
+        if (account == null || account.getRole() != PortalRole.ASSOCIATE
                 || !account.isMustChangePassword()
-                || !encoder.matches(defaultNewUserPassword, account.getPasswordHash()))) {
+                || !encoder.matches(INITIAL_PERSONAL_PASSWORD, account.getPasswordHash())) {
             return null;
         }
-        return defaultNewUserPassword;
+        return INITIAL_PERSONAL_PASSWORD;
     }
 
     /** A ativação exige a confirmação do fluxo de aceite na camada de vistoria. */
@@ -577,7 +575,7 @@ public class PortalUserService {
 
         String candidate = availableConsultantUsername(base, null);
         PortalUser user = PortalUser.create(
-                candidate, consultant.getName(), encoder.encode(initialPassword()), PortalRole.CONSULTANT, "CONSULTANT_AUTO_BOOTSTRAP"
+                candidate, consultant.getName(), encoder.encode(INITIAL_PERSONAL_PASSWORD), PortalRole.CONSULTANT, "CONSULTANT_AUTO_BOOTSTRAP"
         );
         user.linkConsultant(consultant.getId());
         user.requirePasswordChange();
@@ -706,7 +704,7 @@ public class PortalUserService {
         if (repository.findByConsultantId(collaborator.getId()).isPresent()) return;
 
         PortalUser user = PortalUser.create(
-                username, collaborator.getName(), encoder.encode(initialPassword()), portalRole, "ANALYSIS_TEAM_BOOTSTRAP"
+                username, collaborator.getName(), encoder.encode(INITIAL_PERSONAL_PASSWORD), portalRole, "ANALYSIS_TEAM_BOOTSTRAP"
         );
         user.linkConsultant(collaborator.getId());
         user.requirePasswordChange();
