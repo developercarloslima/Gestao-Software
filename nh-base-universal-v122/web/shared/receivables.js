@@ -150,8 +150,10 @@
           if (link) actions += '<a class="rc-button" href="' + safe(link) + '" target="_blank" rel="noopener noreferrer">Abrir boleto</a>';
           if (row.identificationField) actions += '<button class="rc-button rc-code" data-code="' +
               safe(row.identificationField) + '" type="button">Copiar linha digitável</button>';
+        } else if (!row.issued && row.id && !['PAGO','CONFIRMADO','CANCELADO','ESTORNADO'].includes(row.status)) {
+          actions = '<button class="rc-button rc-issue" type="button" data-issue="' + safe(row.id) + '">Gerar boleto</button>';
         } else if (!row.issued) {
-          actions = '<span class="rc-note">Cobrança ainda não emitida</span>';
+          actions = '<span class="rc-note">Cobrança não disponível para emissão</span>';
         } else {
           actions = '<span class="rc-note">Boleto não disponível para reemissão</span>';
         }
@@ -165,6 +167,26 @@
         dialog.querySelector('.rc-dialog-info').textContent +=
           ' Situação com mais de 60 dias ou plano cancelado: acordo e pagamento precisam ser confirmados pelo Financeiro antes da reativação.';
       }
+    }
+
+    async function issueBoleto(chargeId, button) {
+      // Abrir já no clique: navegadores bloqueiam window.open depois de um await.
+      const tab=window.open('about:blank','_blank');
+      if(tab){tab.opener=null;tab.document.title='Gerando boleto';tab.document.body.textContent='Aguarde, emitindo boleto...';}
+      button.disabled=true;
+      setMessage('Gerando boleto desta parcela...',dialog.querySelector('.rc-dialog-feedback'));
+      try {
+        const result=await request(endpoint+'/charges/'+encodeURIComponent(chargeId)+'/issue-boleto',{method:'POST'});
+        const link=validUrl(result.bankSlipUrl);
+        if(result.status==='ERROR'||!link)throw new Error(result.message||'Não foi possível gerar o boleto. Procure o Financeiro.');
+        if(tab)tab.location.replace(link);
+        else setMessage('Permita pop-ups para abrir o boleto. Use o link Abrir boleto na lista.',dialog.querySelector('.rc-dialog-feedback'));
+        await showBills(selectedVehicle);
+        await load();
+      } catch(error) {
+        if(tab&&!tab.closed)tab.close();
+        setMessage(error.message,dialog.querySelector('.rc-dialog-feedback'));
+      } finally {button.disabled=false;}
     }
 
     async function renew(chargeId) {
@@ -243,6 +265,7 @@
         } finally { element.disabled = false; }
         return;
       }
+      if (element.dataset.issue) return issueBoleto(element.dataset.issue,element);
       if (element.dataset.copy) return renew(element.dataset.copy);
       if (element.dataset.code) {
         try {
