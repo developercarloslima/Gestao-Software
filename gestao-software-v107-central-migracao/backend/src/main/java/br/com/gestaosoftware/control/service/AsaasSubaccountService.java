@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -62,6 +63,43 @@ public class AsaasSubaccountService {
 
     private record Company(String name, String document, String email, String state) {}
 
+    // Os detalhes exibidos são saneados: nunca persistir a resposta bruta, chaves ou dados pessoais.
+    static record AsaasFailure(String code, String message, boolean possibleDuplicate) {}
+
+    static AsaasFailure parseAsaasFailure(ObjectMapper mapper, String body) {
+        String code = null;
+        String description = null;
+        try {
+            JsonNode errors = mapper.readTree(body == null ? "" : body).path("errors");
+            if (errors.isArray() && !errors.isEmpty()) {
+                JsonNode first = errors.get(0);
+                code = first.path("code").asText("");
+                description = first.path("description").asText("");
+            }
+        } catch (Exception ignored) {
+            // Respostas não JSON (proxy, HTML, manutenção) não são expostas ao operador.
+        }
+        if (code == null || !code.matches("[a-zA-Z0-9_.-]{1,60}")) code = null;
+        String comparison = ((code == null ? "" : code) + " " + (description == null ? "" : description))
+                .toLowerCase(Locale.ROOT);
+        boolean duplicate = comparison.matches("(?s).*(duplicad|already.exists|já existe|ja existe|conta existente|já cadastrad[oa]|ja cadastrad[oa]).*");
+        return new AsaasFailure(code, safeAsaasDescription(description), duplicate);
+    }
+
+    private static String safeAsaasDescription(String raw) {
+        if (raw == null || raw.isBlank()) return "O Asaas rejeitou a solicitação sem informar um motivo detalhado.";
+        // Descartar descrições com indícios de credenciais; a API externa não é fonte confiável.
+        if (raw.matches("(?is).*(?:api.?key|access.?token|authorization|bearer|password|senha|secret|\\$aact_).*"))
+            return "O Asaas rejeitou a solicitação. Verifique a autorização da conta principal.";
+        String clean = raw.replaceAll("[\\p{Cntrl}<>]", " ").trim()
+                .replaceAll("(?i)https?://\\S+", "[link oculto]")
+                .replaceAll("(?i)[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}", "[e-mail oculto]")
+                .replaceAll("(?<![\\p{Alnum}])(?:\\d[.\\-/\\s]?){8,}\\d(?![\\p{Alnum}])", "[número oculto]")
+                .replaceAll("\\s{2,}", " ");
+        if (clean.length() > 240) clean = clean.substring(0, 240) + "…";
+        return clean.isBlank() ? "O Asaas rejeitou a solicitação." : clean;
+    }
+
     private Company company(UUID id) {
         List<Company> rows = jdbc.query(
                 "SELECT trade_name, document, contact_email, status FROM platform_companies WHERE id=?",
@@ -75,7 +113,7 @@ public class AsaasSubaccountService {
         company(companyId);
         List<Map<String, Object>> rows = jdbc.query("""
                 SELECT state, asaas_account_id, wallet_id, owner_email, created_at, updated_at,
-                       attempt_count, last_http_status
+                       attempt_count, last_http_status, last_error_code, last_error_message
                 FROM platform_asaas_subaccounts WHERE company_id=?
                 """, (rs, n) -> {
             Map<String, Object> data = new LinkedHashMap<>();
@@ -87,6 +125,8 @@ public class AsaasSubaccountService {
             data.put("updatedAt", rs.getObject(6).toString());
             data.put("attemptCount", rs.getInt(7));
             data.put("lastHttpStatus", rs.getObject(8, Integer.class));
+            data.put("lastErrorCode", rs.getString(9));
+            data.put("lastErrorMessage", rs.getString(10));
             return data;
         }, companyId);
         if (rows.isEmpty()) return Map.of(
@@ -206,6 +246,7 @@ public class AsaasSubaccountService {
                 UPDATE platform_asaas_subaccounts
                    SET state='CREATING',owner_email=?,requested_by=?,updated_at=NOW(),
                        attempt_count=attempt_count+1,last_http_status=NULL,
+                       last_error_code=NULL,last_error_message=NULL,
                        asaas_account_id=NULL,wallet_id=NULL,encrypted_api_key=NULL
                  WHERE company_id=? AND state='REJECTED'
                 """, email, operator, companyId);
@@ -230,11 +271,24 @@ public class AsaasSubaccountService {
                     .build();
             HttpResponse<String> response = http.send(asaasRequest, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                jdbc.update("UPDATE platform_asaas_subaccounts SET state=?, last_http_status=?, updated_at=NOW() WHERE company_id=?",
-                        response.statusCode() >= 400 && response.statusCode() < 500 ? "REJECTED" : "REVIEW_REQUIRED",
-                        response.statusCode(), companyId);
+                int asaasHttp = response.statusCode();
+                boolean clientError = asaasHttp >= 400 && asaasHttp < 500;
+                AsaasFailure failure = clientError
+                        ? parseAsaasFailure(json, response.body())
+                        : new AsaasFailure(null, "Resultado incerto no Asaas; verifique a conta principal.", false);
+                // 409 e retornos que sugerem conta já existente exigem conciliação, não reenvio.
+                boolean safelyRejected = clientError && asaasHttp != 409 && !failure.possibleDuplicate();
+                jdbc.update("""
+                        UPDATE platform_asaas_subaccounts
+                           SET state=?,last_http_status=?,last_error_code=?,last_error_message=?,updated_at=NOW()
+                         WHERE company_id=? AND state='CREATING'
+                        """, safelyRejected ? "REJECTED" : "REVIEW_REQUIRED", asaasHttp,
+                        failure.code(), failure.message(), companyId);
+                if (safelyRejected)
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                            "Cadastro rejeitado pelo Asaas (HTTP " + asaasHttp + "): " + failure.message());
                 throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
-                        "O Asaas não aceitou o cadastro. Confira os dados e concilie o status antes de nova tentativa.");
+                        "Resultado incerto no Asaas (HTTP " + asaasHttp + "). Confira a conta principal antes de reenviar.");
             }
             JsonNode created = json.readTree(response.body());
             String accountId = created.path("id").asText("");
