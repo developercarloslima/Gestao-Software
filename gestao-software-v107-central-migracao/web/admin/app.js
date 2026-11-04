@@ -226,7 +226,7 @@ async function saveCompanySiteEditor(id){
   });
 }
 function renderModuleOptions(selected=[]){const byCode=new Map((selected||[]).map(m=>[m.code,m]));$('company-modules').innerHTML=modules.map(m=>{const s=byCode.get(m.code);return `<label class="module-option"><input type="checkbox" data-module-code="${esc(m.code)}" ${s?.enabled?'checked':''}><span><strong>${esc(m.name)}</strong><small>${esc(m.description||'')}</small></span></label>`}).join('');syncSiteEditorVisibility()}
-function companyPayload(){const planCode=$('company-plan').value||'CUSTOM',plan=companyPlanByCode(planCode);return {groupName:$('company-group').value.trim()||null,legalName:$('company-legal').value.trim(),tradeName:$('company-trade').value.trim(),document:$('company-document').value.trim()||null,contactName:$('company-contact').value.trim()||null,contactEmail:$('company-email').value.trim()||null,contactPhone:$('company-phone').value.trim()||null,tenantAdminUsername:$('company-tenant-admin').value.trim().toLowerCase()||null,status:$('company-status').value,planCode,planName:plan?.name||'Personalizado',contractTerm:$('company-contract-term').value||'MONTHLY',monthlyFee:numberOrNull($('company-monthly').value)||0,billingDueDay:Number($('company-due-day').value||10),paymentMethod:$('company-payment-method').value||'BOLETO',contractStartDate:$('company-start').value||today(),contractEndDate:$('company-end').value||null,platformDisplayName:$('company-platform-display').value.trim()||$('company-trade').value.trim()||null,platformLegalName:$('company-platform-legal').value.trim()||'Gestão Software LTDA',logoUrl:$('company-logo-url').value.trim()||null,faviconUrl:$('company-favicon-url').value.trim()||null,primaryColor:$('company-primary-color').value||'#070c40',secondaryColor:$('company-secondary-color').value||'#f0f000',accentColor:$('company-accent-color').value||'#ffffff',siteTitle:$('company-site-title').value.trim()||$('company-trade').value.trim()||null,companyTagline:$('company-tagline').value.trim()||null,loginSubtitle:$('company-login-subtitle').value.trim()||null,defaultModuleLanding:$('company-default-landing').value.trim()||'/colaborador/',notes:$('company-notes').value.trim()||null,modules:[...document.querySelectorAll('[data-module-code]')].map(ch=>({code:ch.dataset.moduleCode,enabled:ch.checked,monthlyPrice:0}))}}
+function companyPayload(){const planCode=$('company-plan').value||'CUSTOM',plan=companyPlanByCode(planCode);return {groupName:$('company-group').value.trim()||null,legalName:$('company-legal').value.trim(),tradeName:$('company-trade').value.trim(),document:$('company-document').value.trim()||null,contactName:$('company-contact').value.trim()||null,contactEmail:$('company-email').value.trim()||null,financialEmail:$('company-financial-email').value.trim()||null,contactPhone:$('company-phone').value.trim()||null,tenantAdminUsername:$('company-tenant-admin').value.trim().toLowerCase()||null,status:$('company-status').value,planCode,planName:plan?.name||'Personalizado',contractTerm:$('company-contract-term').value||'MONTHLY',monthlyFee:numberOrNull($('company-monthly').value)||0,billingDueDay:Number($('company-due-day').value||10),paymentMethod:$('company-payment-method').value||'BOLETO',contractStartDate:$('company-start').value||today(),contractEndDate:$('company-end').value||null,platformDisplayName:$('company-platform-display').value.trim()||$('company-trade').value.trim()||null,platformLegalName:$('company-platform-legal').value.trim()||'Gestão Software LTDA',logoUrl:$('company-logo-url').value.trim()||null,faviconUrl:$('company-favicon-url').value.trim()||null,primaryColor:$('company-primary-color').value||'#070c40',secondaryColor:$('company-secondary-color').value||'#f0f000',accentColor:$('company-accent-color').value||'#ffffff',siteTitle:$('company-site-title').value.trim()||$('company-trade').value.trim()||null,companyTagline:$('company-tagline').value.trim()||null,loginSubtitle:$('company-login-subtitle').value.trim()||null,defaultModuleLanding:$('company-default-landing').value.trim()||'/colaborador/',notes:$('company-notes').value.trim()||null,modules:[...document.querySelectorAll('[data-module-code]')].map(ch=>({code:ch.dataset.moduleCode,enabled:ch.checked,monthlyPrice:0}))}}
 const BRAND_FIELDS=[['company-primary-color','company-primary-hex'],['company-secondary-color','company-secondary-hex'],['company-accent-color','company-accent-hex']];
 function setCompanyBrandColors(primary,secondary,accent){
   [primary,secondary,accent].forEach((value,index)=>{
@@ -304,6 +304,7 @@ async function editCompany(id){
   $('company-document').value=data.document||'';
   $('company-contact').value=data.contactName||'';
   $('company-email').value=data.contactEmail||'';
+  $('company-financial-email').value=data.financialEmail||'';
   $('company-phone').value=data.contactPhone||'';
   $('company-tenant-admin').value=data.tenantAdminUsername||'';
   $('company-status').value=data.status;
@@ -381,9 +382,10 @@ function openAsaasSubaccountDialog(companyId, retry=false){
   $('asaas-subaccount-company').textContent=`${c.tradeName} · ${c.document||'CNPJ não cadastrado'}`;
   $('asaas-subaccount-title').textContent=retry?'Corrigir dados e tentar novamente':'Vincular subconta Asaas';
   $('asaas-subaccount-submit').textContent=retry?'Reenviar cadastro ao Asaas':'Criar subconta no Asaas';
-  $('asaas-subaccount-email').value=c.contactEmail||'';
+  $('asaas-subaccount-email').value=c.financialEmail||'';
   $('asaas-subaccount-mobile').value=c.contactPhone||'';
-  formMessage('asaas-subaccount-message');
+  $('asaas-subaccount-submit').disabled=!c.financialEmail;
+  formMessage('asaas-subaccount-message',c.financialEmail?'':'Salve primeiro o e-mail financeiro da empresa-cliente no cadastro da empresa.');
   $('asaas-subaccount-dialog').showModal();
 }
 
