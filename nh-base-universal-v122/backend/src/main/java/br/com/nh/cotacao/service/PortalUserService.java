@@ -469,7 +469,7 @@ public class PortalUserService {
 
     /**
      * Reserva o login CPF do associado quando o dossiê é enviado para aceite.
-     * A conta nova só pode autenticar depois dos três aceites WebAuthn.
+     * A conta nova só pode autenticar depois do aceite WebAuthn do contrato.
      * Outros veículos nunca substituem a senha ou desativam contas existentes.
      */
     @Transactional

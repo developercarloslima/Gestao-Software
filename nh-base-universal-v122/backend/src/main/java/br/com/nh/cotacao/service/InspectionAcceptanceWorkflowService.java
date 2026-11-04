@@ -86,7 +86,7 @@ public class InspectionAcceptanceWorkflowService {
         portalUsers.prepareAssociateAccountForAcceptance(associate.getId());
     }
 
-    /** Somente assinaturas reais contam. Mover manualmente a fila não ativa login. */
+    /** Somente o aceite WebAuthn do contrato libera o login. Mover manualmente a fila não ativa acesso. */
     @Transactional
     public void activateAssociatePortalAccessIfComplete(UUID inspectionId) {
         InspectionRequest inspection = inspections.findById(inspectionId)
@@ -98,7 +98,7 @@ public class InspectionAcceptanceWorkflowService {
         // O primeiro aceite válido já deve reservar o login, ainda inativo.
         Associate associate = resolveAssociate(inspection);
         portalUsers.prepareAssociateAccountForAcceptance(associate.getId());
-        if (progress(inspection).allAccepted()) {
+        if (inspection.getAcceptedAt() != null) {
             portalUsers.activateAssociateAccountAfterAcceptance(associate.getId());
         }
     }
