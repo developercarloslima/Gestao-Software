@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -17,6 +19,7 @@ import java.time.LocalDate;
 
 @Service
 public class AsaasClient implements FinancialProvider {
+    private static final Logger log = LoggerFactory.getLogger(AsaasClient.class);
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private final ObjectMapper mapper;
     private final boolean enabled;
@@ -31,14 +34,56 @@ public class AsaasClient implements FinancialProvider {
             @Value("${app.asaas.base-url:https://api-sandbox.asaas.com/v3}") String baseUrl,
             @Value("${app.asaas.api-key:}") String apiKey,
             @Value("${app.asaas.webhook-token:}") String webhookToken,
-            @Value("${app.asaas.user-agent:NH-Gestao/1.0}") String userAgent
+            @Value("${app.asaas.user-agent:NH-Gestao/1.0}") String userAgent,
+            @Value("${app.asaas.expected-wallet-id:}") String expectedWalletId
     ) {
         this.mapper = mapper;
-        this.enabled = enabled && apiKey != null && !apiKey.isBlank() && webhookToken != null && !webhookToken.isBlank();
         this.baseUrl = baseUrl == null ? "https://api-sandbox.asaas.com/v3" : baseUrl.replaceAll("/+$", "");
         this.apiKey = apiKey == null ? "" : apiKey.trim();
         this.webhookToken = webhookToken == null ? "" : webhookToken.trim();
         this.userAgent = userAgent == null || userAgent.isBlank() ? "NH-Gestao/1.0" : userAgent.trim();
+        String expected = expectedWalletId == null ? "" : expectedWalletId.trim();
+        boolean credentialsPresent = enabled && !this.apiKey.isBlank() && !this.webhookToken.isBlank();
+        boolean sandbox = "api-sandbox.asaas.com".equalsIgnoreCase(URI.create(this.baseUrl).getHost());
+        // Em Sandbox, a carteira esperada e obrigatoria. Quando configurada em
+        // outro ambiente, a mesma validacao protege o isolamento do tenant.
+        this.enabled = credentialsPresent && ((!sandbox && expected.isBlank()) ||
+                (!expected.isBlank() && verifyWallet(expected)));
+        if (credentialsPresent && !this.enabled) {
+            log.warn("Asaas bloqueado: carteira do tenant ausente, divergente ou nao verificavel.");
+        }
+    }
+
+    private boolean verifyWallet(String expectedWalletId) {
+        try {
+            HttpRequest req = HttpRequest.newBuilder(URI.create(baseUrl + "/wallets"))
+                    .timeout(Duration.ofSeconds(15))
+                    .header("accept", "application/json")
+                    .header("access_token", apiKey)
+                    .header("User-Agent", userAgent)
+                    .GET().build();
+            HttpResponse<String> response = http.send(req, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                log.warn("Asaas: verificacao da carteira retornou HTTP {}.", response.statusCode());
+                return false;
+            }
+            JsonNode root = mapper.readTree(response.body());
+            JsonNode wallets = root.isArray() ? root : root.path("data");
+            if (wallets.isArray()) {
+                for (JsonNode wallet : wallets) {
+                    if (expectedWalletId.equalsIgnoreCase(wallet.path("id").asText()) ||
+                            expectedWalletId.equalsIgnoreCase(wallet.path("walletId").asText())) return true;
+                }
+            }
+            return expectedWalletId.equalsIgnoreCase(root.path("id").asText()) ||
+                    expectedWalletId.equalsIgnoreCase(root.path("walletId").asText());
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (Exception ex) {
+            log.warn("Asaas: nao foi possivel verificar a carteira do tenant ({}).", ex.getClass().getSimpleName());
+            return false;
+        }
     }
 
     @Override public String code() { return "ASAAS"; }
