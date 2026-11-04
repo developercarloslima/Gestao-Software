@@ -26,6 +26,45 @@ class TenantCompanyInvoicesControllerTest {
         return HexFormat.of().formatHex(mac.doFinal(host.getBytes(StandardCharsets.UTF_8)));
     }
 
+    @Test void onlyInvoiceBelongingToTheAuthenticatedCompanyCanBeIssued() throws Exception {
+        JdbcTemplate db = mock(JdbcTemplate.class);
+        var gateway = mock(br.com.gestaosoftware.control.service.PlatformPaymentGateway.class);
+        var controller = spy(new TenantCompanyInvoicesController(db,
+                mock(br.com.gestaosoftware.control.service.ProvisioningService.class),
+                mock(br.com.gestaosoftware.control.service.PlatformBillingScheduleService.class),
+                gateway, SECRET));
+        java.util.UUID companyId=java.util.UUID.randomUUID();
+        java.util.UUID invoiceId=java.util.UUID.randomUUID();
+        String host="empresa.exemplo.com.br", token=tokenFor(host);
+        doReturn(Map.of("companyId",companyId.toString())).when(controller).list(host,token);
+        when(db.queryForObject(org.mockito.ArgumentMatchers.contains("FROM platform_company_invoices"),
+                org.mockito.ArgumentMatchers.eq(Integer.class),org.mockito.ArgumentMatchers.eq(invoiceId),
+                org.mockito.ArgumentMatchers.eq(companyId))).thenReturn(1);
+        when(gateway.checkout(invoiceId)).thenReturn(Map.of("invoiceUrl","https://sandbox.asaas.com/i/test"));
+
+        assertEquals("https://sandbox.asaas.com/i/test",controller.issueBoleto(host,token,invoiceId).get("invoiceUrl"));
+        verify(gateway).checkout(invoiceId);
+    }
+
+    @Test void cannotIssueInvoiceOutsideCompany() throws Exception {
+        JdbcTemplate db=mock(JdbcTemplate.class);
+        var gateway=mock(br.com.gestaosoftware.control.service.PlatformPaymentGateway.class);
+        var controller=spy(new TenantCompanyInvoicesController(db,
+                mock(br.com.gestaosoftware.control.service.ProvisioningService.class),
+                mock(br.com.gestaosoftware.control.service.PlatformBillingScheduleService.class),
+                gateway, SECRET));
+        java.util.UUID companyId=java.util.UUID.randomUUID(), invoiceId=java.util.UUID.randomUUID();
+        String host="empresa.exemplo.com.br", token=tokenFor(host);
+        doReturn(Map.of("companyId",companyId.toString())).when(controller).list(host,token);
+        when(db.queryForObject(org.mockito.ArgumentMatchers.contains("FROM platform_company_invoices"),
+                org.mockito.ArgumentMatchers.eq(Integer.class),org.mockito.ArgumentMatchers.eq(invoiceId),
+                org.mockito.ArgumentMatchers.eq(companyId))).thenReturn(0);
+
+        var ex=assertThrows(ResponseStatusException.class,()->controller.issueBoleto(host,token,invoiceId));
+        assertEquals(HttpStatus.NOT_FOUND,ex.getStatusCode());
+        verifyNoInteractions(gateway);
+    }
+
     @Test void tokenMustBeBoundToExactlyOneHost() throws Exception {
         String token = tokenFor("empresa.exemplo.com.br");
         assertTrue(TenantCompanyInvoicesController.authorized(SECRET, "empresa.exemplo.com.br", token));
@@ -36,7 +75,7 @@ class TenantCompanyInvoicesControllerTest {
 
     @Test void invalidTokenMustNeverReachDatabase() {
         JdbcTemplate db = mock(JdbcTemplate.class);
-        var controller = new TenantCompanyInvoicesController(db, mock(br.com.gestaosoftware.control.service.ProvisioningService.class), mock(br.com.gestaosoftware.control.service.PlatformBillingScheduleService.class), SECRET);
+        var controller = new TenantCompanyInvoicesController(db, mock(br.com.gestaosoftware.control.service.ProvisioningService.class), mock(br.com.gestaosoftware.control.service.PlatformBillingScheduleService.class), mock(br.com.gestaosoftware.control.service.PlatformPaymentGateway.class), SECRET);
         var ex = assertThrows(ResponseStatusException.class,
                 () -> controller.list("empresa.exemplo.com.br", "outro-token"));
         assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
@@ -45,7 +84,7 @@ class TenantCompanyInvoicesControllerTest {
 
     @Test void missingMasterFailsClosed() {
         JdbcTemplate db = mock(JdbcTemplate.class);
-        var controller = new TenantCompanyInvoicesController(db, mock(br.com.gestaosoftware.control.service.ProvisioningService.class), mock(br.com.gestaosoftware.control.service.PlatformBillingScheduleService.class), "");
+        var controller = new TenantCompanyInvoicesController(db, mock(br.com.gestaosoftware.control.service.ProvisioningService.class), mock(br.com.gestaosoftware.control.service.PlatformBillingScheduleService.class), mock(br.com.gestaosoftware.control.service.PlatformPaymentGateway.class), "");
         var ex = assertThrows(ResponseStatusException.class,
                 () -> controller.list("empresa.exemplo.com.br", "token"));
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, ex.getStatusCode());
