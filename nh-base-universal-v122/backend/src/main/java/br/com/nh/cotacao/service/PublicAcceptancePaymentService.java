@@ -17,14 +17,16 @@ public class PublicAcceptancePaymentService {
     private final CommercialVehicleRepository vehicles;
     private final FinancialChargeRepository charges;
     private final FinancialProviderGateway provider;
+    private final CommercialFinanceService commercialFinance;
 
     public PublicAcceptancePaymentService(InspectionRequestRepository inspections,
             CommercialVehicleRepository vehicles, FinancialChargeRepository charges,
-            FinancialProviderGateway provider) {
+            FinancialProviderGateway provider, CommercialFinanceService commercialFinance) {
         this.inspections = inspections;
         this.vehicles = vehicles;
         this.charges = charges;
         this.provider = provider;
+        this.commercialFinance = commercialFinance;
     }
 
     public record PaymentView(boolean available, boolean providerConfigured, String status,
@@ -32,7 +34,7 @@ public class PublicAcceptancePaymentService {
             String identificationField, String barCode, String pixPayload, String pixEncodedImage,
             boolean futureInvoicesAvailable, String message) {}
 
-    @Transactional(readOnly = true)
+    @Transactional
     public PaymentView findAdhesion(String token) {
         if (token == null || token.isBlank()) throw new IllegalArgumentException("Link inválido.");
         InspectionRequest inspection = inspections.findByPublicToken(token)
@@ -49,6 +51,9 @@ public class PublicAcceptancePaymentService {
                 || !java.util.Objects.equals(Associate.normalizeDocument(inspection.getCpf()), vehicle.getAssociate().getDocument())) {
             return unavailable(configured, "A cobrança deste veículo ainda não está vinculada ao associado. Consulte o Financeiro.");
         }
+        // Reconcilia títulos locais de cadastros assinados antes do fluxo financeiro.
+        // A consulta pública nunca efetua requisições ao Asaas nem emite boletos.
+        commercialFinance.ensureAcceptedLocalBilling(vehicle.getId());
         FinancialCharge charge = charges.findFirstByVehicle_IdAndChargeTypeOrderByCreatedAtAsc(
                 vehicle.getId(), FinancialChargeType.ADHESION).orElse(null);
         if (charge == null) {
