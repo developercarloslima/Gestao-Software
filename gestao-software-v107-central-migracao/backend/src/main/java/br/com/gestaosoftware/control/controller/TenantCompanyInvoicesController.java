@@ -3,6 +3,7 @@ package br.com.gestaosoftware.control.controller;
 import org.springframework.beans.factory.annotation.Value;
 import br.com.gestaosoftware.control.service.ProvisioningService;
 import br.com.gestaosoftware.control.service.PlatformBillingScheduleService;
+import br.com.gestaosoftware.control.service.PlatformPaymentGateway;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,13 +44,16 @@ public class TenantCompanyInvoicesController {
     private final JdbcTemplate db;
     private final ProvisioningService provisioning;
     private final PlatformBillingScheduleService billingSchedule;
+    private final PlatformPaymentGateway payments;
     private final String master;
 
     public TenantCompanyInvoicesController(JdbcTemplate db, ProvisioningService provisioning, PlatformBillingScheduleService billingSchedule,
+            PlatformPaymentGateway payments,
             @Value("${GESTAO_TENANT_BRANDING_MASTER:}") String master) {
         this.db = db;
         this.provisioning = provisioning;
         this.billingSchedule = billingSchedule;
+        this.payments = payments;
         this.master = master;
     }
 
@@ -177,6 +181,26 @@ public class TenantCompanyInvoicesController {
         updated.put("changed", changed);
         updated.put("failed", failed);
         return updated;
+    }
+
+    /** Emissão de somente um título SaaS registrado e pertencente ao host com HMAC válido. */
+    @org.springframework.web.bind.annotation.PostMapping("/invoices/{invoiceId}/issue-boleto")
+    public Map<String,Object> issueBoleto(
+            @RequestHeader("X-Gestao-Tenant-Host") String host,
+            @RequestHeader("X-Gestao-Tenant-Token") String token,
+            @org.springframework.web.bind.annotation.PathVariable UUID invoiceId) {
+        Map<String,Object> company = list(host, token);
+        UUID companyId=UUID.fromString((String)company.get("companyId"));
+        Integer matches = db.queryForObject("""
+                SELECT COUNT(*) FROM platform_company_invoices
+                 WHERE id=? AND company_id=? AND status IN ('PENDING','OVERDUE')
+                """,Integer.class,invoiceId,companyId);
+        if(matches==null || matches!=1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Mensalidade não encontrada ou não disponível para emissão.");
+        }
+        // Plataforma central emite usando a conta-pai, jamais a carteira de associados.
+        return payments.checkout(invoiceId);
     }
 
     /**
