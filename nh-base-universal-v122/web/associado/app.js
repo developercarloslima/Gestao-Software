@@ -41,7 +41,7 @@ function renderCharges(){
     : pending
       ? 'Para emitir um boleto, clique em Gerar boleto na parcela desejada. O documento abrirá em uma nova aba.'
       : 'Os títulos estão disponíveis por vencimento. Você pode abrir e imprimir qualquer boleto futuro para antecipar seu pagamento.';
-  $('charges').innerHTML=list.map(c=>`<tr><td>${labelType(c.type)}</td><td>${date(c.dueDate)}</td><td>${money(c.value)}</td><td>${money(c.providerFee)}</td><td>${money(c.totalCharged)}</td><td><span class="status">${labelStatus(c.status)}</span></td><td>${paymentAction(c)}</td></tr>`).join('')||'<tr><td colspan="7">Nenhuma cobrança cadastrada.</td></tr>';
+  $('charges').innerHTML=list.map(c=>`<tr><td>${labelType(c.type)}</td><td>${date(c.dueDate)}</td><td>${money(c.totalCharged)}</td><td><span class="status">${labelStatus(c.status)}</span></td><td>${paymentAction(c)}</td></tr>`).join('')||'<tr><td colspan="5">Nenhuma cobrança cadastrada.</td></tr>';
   document.querySelectorAll('[data-paycharge]').forEach(b=>b.onclick=()=>showPayment(list.find(c=>c.id===b.dataset.paycharge)));
   document.querySelectorAll('[data-refresh]').forEach(b=>b.onclick=()=>refreshCharge(b.dataset.refresh));
   document.querySelectorAll('[data-issue-boleto]').forEach(b=>b.onclick=()=>issueBoleto(b.dataset.issueBoleto));

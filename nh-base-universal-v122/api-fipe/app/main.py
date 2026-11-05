@@ -120,6 +120,7 @@ button,input{padding:10px;border:1px solid #b8c2d2;border-radius:8px}button{curs
 #erro{white-space:pre-wrap;color:#af2437}</style></head><body>
 <h1>API FIPE — Sincronização</h1><p>Atualizações consultadas no FIPEX a cada intervalo configurado.</p>
 <label>Chave de API (se configurada): <input id="chave" type="password" autocomplete="off"></label>
+<button id="mostrar-chave" type="button" aria-label="Mostrar chave de API" aria-pressed="false">Mostrar</button>
 <button id="atualizar">Atualizar status</button>
 <section><div><b>Estado:</b> <span id="estado">Carregando...</span></div>
 <div><b>Referência local:</b> <span id="ref">—</span></div>
@@ -148,6 +149,14 @@ async function atualizar(){
   }catch(e){document.getElementById('erro').textContent=e.message;}
 }
 document.getElementById('atualizar').addEventListener('click',atualizar);
+document.getElementById('mostrar-chave').addEventListener('click',function(){
+  const campo=document.getElementById('chave');
+  const mostrar=campo.type==='password';
+  campo.type=mostrar?'text':'password';
+  this.textContent=mostrar?'Ocultar':'Mostrar';
+  this.setAttribute('aria-label',mostrar?'Ocultar chave de API':'Mostrar chave de API');
+  this.setAttribute('aria-pressed',String(mostrar));
+});
 setInterval(atualizar,60000);atualizar();
 </script></body></html>"""
 
