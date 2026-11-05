@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { cacheUser, setToken, SessionUser } from '../lib/api';
 import { loginWithPasswordAndPasskey, supportsWebAuthn, type LoginPasskeyMode } from '../lib/webauthn';
+import PasswordField from './PasswordField';
 
 type Props = { onLogin: (user: SessionUser) => void };
 
@@ -50,7 +51,7 @@ export default function Login({ onLogin }: Props) {
       <div className="eyebrow">ACESSO CORPORATIVO • APONTAMENTO DIGITAL</div>
       <h2>Acessar plataforma</h2>
       <label>Usuário<input required value={username} onChange={e => setUsername(e.target.value)} autoComplete="username" /></label>
-      <label>Senha<input required value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="current-password" /></label>
+      <label>Senha<PasswordField required value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" /></label>
       <label>Empresa / CNPJ <span className="optional">opcional</span><input value={tenantDocument} onChange={e => setTenantDocument(e.target.value)} placeholder="Use apenas se o usuário existir em mais de uma empresa" /></label>
       {error && <div className="error-box">{error}</div>}
       <button className="primary" disabled={loadingMode!==null}>{loadingMode==='DEFAULT' ? 'Aguarde...' : 'Entrar'}</button>

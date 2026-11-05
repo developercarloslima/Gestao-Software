@@ -1,5 +1,6 @@
 import { FormEvent,useEffect,useMemo,useState } from 'react';
 import { api,getCachedUser } from '../../lib/api';
+import PasswordField from '../PasswordField';
 
 type DayKey='MON'|'TUE'|'WED'|'THU'|'FRI'|'SAT'|'SUN';
 type DaySchedule={enabled:boolean;startTime:string;endTime:string;breakMinutes:number};
@@ -63,7 +64,7 @@ export default function Supervisors(){
     <label>Nome completo<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label>
     <label>Matrícula <span className="optional">opcional</span><input value={form.employeeNumber} onChange={e=>setForm({...form,employeeNumber:e.target.value})}/></label>
     <label>Usuário de acesso<input required autoCapitalize="none" value={form.username} onChange={e=>setForm({...form,username:e.target.value})}/></label>
-    <label>{editingId?'Nova senha':'Senha inicial'} {editingId&&<span className="optional">opcional</span>}<input type="password" required={!editingId} minLength={editingId?0:6} value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></label>
+    <label>{editingId?'Nova senha':'Senha inicial'} {editingId&&<span className="optional">opcional</span>}<PasswordField required={!editingId} minLength={editingId?0:6} value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></label>
     <label>E-mail <span className="optional">opcional</span><input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></label>
     <label>Cargo<input value={form.jobTitle} onChange={e=>setForm({...form,jobTitle:e.target.value})}/></label>
     <label>Setor<select required value={form.departmentId} onChange={e=>setForm({...form,departmentId:e.target.value})}><option value="">Selecione</option>{departments.filter(x=>x.active!==false).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
