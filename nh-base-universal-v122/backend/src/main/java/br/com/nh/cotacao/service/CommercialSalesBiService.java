@@ -37,20 +37,32 @@ public class CommercialSalesBiService {
         OffsetDateTime start = from.atStartOfDay(ZONE).toOffsetDateTime();
         OffsetDateTime exclusiveEnd = to.plusDays(1).atStartOfDay(ZONE).toOffsetDateTime();
         var totals = jdbc.queryForObject("""
+            WITH charge_events AS (
+              SELECT f.*,
+                  (SELECT MIN(i.accepted_at) FROM inspection_requests i
+                    WHERE i.quotation_id=v.quotation_id AND i.status='APPROVED'
+                      AND i.request_type='NEW_INSPECTION' AND i.accepted_at IS NOT NULL) AS accepted_at
+              FROM financial_charges f
+              JOIN commercial_vehicles v ON v.id=f.vehicle_id
+            )
             SELECT COUNT(*) FILTER (WHERE billing_type='BOLETO' AND provider_payment_id IS NOT NULL
                   AND issued_at>=? AND issued_at<?) AS boletos,
                    COUNT(DISTINCT vehicle_id) FILTER (WHERE charge_type='ADHESION' AND status='RECEIVED'
-                  AND payment_method='BOLETO' AND paid_at>=? AND paid_at<?) AS boleto_sales,
+                  AND accepted_at IS NOT NULL AND payment_method='BOLETO'
+                  AND GREATEST(paid_at,accepted_at)>=? AND GREATEST(paid_at,accepted_at)<?) AS boleto_sales,
                    COUNT(DISTINCT vehicle_id) FILTER (WHERE charge_type='ADHESION' AND status='RECEIVED'
-                  AND payment_method='PIX' AND paid_at>=? AND paid_at<?) AS pix_sales,
+                  AND accepted_at IS NOT NULL AND payment_method='PIX'
+                  AND GREATEST(paid_at,accepted_at)>=? AND GREATEST(paid_at,accepted_at)<?) AS pix_sales,
                    COUNT(DISTINCT vehicle_id) FILTER (WHERE charge_type='ADHESION' AND status='RECEIVED'
+                  AND accepted_at IS NOT NULL
                   AND (payment_method IS NULL OR payment_method NOT IN ('BOLETO','PIX'))
-                  AND paid_at>=? AND paid_at<?) AS other_sales,
+                  AND GREATEST(paid_at,accepted_at)>=? AND GREATEST(paid_at,accepted_at)<?) AS other_sales,
                    COUNT(DISTINCT vehicle_id) FILTER (WHERE charge_type='ADHESION' AND status='RECEIVED'
-                  AND paid_at>=? AND paid_at<?) AS sales,
+                  AND accepted_at IS NOT NULL
+                  AND GREATEST(paid_at,accepted_at)>=? AND GREATEST(paid_at,accepted_at)<?) AS sales,
                    COUNT(*) FILTER (WHERE billing_type='BOLETO' AND provider_payment_id IS NOT NULL
                   AND issued_at IS NULL) AS legacy_issued
-              FROM financial_charges
+              FROM charge_events
             """, (rs, ignored) -> new long[]{rs.getLong("boletos"), rs.getLong("boleto_sales"),
                     rs.getLong("pix_sales"), rs.getLong("other_sales"), rs.getLong("sales"),
                     rs.getLong("legacy_issued")},
@@ -58,17 +70,31 @@ public class CommercialSalesBiService {
                 start, exclusiveEnd, start, exclusiveEnd);
 
         List<ConsultantRow> consultants = jdbc.query("""
+            WITH charge_events AS (
+              SELECT f.*,
+                  (SELECT MIN(i.accepted_at) FROM inspection_requests i
+                    WHERE i.quotation_id=v.quotation_id AND i.status='APPROVED'
+                      AND i.request_type='NEW_INSPECTION' AND i.accepted_at IS NOT NULL) AS accepted_at
+              FROM financial_charges f
+              JOIN commercial_vehicles v ON v.id=f.vehicle_id
+            )
             SELECT c.id, c.name,
                 COUNT(f.id) FILTER (WHERE f.billing_type='BOLETO' AND f.provider_payment_id IS NOT NULL
                        AND f.issued_at>=? AND f.issued_at<?) AS boletos,
                 COUNT(DISTINCT f.vehicle_id) FILTER (WHERE f.charge_type='ADHESION' AND f.status='RECEIVED'
-                       AND f.payment_method='BOLETO' AND f.paid_at>=? AND f.paid_at<?) AS boleto_sales,
+                       AND f.accepted_at IS NOT NULL AND f.payment_method='BOLETO'
+                       AND GREATEST(f.paid_at,f.accepted_at)>=?
+                       AND GREATEST(f.paid_at,f.accepted_at)<?) AS boleto_sales,
                 COUNT(DISTINCT f.vehicle_id) FILTER (WHERE f.charge_type='ADHESION' AND f.status='RECEIVED'
-                       AND f.payment_method='PIX' AND f.paid_at>=? AND f.paid_at<?) AS pix_sales,
+                       AND f.accepted_at IS NOT NULL AND f.payment_method='PIX'
+                       AND GREATEST(f.paid_at,f.accepted_at)>=?
+                       AND GREATEST(f.paid_at,f.accepted_at)<?) AS pix_sales,
                 COUNT(DISTINCT f.vehicle_id) FILTER (WHERE f.charge_type='ADHESION' AND f.status='RECEIVED'
+                       AND f.accepted_at IS NOT NULL
                        AND (f.payment_method IS NULL OR f.payment_method NOT IN ('BOLETO','PIX'))
-                       AND f.paid_at>=? AND f.paid_at<?) AS other_sales
-              FROM consultants c LEFT JOIN financial_charges f ON f.consultant_id=c.id
+                       AND GREATEST(f.paid_at,f.accepted_at)>=?
+                       AND GREATEST(f.paid_at,f.accepted_at)<?) AS other_sales
+              FROM consultants c LEFT JOIN charge_events f ON f.consultant_id=c.id
              WHERE c.collaborator_role='CONSULTANT'
              GROUP BY c.id,c.name
              ORDER BY boleto_sales DESC,pix_sales DESC,other_sales DESC,c.name ASC

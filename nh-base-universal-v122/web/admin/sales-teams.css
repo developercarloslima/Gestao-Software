@@ -1,0 +1,33 @@
+/* BI por equipe incorporado à base multiempresa, sem afetar o financeiro Asaas. */
+.teams-bi-card{padding:clamp(16px,2.5vw,28px)}
+.teams-bi-card>.section-head{align-items:flex-start;gap:20px}
+.teams-bi-export{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;max-width:520px}
+.teams-bi-export select{min-width:190px}
+.teams-bi-filters{display:grid;grid-template-columns:repeat(2,minmax(130px,1fr)) minmax(180px,1.3fr) auto;align-items:end;gap:12px;margin:20px 0 12px}
+.teams-bi-filters label{display:flex;flex-direction:column;gap:6px;min-width:0;font-weight:700}
+.teams-bi-filters input,.teams-bi-filters select{width:100%;min-width:0;box-sizing:border-box}
+.teams-bi-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin:18px 0}
+.teams-bi-metric{background:#f7f8fe;border:1px solid #d8deeb;border-radius:14px;padding:14px;display:grid;gap:7px;min-width:0}
+.teams-bi-metric span{font-size:12px;color:#4b5677;font-weight:700}
+.teams-bi-metric strong{font-size:24px;color:#070c40;overflow-wrap:anywhere}
+.teams-bi-metric small{font-size:11px;color:#62708d}
+.teams-bi-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.teams-bi-charts>.card{min-height:230px}
+.teams-bar{display:grid;grid-template-columns:minmax(95px,180px) 1fr auto;align-items:center;gap:12px;margin:10px 0;font-size:13px}
+.teams-bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.teams-bar-track{height:14px;border-radius:99px;background:#edf0f7;overflow:hidden}
+.teams-bar-fill{height:100%;background:linear-gradient(90deg,#090e43,#4968d9);border-radius:99px}
+.teams-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
+.teams-tile{border:1px solid #d8deeb;background:#fff;border-radius:16px;padding:18px;display:grid;gap:14px}
+.teams-tile h3{margin:0;color:#070c40}.teams-tile p{margin:6px 0 0;color:#52617e;font-size:13px}
+.teams-tile-actions{display:flex;flex-wrap:wrap;gap:8px}
+.teams-tile-actions button{padding:8px 10px;font-size:12px}
+.teams-members{max-height:52vh;overflow:auto;display:grid;gap:12px;margin:10px 0}
+.teams-member-group{border:1px solid #d8deeb;border-radius:12px;padding:12px}
+.teams-member-group h3{font-size:15px;margin:0 0 8px}
+.teams-member{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:9px 0;border-top:1px solid #edf0f7}
+.teams-member label{display:grid;gap:2px;cursor:pointer}.teams-member small{color:#66738d}
+.teams-member button{padding:6px 8px}
+.teams-message-error{color:#a32922;font-weight:650}
+@media(max-width:1000px){.teams-bi-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.teams-bi-charts{grid-template-columns:1fr}}
+@media(max-width:640px){.teams-bi-filters{grid-template-columns:1fr}.teams-bi-export{justify-content:flex-start}.teams-bar{grid-template-columns:105px 1fr auto;gap:6px}.teams-list{grid-template-columns:1fr}.teams-member{grid-template-columns:auto 1fr}.teams-member button{grid-column:2;justify-self:start}}

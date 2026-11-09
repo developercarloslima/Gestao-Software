@@ -31,6 +31,7 @@
   
   <link rel="stylesheet" href="/shared/receivables.css?v=20261103-v1" />
   <link rel="stylesheet" href="/shared/company-subscription.css?v=20261103-renewal-v1" />
+  <link rel="stylesheet" href="/admin/sales-teams.css?v=20261109-v1" />
   <style id="nh-dev-credit-style">
     .nh-dev-credit {
       width: 100%;
@@ -218,6 +219,7 @@
         </button>
         <button type="button" data-tab="activities">Atividades</button>
         <button type="button" data-tab="sales-bi">BI de vendas</button>
+        <button type="button" data-tab="sales-teams">Equipes / Cooperativas</button>
         <button type="button" data-tab="associates">Associados</button>
         <button type="button" data-tab="events">Eventos</button>
         <button type="button" data-tab="workshop">Oficina</button>
@@ -314,6 +316,62 @@
             </table>
           </div>
         </div>
+      </section>
+
+      <section id="tab-sales-teams" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Equipes / Cooperativas</h2>
+            <p>Equipes internas da mesma empresa. Os resultados históricos acompanham a equipe do consultor na data do aceite.</p>
+          </div>
+          <button id="teams-create" type="button" class="primary">+ Criar equipe</button>
+        </div>
+        <article class="card teams-bi-card">
+          <div class="section-head">
+            <div>
+              <h2>BI comercial · visão geral</h2>
+              <p>O aceite é acompanhado separadamente. Venda concluída exige aceite e confirmação do pagamento da adesão no Asaas.</p>
+            </div>
+            <div class="teams-bi-export">
+              <select id="teams-export-dataset" aria-label="Dados para exportar no Power BI">
+                <option value="vendas">Vendas / associados</option>
+                <option value="aceites">Aceites e pendências</option>
+                <option value="consultores">Consultores</option>
+                <option value="equipes">Cooperativas</option>
+                <option value="diario">Vendas diárias</option>
+              </select>
+              <button id="teams-refresh" type="button" class="outline">Atualizar BI</button>
+              <button id="teams-export" type="button" class="secondary">Exportar para Power BI</button>
+            </div>
+          </div>
+          <div class="teams-bi-filters">
+            <label>De <input id="teams-from" type="date"></label>
+            <label>Até <input id="teams-to" type="date"></label>
+            <label>Cooperativa <select id="teams-filter"><option value="">Todas as cooperativas</option></select></label>
+            <button id="teams-apply" type="button" class="primary">Aplicar filtros</button>
+          </div>
+          <p id="teams-status" class="helper" role="status" aria-live="polite"></p>
+          <div class="teams-bi-metrics" id="teams-metrics"></div>
+          <p class="helper">A contagem de boletos emitidos e o relatório financeiro detalhado continuam na aba BI de vendas. Emissão, aceite e pagamento são eventos diferentes.</p>
+          <div class="teams-bi-charts">
+            <div class="card"><h3>Vendas pagas por cooperativa</h3><div id="teams-chart-by-team"></div></div>
+            <div class="card"><h3>Vendas pagas por dia</h3><div id="teams-chart-by-day"></div></div>
+          </div>
+        </article>
+        <div class="section-head" style="margin-top:24px">
+          <div><h2>Cooperativas cadastradas</h2><p>Crie, edite, desative, reative, remova participantes e consulte os resultados.</p></div>
+        </div>
+        <div id="teams-list" class="teams-list"></div>
+        <article class="card teams-bi-card" id="teams-ranking" style="margin-top:24px">
+          <h2 id="teams-ranking-title">Ranking de consultores — Toda a empresa</h2>
+          <p class="helper">Classificação por adesões recebidas com aceite confirmado, sem contar boletos apenas emitidos.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Consultor</th><th>Equipe atual</th><th>Vendas pagas</th><th>Aceites</th><th>Pendentes de aceite</th><th>Em cadastro</th><th>Adesões pendentes</th><th>Ticket mensal</th><th>Ações</th></tr></thead>
+              <tbody id="teams-consultants"><tr><td colspan="9">Abra esta aba para consultar.</td></tr></tbody>
+            </table>
+          </div>
+        </article>
       </section>
 
       <section id="tab-associates" hidden>
@@ -2160,6 +2218,35 @@
       </form>
     </dialog>
 
+    <dialog id="teams-dialog" class="admin-dialog wide-dialog">
+      <form id="teams-form" class="dialog-card">
+        <div class="dialog-head">
+          <div><span class="eyebrow">COOPERATIVA INTERNA</span><h2 id="teams-dialog-title">Criar equipe</h2></div>
+          <button type="button" class="dialog-close" data-teams-close aria-label="Fechar">×</button>
+        </div>
+        <label>Nome da equipe <input id="teams-name" minlength="3" maxlength="120" placeholder="Ex.: Equipe Diamante" required></label>
+        <p class="helper">Selecione os consultores, analistas, supervisores e administradores participantes. Cada consultor pertence a uma equipe por vez; transferências não alteram vendas anteriores.</p>
+        <div id="teams-members" class="teams-members"></div>
+        <div class="actions dialog-actions">
+          <button type="button" class="outline" data-teams-close>Cancelar</button>
+          <button id="teams-save" type="submit" class="primary">Salvar equipe</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="teams-person-dialog" class="admin-dialog wide-dialog">
+      <div class="dialog-card">
+        <div class="dialog-head">
+          <h2 id="teams-person-title">Resultados do consultor</h2>
+          <button type="button" class="dialog-close" data-teams-close aria-label="Fechar">×</button>
+        </div>
+        <div id="teams-person-metrics" class="teams-bi-metrics"></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Associado</th><th>Placa</th><th>Etapa</th><th>Data</th><th>Meio de pagamento</th><th>Mensalidade</th></tr></thead>
+          <tbody id="teams-person-rows"></tbody>
+        </table></div>
+      </div>
+    </dialog>
+
     <script src="/shared/config.js?v=20260923-v77"></script>
     <script src="/shared/face-auth.js?v=20260928-v86"></script>
     <script src="/shared/url-tools.js?v=20260804-current-origin"></script>
@@ -2167,6 +2254,7 @@
     <script src="/shared/inspection-documents.js?v=20261016-v83-129"></script>
 <script src="/shared/fipe-picker.js?v=20261016-v83-137"></script>
 <script src="/admin/admin.js?v=20261103-associate-access-fix-v1"></script>
+<script src="/admin/sales-teams.js?v=20261109-v1"></script>
     <script src="/shared/receivables.js?v=20261104-gerar-boleto"></script>
     <script src="/shared/company-subscription.js?v=20261104-gerar-boleto"></script>
     <script src="/shared/responsive.js?v=20260807-table-scroll-v1"></script>
