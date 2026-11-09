@@ -84,7 +84,15 @@ public class ConsultantCommissionGuideService {
     @Transactional(readOnly = true)
     public BigDecimal activeBaseRevenue(UUID consultantId, YearMonth month) { return baseStats(consultantId, month).activeBaseRevenue(); }
     @Transactional(readOnly = true)
-    public long sales(UUID consultantId, YearMonth month) { return baseStats(consultantId, month).paidNewSales(); }
+    public long sales(UUID consultantId, YearMonth month) {
+        // Indicador comercial não é o fechamento recorrente usado no cálculo de comissão.
+        var zone = java.time.ZoneId.of("America/Sao_Paulo");
+        OffsetDateTime start = month.atDay(1).atStartOfDay(zone).toOffsetDateTime();
+        OffsetDateTime end = month.plusMonths(1).atDay(1).atStartOfDay(zone).toOffsetDateTime();
+        return longValue("select count(distinct vehicle_id) from financial_charges where consultant_id=? "
+                + "and charge_type='ADHESION' and status='RECEIVED' and paid_at>=? and paid_at<?",
+                consultantId, start, end);
+    }
     @Transactional(readOnly = true)
     public String career(UUID consultantId, YearMonth month) { return careerLevel(activePayingBase(consultantId, month)); }
 

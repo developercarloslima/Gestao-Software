@@ -63,7 +63,20 @@ public class CommercialFinanceController {
     public ResponseEntity<ChargeResponse> createCharge(@PathVariable UUID id, @Valid @RequestBody CreateChargeRequest request, Authentication auth) {
         PortalPrincipal p = principal(auth);
         service.assertVehicleAccess(id, linkedConsultant(p), p.role());
+        if (request.billingType() == br.com.nh.cotacao.entity.FinancialBillingType.CASH_HAND
+                && p.role() != PortalRole.ADMIN && p.role() != PortalRole.BUYER)
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "Recebimentos em mãos exigem conferência do Financeiro.");
         return ResponseEntity.status(201).body(service.createCharge(id, request));
+    }
+
+    @PostMapping("/charges/{id}/confirm-cash-adhesion")
+    public ChargeResponse confirmCashAdhesion(@PathVariable UUID id, Authentication auth) {
+        PortalPrincipal p = principal(auth);
+        if (p.role() != PortalRole.ADMIN && p.role() != PortalRole.BUYER)
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "Apenas o Financeiro pode confirmar recebimento em mãos.");
+        return service.confirmCashAdhesion(id);
     }
 
     @PostMapping("/vehicles/{id}/finance/activate")

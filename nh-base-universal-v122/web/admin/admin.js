@@ -4996,11 +4996,113 @@ $('employee-excel-confirm').addEventListener('click',async()=>{
 
 const fipeSyncAdminCard = window.NHFipeSyncCard?.init({api});
 
+let adminAssociateRows = [];
+let adminSelectedAssociateId = null;
+const associateVehicles = person => Array.isArray(person?.vehicles) ? person.vehicles : [];
+function associateVehicleMatchesStatus(row, selected) {
+  const contractual = row.vehicle?.status;
+  const financial = row.financial?.businessStatus;
+  if (!selected) return true;
+  if (selected === 'CANCELLED') return contractual === 'CANCELLED';
+  if (selected === 'PENDING_PAYMENT') return contractual === 'PENDING_PAYMENT';
+  if (selected === 'ACTIVE') return contractual === 'ACTIVE' && financial === 'ACTIVE';
+  return financial === selected;
+}
+function renderAdminAssociates() {
+  const people = adminAssociateRows;
+  const allVehicles = people.flatMap(associateVehicles);
+  $('associates-total').textContent = String(people.length);
+  $('associates-active').textContent = String(allVehicles.filter(v => v.vehicle?.status === 'ACTIVE').length);
+  $('associates-pending').textContent = String(allVehicles.filter(v => v.vehicle?.status === 'PENDING_PAYMENT').length);
+  $('associates-overdue').textContent = String(allVehicles.filter(v => ['DELINQUENT','DISABLED_DELINQUENCY'].includes(v.financial?.businessStatus)).length);
+  const search = String($('associates-filter').value || '').trim().toLocaleLowerCase('pt-BR');
+  const status = $('associates-status-filter').value;
+  const filtered = people.filter(person => {
+    const entries = associateVehicles(person);
+    const text = [person.name, person.document, person.whatsapp,
+      ...entries.flatMap(({vehicle}) => [vehicle?.plate, vehicle?.model, vehicle?.consultantName, vehicle?.planName])]
+      .join(' ').toLocaleLowerCase('pt-BR');
+    return text.includes(search) && (!status || entries.some(row => associateVehicleMatchesStatus(row, status)));
+  });
+  $('associates-body').innerHTML = filtered.map(person => {
+    const vehicles = associateVehicles(person);
+    const consultants = [...new Set(vehicles.map(v => v.vehicle?.consultantName || 'Sem consultor'))];
+    const plates = vehicles.map(v => v.vehicle?.plate || '0 km / sem placa');
+    const monthly = vehicles.filter(v => v.vehicle?.status === 'ACTIVE').reduce((sum, v) => sum + Number(v.vehicle?.monthlyValue || 0), 0);
+    return `<tr><td>${esc(person.name)}</td><td>${esc(person.document || '—')}</td>
+      <td>${esc(consultants.join(', ') || '—')}</td><td>${esc(plates.join(', ') || '—')}</td>
+      <td>${brl.format(monthly)}</td><td><button type="button" class="outline" data-admin-associate="${esc(person.id)}">Detalhes</button></td></tr>`;
+  }).join('') || '<tr><td colspan="6">Nenhum associado corresponde aos filtros.</td></tr>';
+  const selected = people.find(person => person.id === adminSelectedAssociateId);
+  $('associates-details').hidden = !selected;
+  if (!selected) return;
+  $('associates-details-name').textContent = selected.name;
+  $('associates-details-identification').textContent = `CPF: ${selected.document || 'não cadastrado'} · WhatsApp: ${selected.whatsapp || 'não cadastrado'}`;
+  $('associates-details-body').innerHTML = associateVehicles(selected).map(({vehicle,financial}) => {
+    const contract = {ACTIVE:'Ativo',PENDING_PAYMENT:'Aguardando pagamento da adesão',DRAFT:'Em cadastro',CANCELLED:'Cancelado'}[vehicle?.status] || vehicle?.status || 'Não identificado';
+    return `<tr><td>${esc(vehicle?.plate || '0 km / sem placa')}<small class="table-subtitle">${esc(vehicle?.model || '—')}</small></td>
+      <td>${esc(vehicle?.consultantName || '—')}</td><td>${esc(vehicle?.planName || vehicle?.planCode || '—')}</td>
+      <td>${brl.format(Number(vehicle?.monthlyValue || 0))}</td><td>${esc(contract)}</td>
+      <td>${esc(financial?.businessStatusLabel || 'Não apurado')}</td></tr>`;
+  }).join('') || '<tr><td colspan="6">Nenhum veículo vinculado.</td></tr>';
+}
+async function loadAdminAssociates() {
+  $('associates-message').textContent = 'Carregando associados e situação financeira…';
+  try {
+    const result = await api('/api/admin/commercial/associates');
+    adminAssociateRows = Array.isArray(result) ? result : [];
+    renderAdminAssociates();
+    $('associates-message').textContent = `${adminAssociateRows.length} associados encontrados.`;
+  } catch(error) {
+    $('associates-message').textContent = error.message || 'Falha ao carregar os associados.';
+  }
+}
+$('associates-filter')?.addEventListener('input', renderAdminAssociates);
+$('associates-status-filter')?.addEventListener('change', renderAdminAssociates);
+$('associates-refresh')?.addEventListener('click', loadAdminAssociates);
+$('associates-body')?.addEventListener('click', event => {
+  const button = event.target.closest('[data-admin-associate]');
+  if (!button) return;
+  adminSelectedAssociateId = button.dataset.adminAssociate;
+  renderAdminAssociates();
+  $('associates-details').scrollIntoView({behavior:'smooth', block:'nearest'});
+});
+
+async function loadCommercialSalesBi() {
+  const params = new URLSearchParams();
+  if ($('sales-bi-from')?.value) params.set('from', $('sales-bi-from').value);
+  if ($('sales-bi-to')?.value) params.set('to', $('sales-bi-to').value);
+  const status = $('sales-bi-message');
+  if (status) status.textContent = 'Atualizando dados financeiros…';
+  try {
+    const report = await api(`/api/admin/commercial/sales-bi?${params}`);
+    $('sales-bi-issued').textContent = Number(report.issuedBoletos || 0).toLocaleString('pt-BR');
+    $('sales-bi-boleto').textContent = Number(report.salesByBoleto || 0).toLocaleString('pt-BR');
+    $('sales-bi-pix').textContent = Number(report.salesByPix || 0).toLocaleString('pt-BR');
+    $('sales-bi-total').textContent = Number(report.totalSales || 0).toLocaleString('pt-BR');
+    $('sales-bi-consultants').innerHTML = (report.consultants || []).map(row => `<tr>
+      <td>${esc(row.consultantName)}</td>
+      <td>${Number(row.issuedBoletos || 0)}</td>
+      <td>${Number(row.salesByBoleto || 0)}</td>
+      <td>${Number(row.salesByPix || 0)}</td>
+      <td>${Number(row.otherPaidSales || 0)}</td>
+    </tr>`).join('') || '<tr><td colspan="5">Nenhum consultor encontrado.</td></tr>';
+    $('sales-bi-note').textContent = `${report.definition} Pagamentos por outros meios: ${Number(report.otherPaidSales || 0)}. `
+      + `Boletos históricos sem data de emissão: ${Number(report.legacyBoletosWithoutIssueDate || 0)}.`;
+    if (status) status.textContent = `Período: ${report.from} a ${report.to}`;
+  } catch (error) {
+    if (status) status.textContent = error.message || 'Falha ao consultar o BI financeiro.';
+  }
+}
+$('sales-bi-refresh')?.addEventListener('click', loadCommercialSalesBi);
+
 document.querySelectorAll('.admin-tabs button').forEach(button => {
   button.addEventListener('click', () => {
     document.querySelectorAll('.admin-tabs button').forEach(item => item.classList.toggle('active', item === button));
     document.querySelectorAll('[id^="tab-"]').forEach(section => { section.hidden = section.id !== `tab-${button.dataset.tab}`; });
     if (button.dataset.tab === 'settings') fipeSyncAdminCard?.refresh();
+    if (button.dataset.tab === 'sales-bi') loadCommercialSalesBi();
+    if (button.dataset.tab === 'associates') loadAdminAssociates();
   });
 });
 

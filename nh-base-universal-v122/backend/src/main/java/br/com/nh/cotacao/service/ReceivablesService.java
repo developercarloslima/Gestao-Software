@@ -218,6 +218,8 @@ public class ReceivablesService {
 
     static String businessStatus(CommercialVehicleStatus contract, long maxDays) {
         if (contract == CommercialVehicleStatus.CANCELLED || maxDays > 60) return "CANCELADO";
+        if (contract == CommercialVehicleStatus.PENDING_PAYMENT || contract == CommercialVehicleStatus.DRAFT)
+            return "AGUARDANDO_ADESAO";
         if (maxDays > 6) return "INADIMPLENTE";
         if (maxDays >= 1) return "ATRASADO";
         return "EM_DIA";

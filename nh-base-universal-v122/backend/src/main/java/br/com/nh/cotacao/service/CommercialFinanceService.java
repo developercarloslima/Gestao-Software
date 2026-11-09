@@ -86,6 +86,25 @@ public class CommercialFinanceService {
         return new AssociateDetail(a.getId(), a.getName(), a.getDocument(), a.getWhatsapp(), a.getEmail(), a.isActive(), list);
     }
 
+    public record AdminAssociateVehicle(VehicleSummary vehicle, AssociateVehicleSummary financial) {}
+    public record AdminAssociateRow(UUID id, String name, String document, String whatsapp,
+                                    boolean active, List<AdminAssociateVehicle> vehicles) {}
+
+    /** Visão administrativa consolidada por associado, preservando cada placa e consultor. */
+    @Transactional(readOnly = true)
+    public List<AdminAssociateRow> adminAssociates() {
+        Map<UUID, List<CommercialVehicle>> grouped = new HashMap<>();
+        for (CommercialVehicle v : vehicles.findAllByOrderByCreatedAtDesc()) {
+            grouped.computeIfAbsent(v.getAssociate().getId(), ignored -> new ArrayList<>()).add(v);
+        }
+        return associates.findAll(org.springframework.data.domain.Sort.by("name")).stream().map(a -> {
+            List<AdminAssociateVehicle> owned = grouped.getOrDefault(a.getId(), List.of()).stream()
+                    .map(v -> new AdminAssociateVehicle(toVehicleSummary(v), toAssociateVehicleSummary(v)))
+                    .toList();
+            return new AdminAssociateRow(a.getId(), a.getName(), a.getDocument(), a.getWhatsapp(), a.isActive(), owned);
+        }).toList();
+    }
+
     public record AssociateCpfCheck(String status, String message) {}
 
     @Transactional(readOnly = true)
@@ -183,8 +202,10 @@ public class CommercialFinanceService {
     @Transactional
     public void activateQuotation(Quotation q) {
         CommercialVehicle v = vehicles.findByQuotation_Id(q.getId()).orElseGet(() -> registerQuotation(q, null, AdhesionPaymentMethod.BOLETO));
+        if (v.getStatus() == CommercialVehicleStatus.CANCELLED)
+            throw new IllegalStateException("O veículo cancelado não pode ser reativado automaticamente.");
         v.syncFromQuotation(q);
-        v.activate();
+        v.awaitAdhesionPayment();
         vehicles.save(v);
 
         if (v.getAdhesionValue().signum() > 0) {
@@ -192,7 +213,7 @@ public class CommercialFinanceService {
             if (existingAdhesion == null) {
                 if (v.getAdhesionPaymentMethod() == AdhesionPaymentMethod.CASH_HAND) {
                     FinancialCharge cash = FinancialCharge.create(v, FinancialChargeType.ADHESION, FinancialBillingType.CASH_HAND, v.getAdhesionValue(), LocalDate.now());
-                    cash.markReceived(OffsetDateTime.now());
+                    // Forma selecionada não comprova recebimento. Somente o Financeiro o confirma.
                     charges.save(cash);
                 } else {
                     // Criar o título de adesão mesmo com Asaas desativado: sem transação externa.
@@ -217,6 +238,7 @@ public class CommercialFinanceService {
                 sendExistingAsaasCharge(existingAdhesion);
             }
         }
+        reconcilePaidAdhesion(v);
 
         // Veículos anteriores mantêm a assinatura que já está no Asaas.
         // Veículos novos recebem um lote de 12 cobranças futuras individuais,
@@ -277,14 +299,31 @@ public class CommercialFinanceService {
         }
         if (request.type() == FinancialChargeType.ADHESION && request.billingType() == FinancialBillingType.CASH_HAND) {
             FinancialCharge c = FinancialCharge.create(v, request.type(), request.billingType(), request.value(), request.dueDate());
-            c.markReceived(OffsetDateTime.now());
-            return toChargeResponse(charges.save(c));
+            c = charges.save(c);
+            return toChargeResponse(c);
         }
         if (request.billingType() == FinancialBillingType.CASH_HAND) {
             throw new IllegalArgumentException("Somente a adesão pode ser registrada como recebida em mãos.");
         }
         if (!asaas.enabled()) throw new IllegalStateException("Configure a financeira para gerar Pix ou boleto.");
         return toChargeResponse(createAsaasCharge(v, request.type(), request.billingType(), request.value(), request.dueDate()));
+    }
+
+    /** Conferência operacional do recebimento em mãos, reservada a ADM/Financeiro. */
+    @Transactional
+    public ChargeResponse confirmCashAdhesion(UUID chargeId) {
+        FinancialCharge charge = charges.findById(chargeId)
+                .orElseThrow(() -> new IllegalArgumentException("Cobrança não encontrada."));
+        if (charge.getChargeType() != FinancialChargeType.ADHESION
+                || charge.getBillingType() != FinancialBillingType.CASH_HAND)
+            throw new IllegalArgumentException("Apenas a adesão recebida em mãos pode ser confirmada manualmente.");
+        if (charge.getStatus() != FinancialChargeStatus.PENDING)
+            throw new IllegalStateException("A adesão já foi conciliada ou não permite confirmação manual.");
+        charge.markReceived(OffsetDateTime.now());
+        charge.setPaymentMethod(FinancialBillingType.CASH_HAND);
+        charge = charges.save(charge);
+        reconcilePaidAdhesion(charge.getVehicle());
+        return toChargeResponse(charge);
     }
 
     @Transactional
@@ -297,7 +336,9 @@ public class CommercialFinanceService {
         FinancialChargeStatus status = mapProviderPaymentStatus(p.status());
         c.applyProvider(p.id(), p.subscriptionId(), p.invoiceUrl(), p.bankSlipUrl(), p.identificationField(), p.barCode(), p.pixPayload(), p.pixEncodedImage());
         if (status != null) {
-            c.updateFromWebhook(status, null, null, null, p.invoiceUrl(), p.bankSlipUrl());
+            c.updateFromWebhook(status, null, null,
+                    status == FinancialChargeStatus.RECEIVED ? OffsetDateTime.now() : null,
+                    p.invoiceUrl(), p.bankSlipUrl());
             if (c.getStatus() == FinancialChargeStatus.RECEIVED && c.getChargeType() == FinancialChargeType.MONTHLY) {
                 long paidClosingForVehicle = charges.countByVehicle_IdAndChargeTypeAndStatus(c.getVehicle().getId(), FinancialChargeType.CLOSING, FinancialChargeStatus.RECEIVED);
                 boolean adhesionSettled = isAdhesionSettled(c.getVehicle());
@@ -305,6 +346,7 @@ public class CommercialFinanceService {
             }
         }
         c = charges.save(c);
+        if (c.getChargeType() == FinancialChargeType.ADHESION) reconcilePaidAdhesion(c.getVehicle());
         if (c.getStatus() == FinancialChargeStatus.RECEIVED && old != FinancialChargeStatus.RECEIVED) creditCommission(c);
         if (c.getStatus() == FinancialChargeStatus.REFUNDED && old != FinancialChargeStatus.REFUNDED) reverseCommission(c);
         return toChargeResponse(c);
@@ -449,13 +491,20 @@ public class CommercialFinanceService {
         FinancialChargeStatus status = mapPaymentStatus(eventType, text(payment,"status"));
         OffsetDateTime paidAt = dateTime(text(payment,"paymentDate"));
         if (paidAt == null) paidAt = dateTime(text(payment,"clientPaymentDate"));
+        if (paidAt == null && status == FinancialChargeStatus.RECEIVED) paidAt = OffsetDateTime.now();
         c.updateFromWebhook(status, decimal(payment,"value",null), date(text(payment,"dueDate")), paidAt, text(payment,"invoiceUrl"), text(payment,"bankSlipUrl"));
+        // A forma emitida pode ser boleto mesmo quando o associado paga por Pix.
+        String pixTransaction = text(payment,"pixTransaction");
+        FinancialBillingType actualPayment = pixTransaction != null && !pixTransaction.isBlank()
+                ? FinancialBillingType.PIX : parsePaymentMethod(text(payment,"billingType"));
+        c.setPaymentMethod(actualPayment);
         if (c.getStatus() == FinancialChargeStatus.RECEIVED && c.getChargeType() == FinancialChargeType.MONTHLY) {
             long paidClosingForVehicle = charges.countByVehicle_IdAndChargeTypeAndStatus(c.getVehicle().getId(), FinancialChargeType.CLOSING, FinancialChargeStatus.RECEIVED);
             boolean adhesionSettled = isAdhesionSettled(c.getVehicle());
             c.setChargeType(adhesionSettled && paidClosingForVehicle == 0 ? FinancialChargeType.CLOSING : FinancialChargeType.MONTHLY);
         }
         c = charges.save(c);
+        if (c.getChargeType() == FinancialChargeType.ADHESION) reconcilePaidAdhesion(c.getVehicle());
 
         if (c.getStatus() == FinancialChargeStatus.RECEIVED && old != FinancialChargeStatus.RECEIVED) creditCommission(c);
         if (c.getStatus() == FinancialChargeStatus.REFUNDED && old != FinancialChargeStatus.REFUNDED) reverseCommission(c);
@@ -577,8 +626,32 @@ public class CommercialFinanceService {
     }
 
     private boolean isAdhesionSettled(CommercialVehicle vehicle) {
-        if (vehicle.getAdhesionValue() == null || vehicle.getAdhesionValue().signum() <= 0) return true;
         return charges.countByVehicle_IdAndChargeTypeAndStatus(vehicle.getId(), FinancialChargeType.ADHESION, FinancialChargeStatus.RECEIVED) > 0;
+    }
+
+    /** O aceite e o pagamento são dois fatos distintos; somente ambos liberam a placa.
+     *  Repetições de webhook e estornos recalculam a situação sem duplicar vendas.
+     */
+    private void reconcilePaidAdhesion(CommercialVehicle vehicle) {
+        if (vehicle.getStatus() == CommercialVehicleStatus.CANCELLED || vehicle.getQuotation() == null
+                || vehicle.getAssociate() == null || vehicle.getAssociate().getDocument() == null) return;
+        boolean accepted = vehicles.hasAcceptedContract(vehicle.getQuotation().getId(),
+                vehicle.getAssociate().getDocument(), InspectionRequestStatus.APPROVED);
+        boolean received = isAdhesionSettled(vehicle);
+        if (accepted && received) {
+            if (vehicle.getStatus() != CommercialVehicleStatus.ACTIVE) vehicle.activate();
+        } else if (vehicle.getStatus() == CommercialVehicleStatus.ACTIVE
+                || vehicle.getStatus() == CommercialVehicleStatus.PENDING_PAYMENT) {
+            vehicle.awaitAdhesionPayment();
+        }
+        vehicles.save(vehicle);
+    }
+
+    /** Reprocessa o aceite posterior ao pagamento (ordem de eventos pode variar). */
+    @Transactional
+    public void reconcileAcceptedInspection(UUID quotationId) {
+        if (quotationId == null) return;
+        vehicles.findByQuotation_Id(quotationId).ifPresent(this::reconcilePaidAdhesion);
     }
 
     private CommercialVehicle locateVehicle(String subscriptionId, String externalReference) {
@@ -629,7 +702,8 @@ public class CommercialFinanceService {
         if (charge.getStatus() != FinancialChargeStatus.PENDING) {
             throw new IllegalStateException("Esta cobrança não pode ser emitida novamente. Procure o Financeiro.");
         }
-        if (vehicle.getStatus() != CommercialVehicleStatus.ACTIVE
+        if ((vehicle.getStatus() != CommercialVehicleStatus.ACTIVE
+                && vehicle.getStatus() != CommercialVehicleStatus.PENDING_PAYMENT)
                 || vehicle.getQuotation() == null
                 || vehicle.getAssociate().getDocument() == null
                 || !vehicles.hasAcceptedContract(vehicle.getQuotation().getId(),
@@ -689,7 +763,8 @@ public class CommercialFinanceService {
     public void ensureAcceptedLocalBilling(UUID vehicleId) {
         CommercialVehicle v = vehicles.findByIdForBillingUpdate(vehicleId)
                 .orElseThrow(() -> new IllegalArgumentException("Veículo não encontrado."));
-        if (v.getStatus() != CommercialVehicleStatus.ACTIVE
+        if ((v.getStatus() != CommercialVehicleStatus.ACTIVE
+                && v.getStatus() != CommercialVehicleStatus.PENDING_PAYMENT)
                 || v.getQuotation() == null || v.getAssociate() == null
                 || v.getAssociate().getDocument() == null
                 || v.getAsaasSubscriptionId() != null || v.getNextAdvanceBillingAt() != null) return;
@@ -709,11 +784,10 @@ public class CommercialFinanceService {
             adhesion.selectProvider(asaas.code());
             adhesion.applyProviderFee(paymentFeeFor(billing));
             charges.save(adhesion);
-        } else {
-            // Adesão isenta ou recebida em mãos: registrar sem boleto de valor zero.
+        } else if (adhesionValue != null && adhesionValue.signum() > 0) {
+            // Sem comprovante não existe recebimento: a adesão manual começa pendente.
             FinancialCharge adhesion = FinancialCharge.create(v, FinancialChargeType.ADHESION,
                     FinancialBillingType.CASH_HAND, adhesionValue, LocalDate.now());
-            adhesion.markReceived(OffsetDateTime.now());
             charges.save(adhesion);
         }
 
@@ -786,6 +860,7 @@ public class CommercialFinanceService {
 
     private VehicleBusinessStatus effectiveBusinessStatus(CommercialVehicle v, List<FinancialCharge> list) {
         if (v.getStatus() == CommercialVehicleStatus.CANCELLED) return VehicleBusinessStatus.DISABLED_CANCELLED;
+        if (v.getStatus() != CommercialVehicleStatus.ACTIVE) return VehicleBusinessStatus.PAYMENT_PENDING;
         LocalDate today = LocalDate.now();
         boolean disabledByDelinquency = list.stream().anyMatch(c -> c.getDueDate()!=null
                 && (c.getStatus()==FinancialChargeStatus.OVERDUE || c.getStatus()==FinancialChargeStatus.PENDING || c.getStatus()==FinancialChargeStatus.CONFIRMED)
@@ -806,14 +881,14 @@ public class CommercialFinanceService {
         return switch (status) {
             case ACTIVE -> "Ativo";
             case PAYMENT_PENDING -> "Pagamento pendente";
-            case DELINQUENT -> "Inadimplente";
+            case DELINQUENT -> "Em atraso";
             case DISABLED_CANCELLED -> "Desativado - cancelado";
-            case DISABLED_DELINQUENCY -> "Desativado - inadimplência superior a 6 dias";
+            case DISABLED_DELINQUENCY -> "Inadimplente - atraso superior a 6 dias";
         };
     }
 
     public void assertVehicleAccess(UUID vehicleId, UUID consultantId, PortalRole role) {
-        if (role == PortalRole.ADMIN || role == PortalRole.ANALYST || role == PortalRole.SUPERVISION_ANALYSIS) return;
+        if (role == PortalRole.ADMIN || role == PortalRole.BUYER || role == PortalRole.ANALYST || role == PortalRole.SUPERVISION_ANALYSIS) return;
         CommercialVehicle v = requireVehicle(vehicleId);
         if (role != PortalRole.CONSULTANT || consultantId == null || v.getConsultant() == null || !consultantId.equals(v.getConsultant().getId())) {
             throw new IllegalArgumentException("Este veículo pertence a outro consultor.");
@@ -853,6 +928,9 @@ public class CommercialFinanceService {
     private static BigDecimal nz(BigDecimal v){return v==null?BigDecimal.ZERO:v.setScale(2,RoundingMode.HALF_UP);}
     private static String maskPix(String v){if(v==null||v.isBlank())return null;if(v.length()<=4)return "****";return "••••"+v.substring(v.length()-4);}
     private static FinancialBillingType parseBilling(String value){try{return FinancialBillingType.valueOf(value);}catch(Exception e){return FinancialBillingType.BOLETO;}}
+    private static FinancialBillingType parsePaymentMethod(String value){
+        try { return FinancialBillingType.valueOf(value); } catch (Exception ignored) { return null; }
+    }
     private static FinancialChargeStatus mapPaymentStatus(String event,String providerStatus){
         if("PAYMENT_RECEIVED".equals(event))return FinancialChargeStatus.RECEIVED;
         if("PAYMENT_CONFIRMED".equals(event))return FinancialChargeStatus.CONFIRMED;

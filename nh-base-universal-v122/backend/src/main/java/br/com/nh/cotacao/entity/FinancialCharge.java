@@ -18,6 +18,8 @@ public class FinancialCharge {
     @Column(name="provider_subscription_id", length=100) private String providerSubscriptionId;
     @Enumerated(EnumType.STRING) @Column(name="charge_type", nullable=false, length=20) private FinancialChargeType chargeType;
     @Enumerated(EnumType.STRING) @Column(name="billing_type", nullable=false, length=20) private FinancialBillingType billingType;
+    /** Meio efetivo do pagamento, diferente do tipo solicitado na emissão do título. */
+    @Enumerated(EnumType.STRING) @Column(name="payment_method", length=20) private FinancialBillingType paymentMethod;
     @Column(nullable=false, precision=14, scale=2) private BigDecimal value;
     @Column(name="provider_fee",nullable=false,precision=14,scale=2) private BigDecimal providerFee;
     @Column(name="gross_value",nullable=false,precision=14,scale=2) private BigDecimal grossValue;
@@ -31,6 +33,7 @@ public class FinancialCharge {
     @Column(name="pix_payload", columnDefinition="text") private String pixPayload;
     @Column(name="pix_encoded_image", columnDefinition="text") private String pixEncodedImage;
     @Column(name="external_reference", length=180) private String externalReference;
+    @Column(name="issued_at") private OffsetDateTime issuedAt;
     @Column(name="created_at", nullable=false) private OffsetDateTime createdAt;
     @Column(name="updated_at", nullable=false) private OffsetDateTime updatedAt;
 
@@ -41,7 +44,10 @@ public class FinancialCharge {
         c.createdAt=OffsetDateTime.now(); c.updatedAt=c.createdAt; c.externalReference=type.name().toLowerCase(java.util.Locale.ROOT)+":"+v.getId()+":"+c.id; return c;
     }
     public void applyProvider(String paymentId,String subscriptionId,String invoiceUrl,String bankSlipUrl,String identificationField,String barCode,String pixPayload,String pixImage) {
-        if(paymentId!=null&&!paymentId.isBlank())this.providerPaymentId=paymentId; if(subscriptionId!=null&&!subscriptionId.isBlank())this.providerSubscriptionId=subscriptionId;
+        if(paymentId!=null&&!paymentId.isBlank()) {
+            if(this.providerPaymentId == null && this.issuedAt == null) this.issuedAt = OffsetDateTime.now();
+            this.providerPaymentId=paymentId;
+        } if(subscriptionId!=null&&!subscriptionId.isBlank())this.providerSubscriptionId=subscriptionId;
         if(invoiceUrl!=null)this.invoiceUrl=invoiceUrl; if(bankSlipUrl!=null)this.bankSlipUrl=bankSlipUrl; if(identificationField!=null)this.identificationField=identificationField;
         if(barCode!=null)this.barCode=barCode; if(pixPayload!=null)this.pixPayload=pixPayload; if(pixImage!=null)this.pixEncodedImage=pixImage; this.updatedAt=OffsetDateTime.now();
     }
@@ -95,13 +101,18 @@ public class FinancialCharge {
     }
 
     public void markReceived(OffsetDateTime paidAt){this.status=FinancialChargeStatus.RECEIVED;this.paidAt=paidAt==null?OffsetDateTime.now():paidAt;this.updatedAt=OffsetDateTime.now();}
+    public void setPaymentMethod(FinancialBillingType method) {
+        if (method != null) { this.paymentMethod = method; this.updatedAt = OffsetDateTime.now(); }
+    }
     public void setChargeType(FinancialChargeType type){if(type!=null){this.chargeType=type;this.updatedAt=OffsetDateTime.now();}}
     public void markError(){this.status=FinancialChargeStatus.ERROR;this.updatedAt=OffsetDateTime.now();}
     public void markPending(){this.status=FinancialChargeStatus.PENDING;this.updatedAt=OffsetDateTime.now();}
     public UUID getId(){return id;} public CommercialVehicle getVehicle(){return vehicle;} public Associate getAssociate(){return associate;} public Consultant getConsultant(){return consultant;}
     public String getProvider(){return provider;} public String getProviderPaymentId(){return providerPaymentId;} public String getProviderSubscriptionId(){return providerSubscriptionId;}
     public FinancialChargeType getChargeType(){return chargeType;} public FinancialBillingType getBillingType(){return billingType;} public BigDecimal getValue(){return value;} public BigDecimal getProviderFee(){return providerFee;} public BigDecimal getGrossValue(){return grossValue;} public LocalDate getDueDate(){return dueDate;}
+    public FinancialBillingType getPaymentMethod(){return paymentMethod;}
     public FinancialChargeStatus getStatus(){return status;} public OffsetDateTime getPaidAt(){return paidAt;} public String getInvoiceUrl(){return invoiceUrl;} public String getBankSlipUrl(){return bankSlipUrl;}
     public String getIdentificationField(){return identificationField;} public String getBarCode(){return barCode;} public String getPixPayload(){return pixPayload;} public String getPixEncodedImage(){return pixEncodedImage;}
     public String getExternalReference(){return externalReference;} public OffsetDateTime getCreatedAt(){return createdAt;} public OffsetDateTime getUpdatedAt(){return updatedAt;}
+    public OffsetDateTime getIssuedAt(){return issuedAt;}
 }

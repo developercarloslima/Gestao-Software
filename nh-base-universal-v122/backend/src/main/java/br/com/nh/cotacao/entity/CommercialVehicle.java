@@ -40,7 +40,8 @@ public class CommercialVehicle {
         v.quotation = q;
         v.adhesionPaymentMethod = adhesionMethod == null ? AdhesionPaymentMethod.BOLETO : adhesionMethod;
         v.recurringBillingType = FinancialBillingType.BOLETO;
-        v.status = q.getStatus() == QuoteStatus.ACCEPTED ? CommercialVehicleStatus.ACTIVE : CommercialVehicleStatus.DRAFT;
+        // Aceite comercial não é comprovante de pagamento da adesão.
+        v.status = q.getStatus() == QuoteStatus.ACCEPTED ? CommercialVehicleStatus.PENDING_PAYMENT : CommercialVehicleStatus.DRAFT;
         v.advanceBillingEnabled = true; // Apenas cadastros feitos após esta versão.
         v.createdAt = OffsetDateTime.now();
         v.syncFromQuotation(q);
@@ -63,6 +64,12 @@ public class CommercialVehicle {
     }
 
     public void activate() { this.status = CommercialVehicleStatus.ACTIVE; this.updatedAt = OffsetDateTime.now(); }
+    public void awaitAdhesionPayment() {
+        if (this.status != CommercialVehicleStatus.CANCELLED) {
+            this.status = CommercialVehicleStatus.PENDING_PAYMENT;
+            this.updatedAt = OffsetDateTime.now();
+        }
+    }
     public void setAssociate(Associate associate) { this.associate = associate; this.updatedAt = OffsetDateTime.now(); }
     public void setAdhesionPaymentMethod(AdhesionPaymentMethod method) { if (method != null) this.adhesionPaymentMethod = method; this.updatedAt = OffsetDateTime.now(); }
     public void setRecurringBillingType(FinancialBillingType type) { if (type == FinancialBillingType.BOLETO || type == FinancialBillingType.PIX || type == FinancialBillingType.CREDIT_CARD) this.recurringBillingType = type; this.updatedAt = OffsetDateTime.now(); }

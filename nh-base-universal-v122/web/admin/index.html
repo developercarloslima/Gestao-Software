@@ -217,6 +217,8 @@
           Visão geral
         </button>
         <button type="button" data-tab="activities">Atividades</button>
+        <button type="button" data-tab="sales-bi">BI de vendas</button>
+        <button type="button" data-tab="associates">Associados</button>
         <button type="button" data-tab="events">Eventos</button>
         <button type="button" data-tab="workshop">Oficina</button>
         <button type="button" data-tab="purchases">Compras de Eventos</button>
@@ -280,6 +282,80 @@
               Alterar destinos
             </button>
           </div>
+        </div>
+      </section>
+
+      <section id="tab-sales-bi" hidden>
+        <div class="section-head">
+          <div>
+            <h2>BI de vendas e adesões</h2>
+            <p>Uma venda é contabilizada somente após o recebimento da adesão, nunca na emissão do boleto ou no aceite.</p>
+          </div>
+          <button id="sales-bi-refresh" type="button" class="outline">Atualizar BI</button>
+        </div>
+        <div class="form-grid" style="margin-bottom:16px">
+          <label>De <input id="sales-bi-from" type="date"></label>
+          <label>Até <input id="sales-bi-to" type="date"></label>
+        </div>
+        <div id="sales-bi-message" role="status" aria-live="polite"></div>
+        <div class="kpi-grid">
+          <div class="kpi"><span>Boletos emitidos</span><strong id="sales-bi-issued">—</strong></div>
+          <div class="kpi"><span>Vendas por boleto</span><strong id="sales-bi-boleto">—</strong></div>
+          <div class="kpi"><span>Vendas por Pix</span><strong id="sales-bi-pix">—</strong></div>
+          <div class="kpi"><span>Total de adesões pagas</span><strong id="sales-bi-total">—</strong></div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3>Resultados por consultor</h3>
+          <p id="sales-bi-note" class="helper">Boletos emitidos são títulos, não vendas. Pagamentos em mãos ou sem meio identificado constam no total.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Consultor</th><th>Boletos emitidos</th><th>Vendas por boleto</th><th>Vendas por Pix</th><th>Outros pagamentos</th></tr></thead>
+              <tbody id="sales-bi-consultants"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-associates" hidden>
+        <div class="section-head">
+          <div><h2>Associados</h2><p>Cadastros consolidados por CPF, placas, consultores, planos e situação financeira real.</p></div>
+          <button id="associates-refresh" type="button" class="outline">Atualizar</button>
+        </div>
+        <div class="card">
+          <div class="form-grid">
+            <label>Pesquisar associado, CPF, placa ou consultor
+              <input id="associates-filter" type="search" placeholder="Nome, CPF, placa, plano ou consultor" />
+            </label>
+            <label>Situação
+              <select id="associates-status-filter">
+                <option value="">Todos</option>
+                <option value="ACTIVE">Ativos</option>
+                <option value="PENDING_PAYMENT">Aguardando adesão</option>
+                <option value="DELINQUENT">Em atraso</option>
+                <option value="DISABLED_DELINQUENCY">Inadimplentes</option>
+                <option value="CANCELLED">Cancelados</option>
+              </select>
+            </label>
+          </div>
+          <div id="associates-message" class="helper" role="status" aria-live="polite">Abra a aba para carregar os associados.</div>
+          <div class="kpis">
+            <div class="kpi"><span>Associados</span><strong id="associates-total">—</strong></div>
+            <div class="kpi"><span>Placas ativas</span><strong id="associates-active">—</strong></div>
+            <div class="kpi"><span>Aguardando adesão</span><strong id="associates-pending">—</strong></div>
+            <div class="kpi"><span>Em atraso / inadimplentes</span><strong id="associates-overdue">—</strong></div>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Associado</th><th>CPF</th><th>Consultor(es)</th><th>Placas</th><th>Mensalidades</th><th>Ação</th></tr></thead>
+            <tbody id="associates-body"><tr><td colspan="6">Carregando…</td></tr></tbody>
+          </table></div>
+        </div>
+        <div id="associates-details" class="card" hidden>
+          <h3 id="associates-details-name">Dados do associado</h3>
+          <p id="associates-details-identification" class="helper"></p>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Placa / Modelo</th><th>Consultor</th><th>Plano</th><th>Mensalidade</th><th>Contrato</th><th>Financeiro</th></tr></thead>
+            <tbody id="associates-details-body"></tbody>
+          </table></div>
         </div>
       </section>
 
