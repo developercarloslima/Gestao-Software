@@ -32,6 +32,7 @@
   <link rel="stylesheet" href="/shared/receivables.css?v=20261103-v1" />
   <link rel="stylesheet" href="/shared/company-subscription.css?v=20261103-renewal-v1" />
   <link rel="stylesheet" href="/admin/sales-teams.css?v=20261109-v1" />
+  <link rel="stylesheet" href="/admin/associates.css?v=20261109-v1" />
   <style id="nh-dev-credit-style">
     .nh-dev-credit {
       width: 100%;
@@ -218,7 +219,6 @@
           Visão geral
         </button>
         <button type="button" data-tab="activities">Atividades</button>
-        <button type="button" data-tab="sales-bi">BI de vendas</button>
         <button type="button" data-tab="sales-teams">Equipes / Cooperativas</button>
         <button type="button" data-tab="associates">Associados</button>
         <button type="button" data-tab="events">Eventos</button>
@@ -287,37 +287,6 @@
         </div>
       </section>
 
-      <section id="tab-sales-bi" hidden>
-        <div class="section-head">
-          <div>
-            <h2>BI de vendas e adesões</h2>
-            <p>Uma venda é contabilizada somente após o recebimento da adesão, nunca na emissão do boleto ou no aceite.</p>
-          </div>
-          <button id="sales-bi-refresh" type="button" class="outline">Atualizar BI</button>
-        </div>
-        <div class="form-grid" style="margin-bottom:16px">
-          <label>De <input id="sales-bi-from" type="date"></label>
-          <label>Até <input id="sales-bi-to" type="date"></label>
-        </div>
-        <div id="sales-bi-message" role="status" aria-live="polite"></div>
-        <div class="kpi-grid">
-          <div class="kpi"><span>Boletos emitidos</span><strong id="sales-bi-issued">—</strong></div>
-          <div class="kpi"><span>Vendas por boleto</span><strong id="sales-bi-boleto">—</strong></div>
-          <div class="kpi"><span>Vendas por Pix</span><strong id="sales-bi-pix">—</strong></div>
-          <div class="kpi"><span>Total de adesões pagas</span><strong id="sales-bi-total">—</strong></div>
-        </div>
-        <div class="card" style="margin-top:16px">
-          <h3>Resultados por consultor</h3>
-          <p id="sales-bi-note" class="helper">Boletos emitidos são títulos, não vendas. Pagamentos em mãos ou sem meio identificado constam no total.</p>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Consultor</th><th>Boletos emitidos</th><th>Vendas por boleto</th><th>Vendas por Pix</th><th>Outros pagamentos</th></tr></thead>
-              <tbody id="sales-bi-consultants"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
       <section id="tab-sales-teams" hidden>
         <div class="section-head">
           <div>
@@ -352,7 +321,7 @@
           </div>
           <p id="teams-status" class="helper" role="status" aria-live="polite"></p>
           <div class="teams-bi-metrics" id="teams-metrics"></div>
-          <p class="helper">A contagem de boletos emitidos e o relatório financeiro detalhado continuam na aba BI de vendas. Emissão, aceite e pagamento são eventos diferentes.</p>
+          <p class="helper">Emissão, aceite e pagamento são eventos diferentes. O BI desta aba conta vendas apenas após a confirmação da adesão paga.</p>
           <div class="teams-bi-charts">
             <div class="card"><h3>Vendas pagas por cooperativa</h3><div id="teams-chart-by-team"></div></div>
             <div class="card"><h3>Vendas pagas por dia</h3><div id="teams-chart-by-day"></div></div>
@@ -396,7 +365,7 @@
             </label>
           </div>
           <div id="associates-message" class="helper" role="status" aria-live="polite">Abra a aba para carregar os associados.</div>
-          <div class="kpis">
+          <div class="associates-summary-grid">
             <div class="kpi"><span>Associados</span><strong id="associates-total">—</strong></div>
             <div class="kpi"><span>Placas ativas</span><strong id="associates-active">—</strong></div>
             <div class="kpi"><span>Aguardando adesão</span><strong id="associates-pending">—</strong></div>
@@ -407,15 +376,32 @@
             <tbody id="associates-body"><tr><td colspan="6">Carregando…</td></tr></tbody>
           </table></div>
         </div>
-        <div id="associates-details" class="card" hidden>
-          <h3 id="associates-details-name">Dados do associado</h3>
-          <p id="associates-details-identification" class="helper"></p>
+      </section>
+
+      <dialog id="associates-details" class="admin-dialog wide-dialog associates-details-dialog" aria-labelledby="associates-details-name">
+        <div class="dialog-card">
+          <div class="dialog-head">
+            <div>
+              <h2 id="associates-details-name">Dados do associado</h2>
+              <p id="associates-details-identification" class="helper"></p>
+            </div>
+            <button id="associates-details-close" type="button" class="outline">Fechar detalhes</button>
+          </div>
+          <div class="associates-detail-grid">
+            <div><span>CPF</span><strong id="associates-details-cpf">—</strong></div>
+            <div><span>WhatsApp</span><strong id="associates-details-whatsapp">—</strong></div>
+            <div><span>Consultor(es)</span><strong id="associates-details-consultants">—</strong></div>
+            <div><span>Placas</span><strong id="associates-details-plates">—</strong></div>
+            <div><span>Veículos ativos</span><strong id="associates-details-active">—</strong></div>
+            <div><span>Mensalidades ativas</span><strong id="associates-details-monthly">—</strong></div>
+          </div>
+          <h3 class="associates-linked-title">Placas e planos vinculados</h3>
           <div class="table-wrap"><table>
-            <thead><tr><th>Placa / Modelo</th><th>Consultor</th><th>Plano</th><th>Mensalidade</th><th>Contrato</th><th>Financeiro</th></tr></thead>
+            <thead><tr><th>Placa / Veículo</th><th>Consultor vinculado</th><th>Plano</th><th>Mensalidade</th><th>Status</th><th>Situação financeira</th><th>Visualizar</th></tr></thead>
             <tbody id="associates-details-body"></tbody>
           </table></div>
         </div>
-      </section>
+      </dialog>
 
       <section id="tab-activities" hidden>
         <div class="section-head">
@@ -2253,7 +2239,7 @@
     <script src="/shared/money-input.js?v=20260805-brl-mask"></script>
     <script src="/shared/inspection-documents.js?v=20261016-v83-129"></script>
 <script src="/shared/fipe-picker.js?v=20261016-v83-137"></script>
-<script src="/admin/admin.js?v=20261103-associate-access-fix-v1"></script>
+<script src="/admin/admin.js?v=20261109-associates-modal-v1"></script>
 <script src="/admin/sales-teams.js?v=20261109-v1"></script>
     <script src="/shared/receivables.js?v=20261104-gerar-boleto"></script>
     <script src="/shared/company-subscription.js?v=20261104-gerar-boleto"></script>

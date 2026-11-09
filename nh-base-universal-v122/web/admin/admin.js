@@ -5031,20 +5031,34 @@ function renderAdminAssociates() {
     const monthly = vehicles.filter(v => v.vehicle?.status === 'ACTIVE').reduce((sum, v) => sum + Number(v.vehicle?.monthlyValue || 0), 0);
     return `<tr><td>${esc(person.name)}</td><td>${esc(person.document || '—')}</td>
       <td>${esc(consultants.join(', ') || '—')}</td><td>${esc(plates.join(', ') || '—')}</td>
-      <td>${brl.format(monthly)}</td><td><button type="button" class="outline" data-admin-associate="${esc(person.id)}">Detalhes</button></td></tr>`;
+      <td>${brl.format(monthly)}</td><td><button type="button" class="outline" data-admin-associate="${esc(person.id)}">Ver detalhes</button></td></tr>`;
   }).join('') || '<tr><td colspan="6">Nenhum associado corresponde aos filtros.</td></tr>';
   const selected = people.find(person => person.id === adminSelectedAssociateId);
-  $('associates-details').hidden = !selected;
-  if (!selected) return;
+  if (!selected) {
+    if ($('associates-details').open) $('associates-details').close();
+    return;
+  }
+  const vehicles = associateVehicles(selected);
+  const activeVehicles = vehicles.filter(({vehicle}) => vehicle?.status === 'ACTIVE');
+  const consultants = [...new Set(vehicles.map(({vehicle}) => vehicle?.consultantName || 'Sem consultor'))];
   $('associates-details-name').textContent = selected.name;
-  $('associates-details-identification').textContent = `CPF: ${selected.document || 'não cadastrado'} · WhatsApp: ${selected.whatsapp || 'não cadastrado'}`;
-  $('associates-details-body').innerHTML = associateVehicles(selected).map(({vehicle,financial}) => {
-    const contract = {ACTIVE:'Ativo',PENDING_PAYMENT:'Aguardando pagamento da adesão',DRAFT:'Em cadastro',CANCELLED:'Cancelado'}[vehicle?.status] || vehicle?.status || 'Não identificado';
-    return `<tr><td>${esc(vehicle?.plate || '0 km / sem placa')}<small class="table-subtitle">${esc(vehicle?.model || '—')}</small></td>
+  $('associates-details-identification').textContent = `${selected.document || 'CPF não cadastrado'} · ${vehicles.length} veículo(s) vinculado(s)`;
+  $('associates-details-cpf').textContent = selected.document || '—';
+  $('associates-details-whatsapp').textContent = selected.whatsapp || '—';
+  $('associates-details-consultants').textContent = consultants.join(', ') || '—';
+  $('associates-details-plates').textContent = vehicles.map(({vehicle}) => vehicle?.plate || '0 km / sem placa').join(', ') || '—';
+  $('associates-details-active').textContent = String(activeVehicles.length);
+  $('associates-details-monthly').textContent = brl.format(activeVehicles.reduce((sum, {vehicle}) => sum + Number(vehicle?.monthlyValue || 0), 0));
+  $('associates-details-body').innerHTML = vehicles.map(({vehicle,financial}) => {
+    const contract = {ACTIVE:'Ativo',PENDING_PAYMENT:'Aguardando adesão',DRAFT:'Em cadastro',CANCELLED:'Cancelado'}[vehicle?.status] || vehicle?.status || 'Não identificado';
+    const contractBadge = vehicle?.status === 'ACTIVE' ? 'ok' : vehicle?.status === 'CANCELLED' ? 'off' : 'warn';
+    const plate = vehicle?.plate || '';
+    return `<tr><td>${esc(plate || '0 km / sem placa')}<small class="table-subtitle">${esc(vehicle?.model || '—')}</small></td>
       <td>${esc(vehicle?.consultantName || '—')}</td><td>${esc(vehicle?.planName || vehicle?.planCode || '—')}</td>
-      <td>${brl.format(Number(vehicle?.monthlyValue || 0))}</td><td>${esc(contract)}</td>
-      <td>${esc(financial?.businessStatusLabel || 'Não apurado')}</td></tr>`;
-  }).join('') || '<tr><td colspan="6">Nenhum veículo vinculado.</td></tr>';
+      <td>${brl.format(Number(vehicle?.monthlyValue || 0))}</td><td><span class="badge ${contractBadge}">${esc(contract)}</span></td>
+      <td><span class="badge">${esc(financial?.businessStatusLabel || 'Não apurado')}</span></td>
+      <td>${plate ? `<button type="button" class="secondary small-button" data-associate-inspection-plate="${esc(plate)}">Ver Retrato NH</button>` : '—'}</td></tr>`;
+  }).join('') || '<tr><td colspan="7">Nenhum veículo vinculado.</td></tr>';
 }
 async function loadAdminAssociates() {
   $('associates-message').textContent = 'Carregando associados e situação financeira…';
@@ -5065,43 +5079,29 @@ $('associates-body')?.addEventListener('click', event => {
   if (!button) return;
   adminSelectedAssociateId = button.dataset.adminAssociate;
   renderAdminAssociates();
-  $('associates-details').scrollIntoView({behavior:'smooth', block:'nearest'});
+  if (!$('associates-details').open) $('associates-details').showModal();
 });
-
-async function loadCommercialSalesBi() {
-  const params = new URLSearchParams();
-  if ($('sales-bi-from')?.value) params.set('from', $('sales-bi-from').value);
-  if ($('sales-bi-to')?.value) params.set('to', $('sales-bi-to').value);
-  const status = $('sales-bi-message');
-  if (status) status.textContent = 'Atualizando dados financeiros…';
-  try {
-    const report = await api(`/api/admin/commercial/sales-bi?${params}`);
-    $('sales-bi-issued').textContent = Number(report.issuedBoletos || 0).toLocaleString('pt-BR');
-    $('sales-bi-boleto').textContent = Number(report.salesByBoleto || 0).toLocaleString('pt-BR');
-    $('sales-bi-pix').textContent = Number(report.salesByPix || 0).toLocaleString('pt-BR');
-    $('sales-bi-total').textContent = Number(report.totalSales || 0).toLocaleString('pt-BR');
-    $('sales-bi-consultants').innerHTML = (report.consultants || []).map(row => `<tr>
-      <td>${esc(row.consultantName)}</td>
-      <td>${Number(row.issuedBoletos || 0)}</td>
-      <td>${Number(row.salesByBoleto || 0)}</td>
-      <td>${Number(row.salesByPix || 0)}</td>
-      <td>${Number(row.otherPaidSales || 0)}</td>
-    </tr>`).join('') || '<tr><td colspan="5">Nenhum consultor encontrado.</td></tr>';
-    $('sales-bi-note').textContent = `${report.definition} Pagamentos por outros meios: ${Number(report.otherPaidSales || 0)}. `
-      + `Boletos históricos sem data de emissão: ${Number(report.legacyBoletosWithoutIssueDate || 0)}.`;
-    if (status) status.textContent = `Período: ${report.from} a ${report.to}`;
-  } catch (error) {
-    if (status) status.textContent = error.message || 'Falha ao consultar o BI financeiro.';
-  }
-}
-$('sales-bi-refresh')?.addEventListener('click', loadCommercialSalesBi);
+$('associates-details-close')?.addEventListener('click', () => $('associates-details').close());
+$('associates-details')?.addEventListener('close', () => { adminSelectedAssociateId = null; });
+$('associates-details')?.addEventListener('click', event => {
+  if (event.target === $('associates-details')) $('associates-details').close();
+});
+$('associates-details-body')?.addEventListener('click', event => {
+  const button = event.target.closest('[data-associate-inspection-plate]');
+  if (!button) return;
+  const plate = button.dataset.associateInspectionPlate;
+  $('associates-details').close();
+  document.querySelector('[data-tab="inspections"]')?.click();
+  $('inspection-filter').value = plate;
+  renderInspections();
+});
 
 document.querySelectorAll('.admin-tabs button').forEach(button => {
   button.addEventListener('click', () => {
     document.querySelectorAll('.admin-tabs button').forEach(item => item.classList.toggle('active', item === button));
     document.querySelectorAll('[id^="tab-"]').forEach(section => { section.hidden = section.id !== `tab-${button.dataset.tab}`; });
     if (button.dataset.tab === 'settings') fipeSyncAdminCard?.refresh();
-    if (button.dataset.tab === 'sales-bi') loadCommercialSalesBi();
+    if (button.dataset.tab !== 'associates' && $('associates-details').open) $('associates-details').close();
     if (button.dataset.tab === 'associates') loadAdminAssociates();
   });
 });

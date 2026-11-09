@@ -34,8 +34,10 @@ test('BI distingue boletos emitidos de vendas de adesão por boleto e Pix', () =
   assert.match(bi, /payment_method='BOLETO'/);
   assert.match(bi, /payment_method='PIX'/);
   assert.match(guide, /charge_type='ADHESION' and status='RECEIVED'/);
-  assert.match(html, /data-tab="sales-bi"/);
-  assert.match(admin, /\/api\/admin\/commercial\/sales-bi/);
+  assert.doesNotMatch(html, /data-tab="sales-bi"/);
+  assert.doesNotMatch(html, /id="tab-sales-bi"/);
+  assert.match(html, /data-tab="sales-teams"/);
+  assert.match(file('web/admin/sales-teams.js'), /\/api\/admin\/sales-teams/);
 });
 
 test('aba Associados identifica placas e usa situação financeira apurada no servidor', () => {
