@@ -1,0 +1,100 @@
+/* Associados — cards lado a lado e ficha em modal, sem alterar o BI financeiro. */
+#tab-associates .associates-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 20px;
+}
+#tab-associates .associates-summary-grid .kpi {
+  min-width: 0;
+}
+#tab-associates .associates-summary-grid .kpi span {
+  display: block;
+  line-height: 1.35;
+}
+#tab-associates .table-wrap {
+  margin-top: 14px;
+}
+#tab-associates [data-admin-associate] {
+  white-space: nowrap;
+}
+.associates-details-dialog {
+  width: min(1180px, calc(100% - 32px)) !important;
+  max-width: none !important;
+}
+.associates-details-dialog .dialog-card {
+  border-top: 4px solid var(--yellow, #f0f000);
+}
+.associates-details-dialog .dialog-head {
+  align-items: center;
+}
+.associates-details-dialog .dialog-head h2 {
+  margin: 0;
+}
+.associates-details-dialog .dialog-head p {
+  margin: 6px 0 0;
+}
+.associates-details-dialog .dialog-head button {
+  flex-shrink: 0;
+}
+.associates-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.associates-detail-grid > div {
+  min-width: 0;
+  border: 1px solid #d0d6e5;
+  border-radius: 13px;
+  background: #f8f9fe;
+  padding: 12px 14px;
+}
+.associates-detail-grid span {
+  display: block;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+  color: #566585;
+  margin-bottom: 5px;
+}
+.associates-detail-grid strong {
+  display: block;
+  color: #070c40;
+  overflow-wrap: anywhere;
+}
+.associates-linked-title {
+  margin: 22px 0 14px;
+  padding-left: 12px;
+  border-left: 4px solid var(--yellow, #f0f000);
+  color: #070c40;
+}
+.associates-details-dialog .table-wrap {
+  max-width: 100%;
+}
+.associates-details-dialog .table-subtitle {
+  display: block;
+  color: #66738a;
+  margin-top: 4px;
+  font-size: 11px;
+}
+@media (max-width: 1040px) {
+  #tab-associates .associates-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  #tab-associates .associates-summary-grid,
+  .associates-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .associates-details-dialog {
+    width: calc(100% - 16px) !important;
+  }
+  .associates-details-dialog .dialog-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .associates-details-dialog .dialog-head button {
+    align-self: flex-start;
+  }
+}
