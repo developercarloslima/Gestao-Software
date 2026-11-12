@@ -23,9 +23,12 @@ import java.util.UUID;
 @RequestMapping("/api/platform")
 public class PlatformManagementController {
     private final PlatformManagementService service;
+    private final br.com.gestaosoftware.control.service.PlatformInvoiceCancellationService cancellation;
 
-    public PlatformManagementController(PlatformManagementService service) {
+    public PlatformManagementController(PlatformManagementService service,
+            br.com.gestaosoftware.control.service.PlatformInvoiceCancellationService cancellation) {
         this.service = service;
+        this.cancellation = cancellation;
     }
 
     private static final Set<String> PRICING_CALCULATOR_OWNERS = Set.of("carlos.lima", "pedro.henrique");
@@ -141,11 +144,11 @@ public class PlatformManagementController {
         return service.generateInvoice(id, input);
     }
 
-    /** Exclusão lógica auditada: jamais apaga um pagamento realizado ou vinculado ao Asaas. */
+    /** Arquiva na Gestão após o Asaas confirmar exclusão da cobrança não paga. */
     @DeleteMapping("/invoices/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteInvoice(@PathVariable UUID id, Authentication authentication) {
-        service.deleteInvoice(id, companyLifecycleOwner(authentication));
+        cancellation.cancelInvoice(id, companyLifecycleOwner(authentication));
     }
 
     @PatchMapping("/invoices/{id}")

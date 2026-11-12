@@ -174,7 +174,7 @@ public class ProvisioningService {
                 SELECT i.amount,i.status,i.due_date,co.provider_payment_id
                   FROM platform_company_invoices i
                   JOIN gs_invoice_checkout co ON co.invoice_id=i.id AND co.status='CREATED' AND co.provider_payment_id IS NOT NULL
-                 WHERE i.id=?
+                 WHERE i.id=? FOR UPDATE OF i
                 """, (rs, n) -> Map.of(
                     "amount", rs.getBigDecimal("amount"), "status", rs.getString("status"),
                     "dueDate", rs.getDate("due_date").toLocalDate(),

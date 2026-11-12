@@ -176,7 +176,8 @@ public class PlatformManagementService {
         List<Map<String, Object>> invoices = jdbc.query("""
                 SELECT i.id, i.reference_month, i.amount, i.due_date, i.status, i.paid_at, i.notes, i.created_at, i.updated_at,
                        (EXISTS(SELECT 1 FROM gs_invoice_checkout co WHERE co.invoice_id=i.id)
-                        OR EXISTS(SELECT 1 FROM gs_verified_payment vp WHERE vp.invoice_id=i.id)) AS provider_linked
+                        OR EXISTS(SELECT 1 FROM gs_verified_payment vp WHERE vp.invoice_id=i.id)) AS provider_linked,
+                       EXISTS(SELECT 1 FROM gs_verified_payment vp WHERE vp.invoice_id=i.id) AS payment_verified
                   FROM platform_company_invoices i
                  WHERE i.company_id=? AND i.status<>'CANCELLED'
                  ORDER BY i.reference_month DESC
@@ -212,6 +213,7 @@ public class PlatformManagementService {
                 """, (rs, row) -> contractMap(rs), id);
 
         company.put("modules", enabledModules);
+        company.put("invoiceDeletionAvailable", true);
         company.put("invoices", invoices);
         company.put("hosting", hosting);
         company.put("files", files);
@@ -399,51 +401,6 @@ public class PlatformManagementService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Fatura alterada ou vinculada ao provedor durante a edição. Recarregue antes de tentar novamente.");
         refreshOverdue();
         return getCompany((UUID) existing.get("companyId"));
-    }
-
-    /**
-     * Excluir na interface significa arquivar a competência e registrar auditoria.
-     * O registro continua no banco para impedir recriação pelo faturamento automático.
-     * Titulares pagos, conciliados ou já enviados ao Asaas nunca podem ser removidos por esta operação.
-     */
-    static void assertInvoiceDeletionAllowed(String status, boolean providerLinked) {
-        if (providerLinked) throw new ResponseStatusException(HttpStatus.CONFLICT,
-                "Cobrança vinculada ao Asaas. Concilie ou cancele no provedor antes de solicitar a exclusão.");
-        if (!"PENDING".equals(status) && !"OVERDUE".equals(status))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Somente mensalidades pendentes ou em atraso, sem cobrança emitida, podem ser excluídas.");
-    }
-
-    @Transactional
-    public void deleteInvoice(UUID invoiceId, String operator) {
-        Map<String,Object> invoice = jdbc.query("""
-                SELECT company_id,reference_month,status
-                  FROM platform_company_invoices
-                 WHERE id=? FOR UPDATE
-                """, rs -> rs.next() ? mapOf(
-                "companyId", rs.getObject("company_id", UUID.class),
-                "reference", localDate(rs,"reference_month"),
-                "status", rs.getString("status")) : null, invoiceId);
-        if (invoice == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mensalidade não encontrada.");
-        boolean linked = Boolean.TRUE.equals(jdbc.queryForObject("""
-                SELECT EXISTS (
-                    SELECT 1 FROM gs_invoice_checkout WHERE invoice_id=?
-                    UNION ALL
-                    SELECT 1 FROM gs_verified_payment WHERE invoice_id=?
-                )
-                """, Boolean.class, invoiceId, invoiceId));
-        assertInvoiceDeletionAllowed((String) invoice.get("status"), linked);
-        int changed = jdbc.update("""
-                UPDATE platform_company_invoices
-                   SET status='CANCELLED', updated_at=NOW()
-                 WHERE id=? AND status IN ('PENDING','OVERDUE')
-                   AND NOT EXISTS (SELECT 1 FROM gs_invoice_checkout WHERE invoice_id=platform_company_invoices.id)
-                   AND NOT EXISTS (SELECT 1 FROM gs_verified_payment WHERE invoice_id=platform_company_invoices.id)
-                """, invoiceId);
-        if (changed != 1) throw new ResponseStatusException(HttpStatus.CONFLICT,
-                "Mensalidade alterada durante a exclusão. Atualize os dados e tente novamente.");
-        auditCompanyLifecycle((UUID)invoice.get("companyId"), operator, "COMPANY_INVOICE_REMOVED",
-                "Mensalidade "+invoice.get("reference")+" excluída da visualização sem apagar o registro financeiro. ID="+invoiceId);
     }
 
     @Transactional(readOnly = true)
@@ -1175,7 +1132,7 @@ public class PlatformManagementService {
         return mapOf("id", rs.getObject("id", UUID.class), "referenceMonth", localDate(rs,"reference_month"),
                 "amount", money(rs.getBigDecimal("amount")), "dueDate", localDate(rs,"due_date"), "status", rs.getString("status"),
                 "paidAt", offset(rs,"paid_at"), "notes", rs.getString("notes"), "providerLinked", rs.getBoolean("provider_linked"),
-                "createdAt", offset(rs,"created_at"), "updatedAt", offset(rs,"updated_at"));
+                "paymentVerified", rs.getBoolean("payment_verified"), "createdAt", offset(rs,"created_at"), "updatedAt", offset(rs,"updated_at"));
     }
 
     private Map<String, Object> expenseMap(ResultSet rs) throws SQLException {
