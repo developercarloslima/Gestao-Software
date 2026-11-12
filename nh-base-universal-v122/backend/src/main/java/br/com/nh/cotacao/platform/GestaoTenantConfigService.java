@@ -297,9 +297,26 @@ public class GestaoTenantConfigService {
                     .POST(HttpRequest.BodyPublishers.noBody()).build();
             HttpResponse<String> result=http.send(req,HttpResponse.BodyHandlers.ofString());
             if(result.statusCode()<200 || result.statusCode()>=300) {
-                throw new org.springframework.web.server.ResponseStatusException(
-                        org.springframework.http.HttpStatus.BAD_GATEWAY,
-                        "Não foi possível emitir esta mensalidade no Asaas da Gestão. Verifique a financeira.");
+                int status = result.statusCode();
+                log.warn("Emissão da mensalidade SaaS recusada pela Gestão (HTTP {}).", status);
+                org.springframework.http.HttpStatus translated = switch(status) {
+                    case 400, 422 -> org.springframework.http.HttpStatus.BAD_REQUEST;
+                    case 401, 403, 503 -> org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
+                    case 404 -> org.springframework.http.HttpStatus.NOT_FOUND;
+                    case 409 -> org.springframework.http.HttpStatus.CONFLICT;
+                    case 504 -> org.springframework.http.HttpStatus.GATEWAY_TIMEOUT;
+                    default -> org.springframework.http.HttpStatus.BAD_GATEWAY;
+                };
+                String detail = switch(status) {
+                    case 400, 422 -> "A Gestão recusou os dados da cobrança. Verifique CPF/CNPJ, valor, vencimento e forma de pagamento.";
+                    case 401, 403 -> "A comunicação financeira entre esta empresa e a Gestão não está autorizada.";
+                    case 404 -> "Esta mensalidade não está disponível para emissão na Gestão. Atualize a lista de cobranças.";
+                    case 409 -> "Cobrança já emitida ou com emissão inconclusiva. Consulte a Gestão e concilie no Asaas antes de repetir.";
+                    case 503 -> "Emissão indisponível na Gestão. Verifique a configuração da conta-pai Asaas Sandbox e do webhook.";
+                    case 504 -> "A Gestão não respondeu a tempo. Consulte a cobrança antes de tentar novamente para evitar duplicidade.";
+                    default -> "Falha da Gestão ou do Asaas ao emitir a mensalidade. Verifique o serviço financeiro.";
+                };
+                throw new org.springframework.web.server.ResponseStatusException(translated, detail);
             }
             return mapper.readValue(result.body(),new TypeReference<>() {});
         } catch (org.springframework.web.server.ResponseStatusException ex) {throw ex;}

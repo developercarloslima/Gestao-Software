@@ -141,6 +141,13 @@ public class PlatformManagementController {
         return service.generateInvoice(id, input);
     }
 
+    /** Exclusão lógica auditada: jamais apaga um pagamento realizado ou vinculado ao Asaas. */
+    @DeleteMapping("/invoices/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteInvoice(@PathVariable UUID id, Authentication authentication) {
+        service.deleteInvoice(id, companyLifecycleOwner(authentication));
+    }
+
     @PatchMapping("/invoices/{id}")
     public Map<String, Object> updateInvoice(@PathVariable UUID id, @RequestBody PlatformManagementService.InvoiceUpdate input) {
         return service.updateInvoice(id, input);
