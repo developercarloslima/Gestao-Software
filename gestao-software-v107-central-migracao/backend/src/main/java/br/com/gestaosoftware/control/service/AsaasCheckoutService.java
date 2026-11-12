@@ -49,37 +49,76 @@ public class AsaasCheckoutService implements PlatformPaymentProvider {
         }catch(ResponseStatusException e){throw e;}catch(Exception e){throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,"Não foi possível comunicar com o Asaas.");}
     }
     /**
-     * Cancela apenas boletos NÃO PAGOS emitidos na conta principal da Gestão.
-     * Valida a identidade e o valor do boleto contra o Asaas, sem confiar no navegador.
-     * Em caso de timeout, um novo GET detecta DELETED e permite concluir com idempotência.
+     * Recupera emissões inconclusivas consultando o Asaas pela referência da fatura.
+     * Primeiro valida TODAS as cobranças, depois solicita a exclusão de cada pendente.
+     * Não presume que ausência de ID local significa ausência de boleto no provedor.
      */
-    public void cancelUnpaidPayment(UUID invoiceId, String paymentId, BigDecimal expectedAmount) {
+    public int cancelInvoicePayments(UUID invoiceId, String knownPaymentId, BigDecimal expectedAmount) {
         configured();
-        if (invoiceId == null || paymentId == null || !paymentId.matches("pay_[A-Za-z0-9]{4,100}"))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Identificador da cobrança no Asaas inválido.");
-        JsonNode remote = call("GET", "/payments/" + paymentId, null);
-        if (!paymentId.equals(remote.path("id").asText())
-                || !invoiceId.toString().equals(remote.path("externalReference").asText())
-                || !remote.path("value").isNumber()
-                || expectedAmount == null
-                || expectedAmount.compareTo(remote.path("value").decimalValue()) != 0) {
+        if(invoiceId == null || expectedAmount == null || expectedAmount.signum() <= 0)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Dados financeiros da mensalidade inválidos.");
+        Map<String,JsonNode> remotePayments = new LinkedHashMap<>();
+        boolean completed = false;
+        for (int offset=0; offset<1000; offset+=100) {
+            JsonNode page = call("GET", "/payments?externalReference=" +
+                    URLEncoder.encode(invoiceId.toString(), StandardCharsets.UTF_8) +
+                    "&limit=100&offset=" + offset, null);
+            if (!page.path("data").isArray() || !page.path("hasMore").isBoolean())
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                        "Asaas retornou consulta incompleta. Nenhuma mensalidade foi arquivada.");
+            for (JsonNode payment : page.path("data")) {
+                String id = payment.path("id").asText("");
+                if (!id.matches("pay_[A-Za-z0-9]{4,100}"))
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "Asaas retornou cobrança com identificação inválida.");
+                remotePayments.put(id,payment);
+            }
+            if (!page.path("hasMore").asBoolean()) {
+                completed = true;
+                break;
+            }
+        }
+        if (!completed)
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "A cobrança no Asaas não corresponde à referência ou valor da mensalidade. Exclusão bloqueada.");
+                    "A pesquisa retornou muitas cobranças. Conciliação manual necessária.");
+        if (knownPaymentId != null && !knownPaymentId.isBlank()
+                && !remotePayments.containsKey(knownPaymentId)) {
+            if (!knownPaymentId.matches("pay_[A-Za-z0-9]{4,100}"))
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Identificador Asaas salvo na Gestão é inválido.");
+            // A listagem pode omitir títulos removidos; consulta individual identifica DELETED.
+            remotePayments.put(knownPaymentId, call("GET", "/payments/" + knownPaymentId, null));
         }
-        String status = remote.path("status").asText("");
-        if ("DELETED".equals(status)) return;
-        assertCancelableAsaasStatus(status);
-        JsonNode deleted = call("DELETE", "/payments/" + paymentId, null);
-        if (!deleted.path("deleted").asBoolean(false) || !paymentId.equals(deleted.path("id").asText())) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
-                    "O Asaas não confirmou a exclusão. A mensalidade permanece registrada.");
+        // Validar todo o conjunto antes de cancelar qualquer boleto.
+        for (Map.Entry<String,JsonNode> item : remotePayments.entrySet()) {
+            JsonNode payment=item.getValue();
+            if (!item.getKey().equals(payment.path("id").asText())
+                    || !invoiceId.toString().equals(payment.path("externalReference").asText())
+                    || !payment.path("value").isNumber()
+                    || expectedAmount.compareTo(payment.path("value").decimalValue()) != 0)
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Existe cobrança no Asaas com vínculo ou valor divergente. Exclusão bloqueada.");
+            if (!"DELETED".equals(payment.path("status").asText()))
+                assertCancelableAsaasStatus(payment.path("status").asText(""));
         }
+        int cancelled=0;
+        for (Map.Entry<String,JsonNode> item : remotePayments.entrySet()) {
+            if ("DELETED".equals(item.getValue().path("status").asText())) continue;
+            JsonNode response = call("DELETE", "/payments/" + item.getKey(), null);
+            if (!response.path("deleted").asBoolean(false)) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                        "Asaas não confirmou a exclusão de todas as cobranças. Consulte o status antes de repetir.");
+            }
+            cancelled++;
+        }
+        return cancelled;
     }
 
     static void assertCancelableAsaasStatus(String status) {
         if (!Set.of("PENDING", "OVERDUE", "AWAITING_RISK_ANALYSIS").contains(status))
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Cobrança não está pendente ou vencida no Asaas. Pagamentos confirmados, recebidos ou de estado desconhecido não podem ser excluídos.");
+                    "O Asaas informa status " + (status == null || status.isBlank() ? "desconhecido" : status) +
+                            ". Apenas cobranças realmente pendentes ou vencidas podem ser excluídas.");
     }
 
     public Map<String,Object> checkout(UUID invoice){

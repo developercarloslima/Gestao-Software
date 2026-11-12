@@ -11,4 +11,5 @@ test('exclusão de boleto não pago exige autorização, API atualizada e confir
   assert.match(script,/method:'DELETE'/);
   assert.match(script,/confirmCompanyAction\(\{title:'Excluir mensalidade'/);
   assert.match(script,/response\.status===405/);
+  assert.match(script,/data-invoice-delete-error/);
 });

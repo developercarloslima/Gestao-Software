@@ -557,6 +557,7 @@ document.addEventListener('click',async e=>{
   const deleteInvoice=e.target.closest('[data-delete-invoice]');if(deleteInvoice){
     const invoiceId=deleteInvoice.dataset.deleteInvoice;
     const competence=deleteInvoice.dataset.deleteInvoiceMonth||'esta competência';
+    deleteInvoice.closest('td')?.querySelector('[data-invoice-delete-error]')?.remove();
     if(await confirmCompanyAction({title:'Excluir mensalidade',description:`Excluir a mensalidade ${competence}? Se houver boleto emitido e não pago, ele será cancelado no Asaas e desaparecerá do painel da empresa-cliente. Pagamentos confirmados serão bloqueados. O registro continuará arquivado para auditoria.`,confirmLabel:'Excluir mensalidade',danger:true})){
       deleteInvoice.disabled=true;
       try{
@@ -565,7 +566,22 @@ document.addEventListener('click',async e=>{
         await reloadAll();
         if(currentCompany)await refreshCompanyDetail();
         formMessage('company-detail-message',`Mensalidade ${competence} excluída na Gestão e, se emitida, no Asaas. O painel da empresa será atualizado.`,'success');
-      }catch(error){deleteInvoice.disabled=false;formMessage('company-detail-message',error.message)}
+      }catch(error){
+        deleteInvoice.disabled=false;
+        formMessage('company-detail-message',error.message);
+        // O usuário pode estar no fim da tabela, longe da mensagem no topo do modal.
+        // Mostramos também a justificativa do 409 junto ao boleto selecionado.
+        const cell=deleteInvoice.closest('td');
+        if(cell){
+          const note=document.createElement('p');
+          note.dataset.invoiceDeleteError='true';
+          note.setAttribute('role','alert');
+          note.className='form-help';
+          note.style.cssText='color:#e3a8a8;font-size:12px;line-height:1.4;white-space:normal;max-width:230px;margin-top:8px';
+          note.textContent=error.message;
+          cell.append(note);
+        }
+      }
     }
     return;
   }
