@@ -48,31 +48,41 @@ public class PlatformInvoiceCancellationService {
                 Boolean.class, invoiceId));
         assertLocallyCancelable((String)invoice.get("status"), (boolean)invoice.get("paid"), verified);
 
-        List<Map<String,String>> checkouts = db.query("""
-                SELECT status,provider_payment_id FROM gs_invoice_checkout WHERE invoice_id=?
+        List<Map<String,Object>> checkouts = db.query("""
+                SELECT status,provider_payment_id,updated_at
+                  FROM gs_invoice_checkout WHERE invoice_id=?
                 """, (rs,row) -> {
-                    Map<String,String> values = new HashMap<>();
+                    Map<String,Object> values = new HashMap<>();
                     values.put("status",rs.getString("status"));
                     values.put("paymentId",rs.getString("provider_payment_id"));
+                    values.put("updatedAt",rs.getTimestamp("updated_at").toInstant());
                     return values;
                 }, invoiceId);
 
         String paymentId = null;
+        int remotelyCancelled=0;
         if (!checkouts.isEmpty()) {
-            Map<String,String> checkout = checkouts.get(0);
-            paymentId = checkout.get("paymentId");
-            if (!"CREATED".equals(checkout.get("status")) || paymentId == null || paymentId.isBlank())
+            Map<String,Object> checkout=checkouts.get(0);
+            String checkoutStatus=(String)checkout.get("status");
+            paymentId=(String)checkout.get("paymentId");
+            if (!Set.of("CREATED","CREATING","CANCELLED").contains(checkoutStatus))
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "Emissão inconclusiva. Concilie o boleto no Asaas antes de excluir.");
-            // Nunca ocultar a cobrança local antes de confirmar a remoção no provedor.
-            asaas.cancelUnpaidPayment(invoiceId, paymentId, (BigDecimal)invoice.get("amount"));
-            int updated = db.update("""
+                        "Estado local da emissão desconhecido. Conciliação manual necessária.");
+            if ("CREATING".equals(checkoutStatus)
+                    && !staleCheckout((java.time.Instant)checkout.get("updatedAt"),java.time.Instant.now())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Emissão ainda recente. Aguarde a conclusão da operação antes de excluir o boleto.");
+            }
+            // Mesmo sem ID salvo localmente, consulta o Asaas pela referência da mensalidade.
+            // Se algum título estiver pago ou em estado incerto, cancela NENHUM deles.
+            remotelyCancelled=asaas.cancelInvoicePayments(invoiceId,paymentId,(BigDecimal)invoice.get("amount"));
+            int checkoutUpdated=db.update("""
                     UPDATE gs_invoice_checkout SET status='CANCELLED',invoice_url=NULL,updated_at=NOW()
-                     WHERE invoice_id=? AND status='CREATED' AND provider_payment_id=?
-                    """, invoiceId, paymentId);
-            if(updated != 1)
+                     WHERE invoice_id=? AND status IN ('CREATED','CREATING','CANCELLED')
+                    """,invoiceId);
+            if (checkoutUpdated!=1)
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "Cobrança alterada durante o cancelamento. Atualize e tente novamente.");
+                        "O estado da emissão mudou durante a exclusão. Atualize a página.");
         }
 
         int updated = db.update("""
@@ -89,8 +99,18 @@ public class PlatformInvoiceCancellationService {
                 VALUES (?,?,?,?,?,NOW())
                 """, UUID.randomUUID(), invoice.get("companyId"), "COMPANY_INVOICE_CANCELLED",
                 operator, "Mensalidade " + invoice.get("reference") + " arquivada no Control Plane"
-                    + (paymentId == null ? " (não emitida)." : " e cancelada no Asaas (pagamento " + paymentId + ").")
+                    + (checkouts.isEmpty() ? " (sem emissão registrada)." :
+                         " (conciliada no Asaas, cobranças removidas nesta tentativa=" + remotelyCancelled + ").")
                     + " ID interno=" + invoiceId);
+    }
+
+    /**
+     * Garante que uma chamada de emissão ainda em andamento não seja cancelada.
+     * O timeout máximo por chamada ao Asaas é 25s; 5 minutos cobre a sequência.
+     */
+    static boolean staleCheckout(java.time.Instant updatedAt, java.time.Instant now) {
+        return updatedAt != null && now != null &&
+                java.time.Duration.between(updatedAt,now).toMinutes() >= 5;
     }
 
     static void assertLocallyCancelable(String status, boolean paid, boolean verified) {
