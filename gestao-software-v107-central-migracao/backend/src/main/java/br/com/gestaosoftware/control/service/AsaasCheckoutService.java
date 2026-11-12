@@ -41,12 +41,50 @@ public class AsaasCheckoutService implements PlatformPaymentProvider {
             HttpRequest.Builder req=HttpRequest.newBuilder(URI.create(base+route)).timeout(Duration.ofSeconds(25))
                 .header("access_token",key).header("User-Agent","GestaoSoftware/1.0").header("Accept","application/json");
             if("POST".equals(method))req.header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(body)));
+            else if("DELETE".equals(method))req.DELETE();
             else req.GET();
             HttpResponse<String> res=client.send(req.build(),HttpResponse.BodyHandlers.ofString());
             if(res.statusCode()<200||res.statusCode()>=300)throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,"Asaas recusou a operação. Verifique dados e logs internos.");
             return json.readTree(res.body());
         }catch(ResponseStatusException e){throw e;}catch(Exception e){throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,"Não foi possível comunicar com o Asaas.");}
     }
+    /**
+     * Exclui APENAS uma cobrança já emitida na conta principal do Gestão.
+     * Nunca confia no status local: valida ID, referência externa, valor
+     * e status diretamente no Asaas antes de solicitar a exclusão.
+     *
+     * Se houver timeout depois de o Asaas cancelar, a próxima tentativa
+     * reconhece o status DELETED e conclui o arquivamento local.
+     */
+    public void cancelUnpaidPayment(UUID invoiceId, String paymentId, BigDecimal expectedAmount) {
+        configured();
+        if (invoiceId == null || paymentId == null || !paymentId.matches("pay_[A-Za-z0-9]{4,100}"))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Identificador da cobrança no Asaas inválido.");
+        JsonNode remote = call("GET", "/payments/" + paymentId, null);
+        if (!paymentId.equals(remote.path("id").asText())
+                || !invoiceId.toString().equals(remote.path("externalReference").asText())
+                || !remote.path("value").isNumber()
+                || expectedAmount == null
+                || expectedAmount.compareTo(remote.path("value").decimalValue()) != 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "A cobrança no Asaas não corresponde ao ID, referência ou valor da mensalidade. Exclusão bloqueada.");
+        }
+        String status = remote.path("status").asText("");
+        if ("DELETED".equals(status)) return; // Já cancelada; tentativa idempotente.
+        assertCancelableAsaasStatus(status);
+        JsonNode deleted = call("DELETE", "/payments/" + paymentId, null);
+        if (!deleted.path("deleted").asBoolean(false) || !paymentId.equals(deleted.path("id").asText())) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "O Asaas não confirmou a exclusão do boleto. A mensalidade permanece registrada.");
+        }
+    }
+
+    static void assertCancelableAsaasStatus(String status) {
+        if (!Set.of("PENDING", "OVERDUE", "AWAITING_RISK_ANALYSIS").contains(status))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "O Asaas não confirma cobrança pendente ou vencida. Pagamentos confirmados, recebidos, estornados ou em estado desconhecido não podem ser excluídos.");
+    }
+
     public Map<String,Object> checkout(UUID invoice){
         List<Map<String,Object>> items=db.query("""
          SELECT i.company_id,i.amount,i.due_date,i.status,c.trade_name,c.document,c.contact_email,c.payment_method
@@ -57,7 +95,8 @@ public class AsaasCheckoutService implements PlatformPaymentProvider {
          },invoice);
         if(items.isEmpty())throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Fatura não encontrada.");
         Map<String,Object> row=items.get(0);
-        if("PAID".equals(row.get("status")))throw new ResponseStatusException(HttpStatus.CONFLICT,"Fatura já paga.");
+        if (!Set.of("PENDING", "OVERDUE").contains(row.get("status")))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta mensalidade não está disponível para emissão.");
         if(((BigDecimal)row.get("amount")).signum()<=0)throw new ResponseStatusException(HttpStatus.CONFLICT,"Fatura sem valor positivo.");
         String document=String.valueOf(row.get("document")==null?"":row.get("document")).replaceAll("\\D","");
         if(!document.matches("[0-9]{11}|[0-9]{14}"))throw new ResponseStatusException(HttpStatus.CONFLICT,"Cadastre CPF/CNPJ válido para a cobrança.");
@@ -72,10 +111,20 @@ public class AsaasCheckoutService implements PlatformPaymentProvider {
             throw new ResponseStatusException(HttpStatus.CONFLICT,"Cobrança em criação ou estado desconhecido. Confirme no Asaas antes de tentar novamente para evitar duplicidade.");
         }
         // Reserva local única: uma chamada concorrente não deve duplicar pagamentos.
-        int reserved=db.update("INSERT INTO gs_invoice_checkout(invoice_id,status) VALUES(?,'CREATING') ON CONFLICT DO NOTHING",invoice);
+        int reserved=db.update("""
+                INSERT INTO gs_invoice_checkout(invoice_id,status)
+                SELECT id,'CREATING' FROM platform_company_invoices
+                 WHERE id=? AND status IN ('PENDING','OVERDUE') AND paid_at IS NULL
+                ON CONFLICT DO NOTHING
+                """, invoice);
         if(reserved!=1)throw new ResponseStatusException(HttpStatus.CONFLICT,"A cobrança já está em criação.");
         String custId=null;
         try{
+            // Protege a janela entre a consulta inicial e a reserva de emissão.
+            String latestStatus = db.queryForObject(
+                    "SELECT status FROM platform_company_invoices WHERE id=?", String.class, invoice);
+            if (!Set.of("PENDING", "OVERDUE").contains(latestStatus))
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta mensalidade foi cancelada antes da emissão.");
             String query="/customers?cpfCnpj="+URLEncoder.encode(document,StandardCharsets.UTF_8);
             JsonNode customers=call("GET",query,null).path("data");
             if(customers.isArray())for(JsonNode item:customers){
