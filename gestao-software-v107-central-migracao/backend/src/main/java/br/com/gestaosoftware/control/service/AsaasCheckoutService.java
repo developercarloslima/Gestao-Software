@@ -49,12 +49,9 @@ public class AsaasCheckoutService implements PlatformPaymentProvider {
         }catch(ResponseStatusException e){throw e;}catch(Exception e){throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,"Não foi possível comunicar com o Asaas.");}
     }
     /**
-     * Exclui APENAS uma cobrança já emitida na conta principal do Gestão.
-     * Nunca confia no status local: valida ID, referência externa, valor
-     * e status diretamente no Asaas antes de solicitar a exclusão.
-     *
-     * Se houver timeout depois de o Asaas cancelar, a próxima tentativa
-     * reconhece o status DELETED e conclui o arquivamento local.
+     * Cancela apenas boletos NÃO PAGOS emitidos na conta principal da Gestão.
+     * Valida a identidade e o valor do boleto contra o Asaas, sem confiar no navegador.
+     * Em caso de timeout, um novo GET detecta DELETED e permite concluir com idempotência.
      */
     public void cancelUnpaidPayment(UUID invoiceId, String paymentId, BigDecimal expectedAmount) {
         configured();
@@ -67,22 +64,22 @@ public class AsaasCheckoutService implements PlatformPaymentProvider {
                 || expectedAmount == null
                 || expectedAmount.compareTo(remote.path("value").decimalValue()) != 0) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "A cobrança no Asaas não corresponde ao ID, referência ou valor da mensalidade. Exclusão bloqueada.");
+                    "A cobrança no Asaas não corresponde à referência ou valor da mensalidade. Exclusão bloqueada.");
         }
         String status = remote.path("status").asText("");
-        if ("DELETED".equals(status)) return; // Já cancelada; tentativa idempotente.
+        if ("DELETED".equals(status)) return;
         assertCancelableAsaasStatus(status);
         JsonNode deleted = call("DELETE", "/payments/" + paymentId, null);
         if (!deleted.path("deleted").asBoolean(false) || !paymentId.equals(deleted.path("id").asText())) {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
-                    "O Asaas não confirmou a exclusão do boleto. A mensalidade permanece registrada.");
+                    "O Asaas não confirmou a exclusão. A mensalidade permanece registrada.");
         }
     }
 
     static void assertCancelableAsaasStatus(String status) {
         if (!Set.of("PENDING", "OVERDUE", "AWAITING_RISK_ANALYSIS").contains(status))
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "O Asaas não confirma cobrança pendente ou vencida. Pagamentos confirmados, recebidos, estornados ou em estado desconhecido não podem ser excluídos.");
+                    "Cobrança não está pendente ou vencida no Asaas. Pagamentos confirmados, recebidos ou de estado desconhecido não podem ser excluídos.");
     }
 
     public Map<String,Object> checkout(UUID invoice){
@@ -120,11 +117,10 @@ public class AsaasCheckoutService implements PlatformPaymentProvider {
         if(reserved!=1)throw new ResponseStatusException(HttpStatus.CONFLICT,"A cobrança já está em criação.");
         String custId=null;
         try{
-            // Protege a janela entre a consulta inicial e a reserva de emissão.
-            String latestStatus = db.queryForObject(
-                    "SELECT status FROM platform_company_invoices WHERE id=?", String.class, invoice);
-            if (!Set.of("PENDING", "OVERDUE").contains(latestStatus))
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta mensalidade foi cancelada antes da emissão.");
+            String latestStatus=db.queryForObject(
+                    "SELECT status FROM platform_company_invoices WHERE id=?",String.class,invoice);
+            if (!Set.of("PENDING","OVERDUE").contains(latestStatus))
+                throw new ResponseStatusException(HttpStatus.CONFLICT,"Mensalidade cancelada antes da emissão.");
             String query="/customers?cpfCnpj="+URLEncoder.encode(document,StandardCharsets.UTF_8);
             JsonNode customers=call("GET",query,null).path("data");
             if(customers.isArray())for(JsonNode item:customers){

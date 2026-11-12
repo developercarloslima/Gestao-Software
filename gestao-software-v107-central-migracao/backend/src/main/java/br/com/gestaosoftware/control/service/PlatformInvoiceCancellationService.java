@@ -5,22 +5,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
- * Exclusão de mensalidades SaaS a partir do Control Plane.
- * A competência permanece no banco como CANCELLED para preservar auditoria e
- * impedir que o faturamento automático recrie o mesmo boleto.
+ * Exclusão segura de mensalidades SaaS:
+ * 1. bloqueia a linha local e protege títulos recebidos;
+ * 2. cancela no Asaas a cobrança não paga, quando emitida;
+ * 3. arquiva a competência local em vez de removê-la fisicamente.
  *
- * Para cobranças emitidas, confirma com o Asaas antes de arquivar localmente.
- * Em caso de timeout/erro, a transação local reverte e a operação pode ser
- * repetida; o Asaas já cancelado é reconhecido no próximo GET.
+ * Em caso de falha remota, o banco não é alterado. Se ocorrer timeout depois
+ * de cancelar no Asaas, uma nova tentativa reconhece DELETED (idempotência).
  */
 @Service
 public class PlatformInvoiceCancellationService {
@@ -43,25 +38,24 @@ public class PlatformInvoiceCancellationService {
                         "reference", rs.getDate("reference_month").toLocalDate(),
                         "amount", rs.getBigDecimal("amount"),
                         "status", rs.getString("status"),
-                        "paid", rs.getTimestamp("paid_at") != null
-                    ) : null, invoiceId);
-        if (invoice == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mensalidade não encontrada.");
-        if ("CANCELLED".equals(invoice.get("status"))) return; // Reenvio seguro.
+                        "paid", rs.getTimestamp("paid_at") != null) : null, invoiceId);
+        if (invoice == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mensalidade não encontrada.");
+        if ("CANCELLED".equals(invoice.get("status"))) return; // Reenvio idempotente.
+
         boolean verified = Boolean.TRUE.equals(db.queryForObject(
                 "SELECT EXISTS(SELECT 1 FROM gs_verified_payment WHERE invoice_id=?)",
                 Boolean.class, invoiceId));
         assertLocallyCancelable((String)invoice.get("status"), (boolean)invoice.get("paid"), verified);
 
         List<Map<String,String>> checkouts = db.query("""
-                SELECT status, provider_payment_id
-                  FROM gs_invoice_checkout
-                 WHERE invoice_id=?
+                SELECT status,provider_payment_id FROM gs_invoice_checkout WHERE invoice_id=?
                 """, (rs,row) -> {
-            java.util.Map<String,String> fields = new java.util.HashMap<>();
-            fields.put("status", rs.getString("status"));
-            fields.put("paymentId", rs.getString("provider_payment_id"));
-            return fields;
-        }, invoiceId);
+                    Map<String,String> values = new HashMap<>();
+                    values.put("status",rs.getString("status"));
+                    values.put("paymentId",rs.getString("provider_payment_id"));
+                    return values;
+                }, invoiceId);
 
         String paymentId = null;
         if (!checkouts.isEmpty()) {
@@ -69,38 +63,39 @@ public class PlatformInvoiceCancellationService {
             paymentId = checkout.get("paymentId");
             if (!"CREATED".equals(checkout.get("status")) || paymentId == null || paymentId.isBlank())
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "Cobrança com emissão inconclusiva. Concilie o estado do Asaas antes de excluir.");
-            // Não alterar o banco enquanto o provedor não confirmar o cancelamento.
+                        "Emissão inconclusiva. Concilie o boleto no Asaas antes de excluir.");
+            // Nunca ocultar a cobrança local antes de confirmar a remoção no provedor.
             asaas.cancelUnpaidPayment(invoiceId, paymentId, (BigDecimal)invoice.get("amount"));
-            int checkoutChanged = db.update("""
+            int updated = db.update("""
                     UPDATE gs_invoice_checkout SET status='CANCELLED',invoice_url=NULL,updated_at=NOW()
                      WHERE invoice_id=? AND status='CREATED' AND provider_payment_id=?
                     """, invoiceId, paymentId);
-            if (checkoutChanged != 1)
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Cobrança alterada durante o cancelamento.");
+            if(updated != 1)
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Cobrança alterada durante o cancelamento. Atualize e tente novamente.");
         }
 
-        int changed = db.update("""
+        int updated = db.update("""
                 UPDATE platform_company_invoices SET status='CANCELLED',updated_at=NOW()
                  WHERE id=? AND status IN ('PENDING','OVERDUE') AND paid_at IS NULL
-                   AND NOT EXISTS (SELECT 1 FROM gs_verified_payment WHERE invoice_id=platform_company_invoices.id)
+                   AND NOT EXISTS(SELECT 1 FROM gs_verified_payment WHERE invoice_id=platform_company_invoices.id)
                 """, invoiceId);
-        if (changed != 1)
+        if(updated != 1)
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "A mensalidade mudou de situação antes do cancelamento. Atualize e tente novamente.");
+                    "A mensalidade mudou de situação antes do cancelamento.");
 
         db.update("""
                 INSERT INTO gs_cloud_audit(id,company_id,action,operator,message,created_at)
                 VALUES (?,?,?,?,?,NOW())
                 """, UUID.randomUUID(), invoice.get("companyId"), "COMPANY_INVOICE_CANCELLED",
-                operator, "Competência " + invoice.get("reference") + " cancelada no Control Plane"
-                        + (paymentId == null ? " (não emitida)." : " e no Asaas (pagamento " + paymentId + ").")
-                        + " ID interno=" + invoiceId);
+                operator, "Mensalidade " + invoice.get("reference") + " arquivada no Control Plane"
+                    + (paymentId == null ? " (não emitida)." : " e cancelada no Asaas (pagamento " + paymentId + ").")
+                    + " ID interno=" + invoiceId);
     }
 
-    static void assertLocallyCancelable(String status, boolean alreadyPaid, boolean verified) {
-        if (!Set.of("PENDING", "OVERDUE").contains(status) || alreadyPaid || verified)
+    static void assertLocallyCancelable(String status, boolean paid, boolean verified) {
+        if (!Set.of("PENDING","OVERDUE").contains(status) || paid || verified)
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "A exclusão só é permitida para mensalidades não pagas e sem confirmação de recebimento.");
+                    "Somente mensalidades não pagas e sem confirmação financeira podem ser excluídas.");
     }
 }

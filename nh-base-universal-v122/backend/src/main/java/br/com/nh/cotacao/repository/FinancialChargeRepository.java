@@ -28,16 +28,4 @@ public interface FinancialChargeRepository extends JpaRepository<FinancialCharge
         """,nativeQuery=true)
     List<FinancialCharge> lockPendingAdvanceCharges();
     Optional<FinancialCharge> findFirstByVehicle_IdAndChargeTypeOrderByCreatedAtAsc(UUID vehicleId, FinancialChargeType type);
-
-    /** Recuperação de webhooks perdidos: só títulos existentes e associados à carteira Asaas. */
-    @org.springframework.data.jpa.repository.Query(value="""
-        SELECT c.id FROM financial_charges c
-        JOIN commercial_vehicles v ON v.id=c.vehicle_id
-        WHERE c.charge_type='ADHESION' AND c.provider_payment_id IS NOT NULL
-          AND (c.status IN ('PENDING','OVERDUE','CONFIRMED','ERROR')
-               OR (c.status='RECEIVED' AND v.status='PENDING_PAYMENT'))
-        ORDER BY c.updated_at ASC, c.id
-        LIMIT 30
-        """, nativeQuery=true)
-    List<UUID> findAdhesionChargesNeedingReconciliation();
 }

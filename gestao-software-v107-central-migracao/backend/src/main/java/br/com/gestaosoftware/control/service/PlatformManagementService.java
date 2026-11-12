@@ -1131,8 +1131,8 @@ public class PlatformManagementService {
     private Map<String, Object> invoiceMap(ResultSet rs) throws SQLException {
         return mapOf("id", rs.getObject("id", UUID.class), "referenceMonth", localDate(rs,"reference_month"),
                 "amount", money(rs.getBigDecimal("amount")), "dueDate", localDate(rs,"due_date"), "status", rs.getString("status"),
-                "paidAt", offset(rs,"paid_at"), "notes", rs.getString("notes"), "providerLinked", rs.getBoolean("provider_linked"), "paymentVerified", rs.getBoolean("payment_verified"),
-                "createdAt", offset(rs,"created_at"), "updatedAt", offset(rs,"updated_at"));
+                "paidAt", offset(rs,"paid_at"), "notes", rs.getString("notes"), "providerLinked", rs.getBoolean("provider_linked"),
+                "paymentVerified", rs.getBoolean("payment_verified"), "createdAt", offset(rs,"created_at"), "updatedAt", offset(rs,"updated_at"));
     }
 
     private Map<String, Object> expenseMap(ResultSet rs) throws SQLException {

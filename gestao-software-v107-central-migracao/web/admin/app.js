@@ -557,7 +557,7 @@ document.addEventListener('click',async e=>{
   const deleteInvoice=e.target.closest('[data-delete-invoice]');if(deleteInvoice){
     const invoiceId=deleteInvoice.dataset.deleteInvoice;
     const competence=deleteInvoice.dataset.deleteInvoiceMonth||'esta competência';
-    if(await confirmCompanyAction({title:'Excluir mensalidade',description:`Excluir a mensalidade ${competence}? Se existir boleto emitido e não pago, ele será excluído no Asaas e desaparecerá do painel da empresa-cliente. Pagamentos confirmados serão bloqueados. O registro permanecerá arquivado para auditoria.`,confirmLabel:'Excluir mensalidade',danger:true})){
+    if(await confirmCompanyAction({title:'Excluir mensalidade',description:`Excluir a mensalidade ${competence}? Se houver boleto emitido e não pago, ele será cancelado no Asaas e desaparecerá do painel da empresa-cliente. Pagamentos confirmados serão bloqueados. O registro continuará arquivado para auditoria.`,confirmLabel:'Excluir mensalidade',danger:true})){
       deleteInvoice.disabled=true;
       try{
         await api(`/api/platform/invoices/${invoiceId}`,{method:'DELETE'});

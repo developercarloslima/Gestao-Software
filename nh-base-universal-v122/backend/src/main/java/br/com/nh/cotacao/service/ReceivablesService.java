@@ -190,8 +190,7 @@ public class ReceivablesService {
         }
         List<FinancialCharge> issued = charges.findAllByVehicle_IdOrderByDueDateDescCreatedAtDesc(vehicle.getId())
                 .stream()
-                .filter(c -> (c.getBillingType() == FinancialBillingType.BOLETO
-                        || c.getChargeType() == FinancialChargeType.ADHESION)
+                .filter(c -> c.getBillingType() == FinancialBillingType.BOLETO
                         && c.getProviderPaymentId() != null
                         && !c.getProviderPaymentId().isBlank()
                         && c.getStatus() != FinancialChargeStatus.CANCELLED)

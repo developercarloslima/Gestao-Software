@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const script=fs.readFileSync(path.join(__dirname,'..','app.js'),'utf8');
-test('exclusão de boleto emitido não pago exige recurso da API e autorização de sócio',()=>{
+test('exclusão de boleto não pago exige autorização, API atualizada e confirmação',()=>{
   assert.match(script,/canManageCompanyLifecycle\(\)\&\&c\.invoiceDeletionAvailable===true/);
   assert.match(script,/!i\.paymentVerified/);
   assert.match(script,/\['PENDING','OVERDUE'\]\.includes\(i\.status\)/);

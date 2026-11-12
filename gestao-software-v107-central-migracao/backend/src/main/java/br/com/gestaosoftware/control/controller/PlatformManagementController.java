@@ -144,7 +144,7 @@ public class PlatformManagementController {
         return service.generateInvoice(id, input);
     }
 
-    /** Cancela a cobrança não paga no Asaas antes de arquivar a mensalidade na Gestão. */
+    /** Arquiva na Gestão após o Asaas confirmar exclusão da cobrança não paga. */
     @DeleteMapping("/invoices/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteInvoice(@PathVariable UUID id, Authentication authentication) {
