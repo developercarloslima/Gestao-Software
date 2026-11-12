@@ -133,9 +133,10 @@ public class TenantCompanyInvoicesController {
                     && verifiedInvoiceUrl(link) ? link : null);
             return invoice;
         }, companyId);
-        List<Map<String, Object>> visibleInvoices = withExpectedMonthlyInstallments(result, invoices);
+        List<Map<String, Object>> visibleInvoices = withExpectedMonthlyInstallments(result, invoices).stream()
+                .filter(invoice -> !"CANCELLED".equals(invoice.get("status"))).toList();
         result.put("invoices", visibleInvoices);
-        result.put("invoiceCount", invoices.size()); // Somente faturas efetivamente registradas.
+        result.put("invoiceCount", invoices.stream().filter(i -> !"CANCELLED".equals(i.get("status"))).count()); // Somente faturas efetivamente registradas.
         result.put("displayedInstallmentCount", visibleInvoices.size());
         result.put("renewal", billingSchedule.status(companyId));
         BigDecimal overdue = BigDecimal.ZERO;
