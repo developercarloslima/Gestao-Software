@@ -21,7 +21,7 @@ class PlatformManagementControllerCompanyLifecycleTest {
     @Test
     void carlosCanDeactivateAndReactivate() {
         PlatformManagementService service = mock(PlatformManagementService.class);
-        PlatformManagementController controller = new PlatformManagementController(service);
+        PlatformManagementController controller = new PlatformManagementController(service, mock(PlatformInvoiceCancellationService.class));
         UUID id = UUID.randomUUID();
 
         controller.deactivateCompany(id, auth("carlos.lima"));
@@ -34,7 +34,7 @@ class PlatformManagementControllerCompanyLifecycleTest {
     @Test
     void pedroCanArchiveAnyCompanyWithoutControllerPreconditions() {
         PlatformManagementService service = mock(PlatformManagementService.class);
-        PlatformManagementController controller = new PlatformManagementController(service);
+        PlatformManagementController controller = new PlatformManagementController(service, mock(PlatformInvoiceCancellationService.class));
         UUID id = UUID.randomUUID();
 
         controller.deleteCompany(id, auth("pedro.henrique"));
@@ -45,7 +45,7 @@ class PlatformManagementControllerCompanyLifecycleTest {
     @Test
     void bothOwnersCanSaveCompanyEditsUsingTheirAuthenticatedIdentity() {
         PlatformManagementService service = mock(PlatformManagementService.class);
-        PlatformManagementController controller = new PlatformManagementController(service);
+        PlatformManagementController controller = new PlatformManagementController(service, mock(PlatformInvoiceCancellationService.class));
         UUID id = UUID.randomUUID();
         PlatformManagementService.CompanyInput input = mock(PlatformManagementService.CompanyInput.class);
 
@@ -58,9 +58,26 @@ class PlatformManagementControllerCompanyLifecycleTest {
     }
 
     @Test
+    void onlyOwnersCanDeleteUnpaidInvoices() {
+        PlatformManagementService service = mock(PlatformManagementService.class);
+        PlatformInvoiceCancellationService cancellation = mock(PlatformInvoiceCancellationService.class);
+        PlatformManagementController controller = new PlatformManagementController(service, cancellation);
+        UUID invoiceId = UUID.randomUUID();
+
+        controller.deleteInvoice(invoiceId, auth("carlos.lima"));
+        controller.deleteInvoice(invoiceId, auth("pedro.henrique"));
+        verify(cancellation).cancelInvoice(invoiceId, "carlos.lima");
+        verify(cancellation).cancelInvoice(invoiceId, "pedro.henrique");
+
+        assertThrows(ResponseStatusException.class, () -> controller.deleteInvoice(invoiceId, auth("outro.admin")));
+        assertThrows(ResponseStatusException.class, () -> controller.deleteInvoice(invoiceId, null));
+        verifyNoInteractions(service);
+    }
+
+    @Test
     void otherAdministratorsCannotChangeCompanyLifecycle() {
         PlatformManagementService service = mock(PlatformManagementService.class);
-        PlatformManagementController controller = new PlatformManagementController(service);
+        PlatformManagementController controller = new PlatformManagementController(service, mock(PlatformInvoiceCancellationService.class));
         UUID id = UUID.randomUUID();
         Authentication otherAdmin = auth("outro.admin");
 
